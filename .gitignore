@@ -1,0 +1,72 @@
+# Node
+node_modules/
+bun.lockb
+
+# Build
+/dist/
+/build/
+
+# Vite
+.vite/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Env
+.env
+.env.*
+
+# Misc
+*.tmp
+*.bak
+
+# Coverage
+coverage/
+
+# Others
+*.tgz
+
+# Tailwind
+*.css.map
+
+# TypeScript
+*.tsbuildinfo
+
+# Test
+/coverage/
+
+# Public
+public/*.svg
+public/*.ico
+public/*.txt
+
+# Ignore local configs
+components.json
+
+# Ignore generated files
+*.lock
+
+# Ignore backups
+*.old
+*.backup
+
+# Ignore system files
+*.orig
+
+# Ignore package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Ignore output
+out/
