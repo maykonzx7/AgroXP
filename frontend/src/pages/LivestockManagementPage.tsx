@@ -23,7 +23,7 @@ import PreviewPrintButton from '@/components/common/PreviewPrintButton';
 
 import { StatisticsProvider } from '../contexts/StatisticsContext';
 import { CRMProvider, useCRM } from '../contexts/CRMContext';
-import useSpacing from '../hooks/use-spacing';
+import useSpacing from '@/hooks/use-spacing';
 
 
 const LivestockPage = () => {

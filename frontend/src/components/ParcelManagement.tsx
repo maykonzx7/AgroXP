@@ -74,6 +74,11 @@ interface ParcelData {
   photos?: string[];
 }
 
+interface ParcelManagementProps {
+  searchTerm?: string;
+  filterStatus?: string;
+}
+
 // Dados iniciais das parcelas
 const initialParcelData: ParcelData[] = [
   { 
@@ -248,11 +253,9 @@ const ParcelCard = ({
   );
 };
 
-const ParcelManagement = () => {
+const ParcelManagement = ({ searchTerm = '', filterStatus = 'all' }: ParcelManagementProps) => {
   const [parcels, setParcels] = useState<ParcelData[]>(initialParcelData);
   const [selectedParcel, setSelectedParcel] = useState<ParcelData | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState('all');
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedParcel, setEditedParcel] = useState<ParcelData | null>(null);
   
@@ -262,8 +265,8 @@ const ParcelManagement = () => {
                          parcel.crop.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          parcel.soilType.toLowerCase().includes(searchTerm.toLowerCase());
     
-    if (filter === 'all') return matchesSearch;
-    return matchesSearch && parcel.status === filter;
+    if (filterStatus === 'all') return matchesSearch;
+    return matchesSearch && parcel.status === filterStatus;
   });
 
   const handleSelectParcel = (parcel: ParcelData) => {
@@ -341,32 +344,6 @@ const ParcelManagement = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Coluna da esquerda - Lista de parcelas */}
         <div className="lg:col-span-1 space-y-4">
-          <div className="flex gap-3 mb-4">
-            <div className="relative flex-grow">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input 
-                type="text" 
-                placeholder="Pesquisar..." 
-                className="pl-10 pr-4 py-2 w-full border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="relative">
-              <select 
-                className="appearance-none pl-3 pr-8 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring bg-white"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-              >
-                <option value="all">Todos</option>
-                <option value="active">Ativa</option>
-                <option value="inactive">Inativa</option>
-                <option value="planned">Planejada</option>
-              </select>
-              <Filter className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            </div>
-          </div>
-
           <div className="space-y-3 max-h-[calc(100vh-220px)] overflow-y-auto pr-2 custom-scrollbar">
             {filteredParcels.length > 0 ? (
               filteredParcels.map(parcel => (
@@ -590,6 +567,21 @@ const ParcelManagement = () => {
                         {selectedParcel.notes || <span className="text-muted-foreground italic">Nenhuma nota para esta parcela</span>}
                       </div>
                     )}
+                  </div>
+                  
+                  {/* Photo upload section */}
+                  <div className="border rounded-lg p-4 md:col-span-2">
+                    <ParcelPhotoUpload 
+                      photos={selectedParcel.photos || []}
+                      onPhotosChange={(photos) => {
+                        if (isEditMode && editedParcel) {
+                          setEditedParcel({...editedParcel, photos});
+                        } else {
+                          setSelectedParcel({...selectedParcel, photos});
+                        }
+                      }}
+                      isEditing={isEditMode}
+                    />
                   </div>
                 </div>
               </div>

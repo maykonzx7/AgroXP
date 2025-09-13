@@ -11,7 +11,7 @@ import { BarChart, PieChart, TrendingUp, Download, Filter, RefreshCw, Bell, Prin
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import PreviewPrintButton from '@/components/common/PreviewPrintButton';
-import useSpacing from '../hooks/use-spacing';
+import useSpacing from '@/hooks/use-spacing';
 
 interface PerformanceData {
   name: string;

@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
-import useSpacing from '../hooks/use-spacing';
+import useSpacing from '@/hooks/use-spacing';
 
 const InventoryPage = () => {
   const { toast: shadowToast } = useToast();
@@ -32,7 +32,6 @@ const InventoryPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
-  const spacing = useSpacing();
   
   const { 
     title, 
@@ -43,6 +42,8 @@ const InventoryPage = () => {
     defaultTitle: 'Gestão de Estoques e Colheitas',
     defaultDescription: 'Gerencie seu inventário e acompanhe os níveis de estoque de suas culturas'
   });
+  
+  const spacing = useSpacing();
 
   const handleExportData = () => {
     if (activeTab === 'inventory') {

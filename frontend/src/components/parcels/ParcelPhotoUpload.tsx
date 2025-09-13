@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Camera, Upload, X, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ const ParcelPhotoUpload = ({ photos, onPhotosChange, isEditing }: ParcelPhotoUpl
   const [showUpload, setShowUpload] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -37,8 +38,15 @@ const ParcelPhotoUpload = ({ photos, onPhotosChange, isEditing }: ParcelPhotoUpl
 
   const handleRemovePhoto = (index: number) => {
     const newPhotos = [...photos];
+    const removedPhoto = newPhotos[index];
     newPhotos.splice(index, 1);
     onPhotosChange(newPhotos);
+    
+    // Clean up the object URL to avoid memory leaks
+    if (removedPhoto.startsWith('blob:')) {
+      URL.revokeObjectURL(removedPhoto);
+    }
+    
     toast.success('Foto removida');
   };
 
@@ -46,6 +54,12 @@ const ParcelPhotoUpload = ({ photos, onPhotosChange, isEditing }: ParcelPhotoUpl
     setShowUpload(false);
     setSelectedFile(null);
     setPreviewUrl(null);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
     // Clean up the preview URL to avoid memory leaks
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
@@ -102,6 +116,7 @@ const ParcelPhotoUpload = ({ photos, onPhotosChange, isEditing }: ParcelPhotoUpl
               type="file" 
               accept="image/*"
               onChange={handleFileChange}
+              ref={fileInputRef}
               className="max-w-xs mb-3"
             />
             
