@@ -17,8 +17,7 @@ import SpecificCrops from '../components/SpecificCrops';
 import CropPlanning from '../components/cultures/CropPlanningForm';
 import PreviewPrintButton from '@/components/common/PreviewPrintButton';
 
-import { StatisticsProvider } from '../contexts/StatisticsContext';
-import { CRMProvider, useCRM } from '../contexts/CRMContext';
+import { useCRM } from '../contexts/CRMContext';
 
 
 const CropsPage = () => {
@@ -26,7 +25,7 @@ const CropsPage = () => {
   const { getModuleData } = useCRM();
   
   // Obter dados da colheita para visualização/impressão
-  const harvestData = getModuleData('cultures').items || [];
+  const harvestData = getModuleData('cultures')?.items || [];
   
   // Colunas de impressão para diferentes abas
   const printColumns = {
@@ -120,7 +119,7 @@ const CropsPage = () => {
         return (
           <div className="flex flex-wrap gap-2">
             <PreviewPrintButton 
-              data={getModuleData('cultures').items || []}
+              data={getModuleData('cultures')?.items || []}
               moduleName="cultures"
               title="Culturas Específicas"
               columns={printColumns.specific}
@@ -217,34 +216,23 @@ const CropsPage = () => {
   ];
 
   return (
-    <CRMProvider>
-      <StatisticsProvider>
-        <PageLayout>
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="p-6 animate-enter"
-          >
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-              <div>
-                <h1 className="text-3xl font-bold">Gerenciamento de Culturas</h1>
-                <p className="text-muted-foreground">
-                  Gerencie suas culturas tropicais e acompanhe seu rendimento
-                </p>
-              </div>
-              {getTabActions()}
-            </div>
-            
-            <TabContainer 
-              tabs={tabs}
-              defaultValue={activeTab}
-              onValueChange={handleTabChange}
-            />
-          </motion.div>
-        </PageLayout>
-      </StatisticsProvider>
-    </CRMProvider>
+    <PageLayout>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Gestão de Culturas</h1>
+          <p className="text-muted-foreground">Gerencie suas culturas e acompanhe o progresso</p>
+        </div>
+        <div className="flex space-x-2">
+          {getTabActions()}
+        </div>
+      </div>
+      
+      <TabContainer 
+        tabs={tabs}
+        defaultValue={activeTab}
+        onValueChange={handleTabChange}
+      />
+    </PageLayout>
   );
 };
 

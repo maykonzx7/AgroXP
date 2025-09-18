@@ -24,7 +24,7 @@ const initialCultureData = [
     scientificName: "Dioscorea alata",
     family: "Dioscoreaceae",
     origin: "Ásia do Sudeste",
-    growingSeason: "Mai-Dezembro",
+    growingSeason: "Maio-Dezembro",
     soilType: "Argiloso, bem drenado",
     waterNeeds: "Moderado",
     fertilization: "NPK 10-10-20",

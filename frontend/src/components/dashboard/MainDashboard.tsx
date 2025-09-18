@@ -70,7 +70,6 @@ import { useToast } from '@/hooks/use-toast';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import PreviewPrintButton from '@/components/common/PreviewPrintButton';
-import { useStatistics } from '@/contexts/StatisticsContext';
 
 // Dados de exemplo para gráficos - Adaptado para o Brasil
 const revenueData = [

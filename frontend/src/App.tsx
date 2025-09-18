@@ -9,11 +9,9 @@ import CropsPage from "./pages/CropsManagementPage";
 import LivestockPage from "./pages/LivestockManagementPage";
 import InventoryPage from "./pages/InventoryManagementPage";
 import FinancePage from "./pages/FinancialManagementPage";
-import StatsPage from "./pages/StatsPage";
 import NotFound from "./pages/NotFound";
 import { useEffect } from "react";
 import { CRMProvider } from "./contexts/CRMContext";
-import { StatisticsProvider } from "./contexts/StatisticsContext";
 import { AppSettingsProvider } from "./contexts/AppSettingsContext";
 import { trackPageView } from "./utils/analytics";
 
@@ -26,9 +24,7 @@ const routes = [
   { path: "/pecuaria", element: <LivestockPage /> },
   { path: "/inventario", element: <InventoryPage /> },
   { path: "/financas", element: <FinancePage /> },
-  { path: "/estatisticas", element: <StatisticsProvider><StatsPage /></StatisticsProvider> },
-  { path: "/relatorios", element: <Navigate to="/estatisticas" replace /> },
-  { path: "/configuracoes", element: <Navigate to="/" replace /> },
+  
   { path: "/dashboard", element: <Navigate to="/" replace /> },
   { path: "*", element: <NotFound /> }
 ];

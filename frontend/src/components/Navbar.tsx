@@ -42,8 +42,6 @@ const Navbar = () => {
     { title: 'Pecuária', path: '/pecuaria', icon: Users },
     { title: 'Inventário', path: '/inventario', icon: Package },
     { title: 'Finanças', path: '/financas', icon: Wallet },
-    { title: 'Estatísticas', path: '/estatisticas', icon: BarChart2 },
-    { title: 'Relatórios', path: '/relatorios', icon: FileText },
     { title: 'Configurações', path: '/configuracoes', icon: Settings },
   ];
 
@@ -117,7 +115,7 @@ const Navbar = () => {
               <span className="text-sm font-medium">AD</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">Vando</p>
+              <p className="text-sm font-medium truncate">VrumVrum</p>
               <p className="text-xs text-muted-foreground truncate">agricultor@example.com</p>
             </div>
           </div>

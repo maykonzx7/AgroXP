@@ -42,7 +42,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
-import ReportGenerationButton from '@/components/common/ReportGenerationButton';
+
 
 import usePageMetadata from '../hooks/use-page-metadata';
 import { useCRM } from '../contexts/CRMContext';
@@ -228,14 +228,7 @@ const ParcelsPage = () => {
               <Layers className="mr-2 h-4 w-4" />
               Camadas
             </Button>
-            <ReportGenerationButton 
-              moduleName="parcelles" 
-              variant="ghost" 
-              className="w-full justify-start px-2"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Relatórios
-            </ReportGenerationButton>
+            
           </div>
         </PopoverContent>
       </Popover>

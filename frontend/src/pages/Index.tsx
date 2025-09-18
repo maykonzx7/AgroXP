@@ -82,7 +82,6 @@ import {
 
 import { EditableField } from '@/components/ui/editable-field';
 import { useCRM } from '../contexts/CRMContext';
-import { StatisticsProvider } from '../contexts/StatisticsContext';
 import usePageMetadata from '../hooks/use-page-metadata';
 import useSpacing from '@/hooks/use-spacing';
 import { toast } from 'sonner';
@@ -223,11 +222,7 @@ const Index = () => {
     {
       value: 'dashboard',
       label: 'Painel de Controle',
-      content: (
-        <StatisticsProvider>
-          <Dashboard />
-        </StatisticsProvider>
-      )
+      content: <Dashboard />
     },
     {
       value: 'harvest',

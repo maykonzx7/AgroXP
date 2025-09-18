@@ -1,0 +1,1 @@
+export { default as DeathRegistrationModal } from './DeathRegistrationModal';

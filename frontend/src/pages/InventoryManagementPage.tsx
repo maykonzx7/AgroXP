@@ -7,13 +7,12 @@ import SpecificCrops from '../components/SpecificCrops';
 import HarvestTracking from '../components/HarvestTracking';
 import WeatherAlerts from '../components/WeatherAlerts';
 import { Button } from '../components/ui/button';
-import { Download, Plus, Upload, FileUp, FileDown, BarChart2, Calendar, Package } from 'lucide-react';
+import { Download, Plus, Upload, FileUp, FileDown, BarChart2, Calendar, Package, Leaf } from 'lucide-react';
 import { CalendarDateRangePicker } from '../components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { useToast } from "@/hooks/use-toast";
 import usePageMetadata from '../hooks/use-page-metadata';
 import { downloadInventoryTemplate } from '../components/inventory/ImportExportFunctions';
-import { StatisticsProvider } from '../contexts/StatisticsContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -189,15 +188,6 @@ const InventoryPage = () => {
     );
   };
 
-  const cropsContent = (
-    <StatisticsProvider>
-      <div className="space-y-8">
-        <SpecificCrops />
-        <HarvestTracking />
-      </div>
-    </StatisticsProvider>
-  );
-
   const tabs: TabItem[] = [
     {
       value: 'inventory',
@@ -207,7 +197,7 @@ const InventoryPage = () => {
     {
       value: 'crops',
       label: 'Culturas',
-      content: cropsContent
+      content: <SpecificCrops />
     },
     {
       value: 'weather',

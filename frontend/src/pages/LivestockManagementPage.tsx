@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Plus, Filter, RefreshCw, CalendarRange } from 'lucide-react';
+import { Download, Plus, Filter, RefreshCw, CalendarRange, Upload } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { 
@@ -19,10 +20,10 @@ import VaccinationManagement from '../components/VaccinationManagement';
 import ReproductionManagement from '../components/ReproductionManagement';
 import VeterinarySupplyManagement from '../components/VeterinarySupplyManagement';
 import SupplyUsageManagement from '../components/SupplyUsageManagement';
+import BatchLivestockRegistration from '../components/BatchLivestockRegistration';
 import PreviewPrintButton from '@/components/common/PreviewPrintButton';
 
-import { StatisticsProvider } from '../contexts/StatisticsContext';
-import { CRMProvider, useCRM } from '../contexts/CRMContext';
+import { useCRM } from '../contexts/CRMContext';
 import useSpacing from '@/hooks/use-spacing';
 
 
@@ -32,7 +33,7 @@ const LivestockPage = () => {
   const spacing = useSpacing();
   
   // Obter dados de pecuária para visualização/impressão
-  const livestockData = getModuleData('livestock').items || [];
+  const livestockData = getModuleData('livestock')?.items || [];
   
   // Colunas de impressão para diferentes abas
   const printColumns = {
@@ -126,7 +127,7 @@ const LivestockPage = () => {
         return (
           <div className={spacing.getActionButtonGroupClasses()}>
             <PreviewPrintButton 
-              data={getModuleData('livestock').items || []}
+              data={getModuleData('livestock')?.items || []}
               moduleName="livestock-specific"
               title="Pecuária Específica"
               columns={printColumns.specific}
@@ -306,6 +307,30 @@ const LivestockPage = () => {
             </Button>
           </div>
         );
+      case 'batch':
+        return (
+          <div className={spacing.getActionButtonGroupClasses()}>
+            <Button 
+              variant="outline" 
+              className="flex items-center gap-2 transition-colors"
+              onClick={() => {
+                console.log("Exportando dados de cadastro em lote");
+              }}
+            >
+              <Download className="h-4 w-4" />
+              Exportar Template
+            </Button>
+            <Button 
+              className="flex items-center gap-2 transition-colors"
+              onClick={() => {
+                console.log("Importando dados de cadastro em lote");
+              }}
+            >
+              <Upload className="h-4 w-4" />
+              Importar CSV
+            </Button>
+          </div>
+        );
       default:
         return null;
     }
@@ -318,6 +343,7 @@ const LivestockPage = () => {
       tracking: 'Acompanhamento de Pecuária',
       specific: 'Pecuária Específica',
       planning: 'Planejamento',
+      batch: 'Cadastro em Lote',
       feeding: 'Alimentação',
       vaccination: 'Vacinação',
       reproduction: 'Reprodução',
@@ -344,6 +370,11 @@ const LivestockPage = () => {
       value: 'planning',
       label: 'Planejamento',
       content: <LivestockPlanning />
+    },
+    {
+      value: 'batch',
+      label: 'Cadastro em Lote',
+      content: <BatchLivestockRegistration />
     },
     {
       value: 'feeding',
@@ -373,35 +404,25 @@ const LivestockPage = () => {
   ];
 
   return (
-    <CRMProvider>
-      <StatisticsProvider>
-        <PageLayout>
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className={spacing.getPageContainerClasses()}
-          >
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-              <div>
-                <h1 className="text-3xl font-bold">Gestão de Pecuária</h1>
-                <p className="text-muted-foreground">
-                  Gerencie seus animais e acompanhe sua saúde e produtividade
-                </p>
-              </div>
-              {getTabActions()}
-            </div>
-            
-            <TabContainer 
-              tabs={tabs}
-              defaultValue={activeTab}
-              onValueChange={handleTabChange}
-            />
-          </motion.div>
-        </PageLayout>
-      </StatisticsProvider>
-    </CRMProvider>
+    <PageLayout>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Gestão de Pecuária</h1>
+          <p className="text-muted-foreground">Gerencie seus animais e acompanhe o progresso</p>
+        </div>
+        <div className="flex space-x-2">
+          {getTabActions()}
+        </div>
+      </div>
+      
+      <TabContainer 
+        tabs={tabs}
+        defaultValue={activeTab}
+        onValueChange={handleTabChange}
+      />
+    </PageLayout>
   );
 };
 
 export default LivestockPage;
+

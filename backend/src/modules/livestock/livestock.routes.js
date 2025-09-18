@@ -42,12 +42,47 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Criar múltiplos animais (cadastro em lote)
+router.post('/batch', async (req, res) => {
+  try {
+    const { animals } = req.body;
+    
+    if (!Array.isArray(animals) || animals.length === 0) {
+      return res.status(400).json({ error: 'É necessário fornecer um array de animais para cadastro em lote' });
+    }
+    
+    const createdAnimals = await Livestock.bulkCreate(animals);
+    res.status(201).json(createdAnimals);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Atualizar um animal
 router.put('/:id', async (req, res) => {
   try {
     const livestock = await Livestock.findByPk(req.params.id);
     if (livestock) {
       await livestock.update(req.body);
+      res.json(livestock);
+    } else {
+      res.status(404).json({ error: 'Animal não encontrado' });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Registrar óbito de um animal
+router.patch('/:id/death', async (req, res) => {
+  try {
+    const livestock = await Livestock.findByPk(req.params.id);
+    if (livestock) {
+      // Atualizar o status para 'morto' e registrar a data de óbito
+      await livestock.update({
+        status: 'morto',
+        updatedAt: new Date()
+      });
       res.json(livestock);
     } else {
       res.status(404).json({ error: 'Animal não encontrado' });
