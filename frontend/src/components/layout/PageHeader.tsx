@@ -93,7 +93,7 @@ const PageHeader = ({
             <>
               <motion.div variants={itemVariants} className="flex items-center gap-2">
                 {icon && <span className="text-primary">{icon}</span>}
-                <h1 className="text-2xl font-bold mb-1">
+                <h1 className="text-2xl font-bold mb-1 text-foreground">
                   <EditableField
                     value={title}
                     onSave={onTitleChange}

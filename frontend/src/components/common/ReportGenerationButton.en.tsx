@@ -68,7 +68,7 @@ const ReportGenerationButton: React.FC<ReportGenerationButtonProps> = ({
       <DropdownMenuTrigger asChild>
         <Button
           variant={variant}
-          className={className || `bg-green-600 hover:bg-green-700 text-white`}
+          className={className || `bg-primary hover:bg-primary/90 text-primary-foreground`}
           disabled={isGenerating}
         >
           {isGenerating ? (

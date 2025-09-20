@@ -57,7 +57,7 @@ const Navbar = () => {
       <div className="fixed top-4 left-4 z-50 md:hidden">
         <button 
           onClick={toggleSidebar} 
-          className="p-2 bg-white rounded-full shadow-md hover:bg-gray-50 transition-all active:scale-95 dark:bg-gray-800 dark:hover:bg-gray-700"
+          className="p-2 bg-sidebar-background rounded-full shadow-md hover:bg-sidebar-accent transition-all active:scale-95 border border-sidebar-border"
           aria-label="Toggle navigation"
         >
           {isOpen ? <X size={20} /> : <Menu size={20} />}
@@ -66,7 +66,7 @@ const Navbar = () => {
 
       {/* Sidebar Navigation with improved animation and transitions */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-900 border-r border-border shadow-lg transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar-background border-r border-sidebar-border shadow-lg transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         } md:relative md:translate-x-0 flex flex-col h-full overflow-y-auto`}
       >

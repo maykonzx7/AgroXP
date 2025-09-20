@@ -14,10 +14,26 @@ interface AppSettingsContextType {
 }
 
 const defaultSettings: AppSettings = {
-  darkMode: false,
+  darkMode: true,
   locale: 'fr-FR',
   // Default values for other settings
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 };
+
+console.log('Default settings:', defaultSettings);
 
 const AppSettingsContext = createContext<AppSettingsContextType>({
   settings: defaultSettings,
@@ -38,24 +54,30 @@ export const AppSettingsProvider: React.FC<AppSettingsProviderProps> = ({ childr
     const savedSettings = localStorage.getItem('appSettings');
     if (savedSettings) {
       try {
-        return JSON.parse(savedSettings);
+        const parsedSettings = JSON.parse(savedSettings);
+        console.log('Loaded settings from localStorage:', parsedSettings);
+        return parsedSettings;
       } catch {
+        console.log('Failed to parse settings from localStorage, using defaults');
         return defaultSettings;
       }
     }
     
-    // Check system preference for dark mode
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    return { ...defaultSettings, darkMode: prefersDark };
+    // Default to dark mode as requested
+    console.log('Using default settings (dark mode):', defaultSettings);
+    return defaultSettings;
   });
 
   // Apply theme class to document element when darkMode changes
   useEffect(() => {
     if (settings.darkMode) {
       document.documentElement.classList.add('dark');
+      console.log('Dark class applied to document element');
     } else {
       document.documentElement.classList.remove('dark');
+      console.log('Dark class removed from document element');
     }
+    console.log('Current document classes:', document.documentElement.classList);
     
     // Save settings to localStorage
     localStorage.setItem('appSettings', JSON.stringify(settings));

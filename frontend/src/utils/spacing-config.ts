@@ -96,7 +96,7 @@ export const standardClasses = {
   sectionHeader: `flex flex-col md:flex-row md:justify-between md:items-center ${spacingConfig.header.marginBottom} gap-4`,
   
   // Card container
-  cardContainer: `bg-white rounded-xl border ${spacingConfig.card.padding} shadow-sm`,
+  cardContainer: `bg-card rounded-xl border ${spacingConfig.card.padding} shadow-sm`,
   
   // Action button group
   actionButtonGroup: `flex flex-wrap gap-2`,

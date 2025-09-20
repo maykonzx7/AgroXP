@@ -31,8 +31,8 @@ const InventoryAlerts: React.FC<InventoryAlertsProps> = ({ alerts, onQuantityCha
             key={alert.id} 
             className={`p-3 rounded-lg border ${
               alert.status === 'critical' 
-                ? 'border-agri-danger/30 bg-agri-danger/5' 
-                : 'border-agri-warning/30 bg-agri-warning/5'
+                ? 'border-agri-danger/30 bg-agri-danger/5 dark:border-agri-danger/50 dark:bg-agri-danger/10' 
+                : 'border-agri-warning/30 bg-agri-warning/5 dark:border-agri-warning/50 dark:bg-agri-warning/10'
             }`}
           >
             <div className="flex justify-between items-center">
@@ -40,8 +40,8 @@ const InventoryAlerts: React.FC<InventoryAlertsProps> = ({ alerts, onQuantityCha
               <span 
                 className={`text-xs px-2 py-0.5 rounded-full ${
                   alert.status === 'critical' 
-                    ? 'bg-agri-danger/10 text-agri-danger' 
-                    : 'bg-agri-warning/10 text-agri-warning'
+                    ? 'bg-agri-danger/10 text-agri-danger dark:bg-agri-danger/20' 
+                    : 'bg-agri-warning/10 text-agri-warning dark:bg-agri-warning/20'
                 }`}
               >
                 {alert.status === 'critical' ? 'Critique' : 'Attention'}

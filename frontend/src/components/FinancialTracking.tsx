@@ -353,7 +353,7 @@ const FinancialTracking = () => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-white">
+        <Card className="bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Receitas</CardTitle>
             <CardDescription>Total de entradas</CardDescription>
@@ -365,7 +365,7 @@ const FinancialTracking = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white">
+        <Card className="bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Despesas</CardTitle>
             <CardDescription>Total de saídas</CardDescription>
@@ -377,7 +377,7 @@ const FinancialTracking = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white">
+        <Card className="bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Saldo</CardTitle>
             <CardDescription>Receitas - Despesas</CardDescription>
@@ -395,7 +395,7 @@ const FinancialTracking = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-white">
+        <Card className="bg-card">
           <CardHeader>
             <CardTitle>Visão Mensal</CardTitle>
           </CardHeader>
@@ -431,7 +431,7 @@ const FinancialTracking = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-white">
+        <Card className="bg-card">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Transações Recentes</CardTitle>
             <div className="flex gap-2">

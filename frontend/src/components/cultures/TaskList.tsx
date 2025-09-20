@@ -46,7 +46,7 @@ const TaskList = () => {
       case 'Baixa':
         return 'bg-green-100 text-green-800 border-green-200';
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -93,7 +93,7 @@ const TaskList = () => {
   };
 
   return (
-    <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
+    <div className="bg-card rounded-xl border overflow-hidden shadow-sm">
       <div className="p-4 flex items-center justify-between border-b">
         <div className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-agri-primary" />
@@ -101,7 +101,7 @@ const TaskList = () => {
         </div>
         <Button 
           onClick={() => setShowAddTask(!showAddTask)}
-          className="bg-green-500 hover:bg-green-600 text-white transition-colors"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors"
         >
           <Plus className="h-4 w-4 mr-2" />
           Adicionar tarefa

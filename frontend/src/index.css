@@ -7,94 +7,96 @@
 
 @layer base {
   :root {
-    --background: 210 33% 99%;
-    --foreground: 215 25% 27%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 27%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 27%;
-
-    --primary: 142 43% 42%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 15 16% 47%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16% 56.9%;
-
-    --accent: 32 90% 65%;
-    --accent-foreground: 215 25% 27%;
-
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 142 43% 42%;
+    /* Cores padrão (modo claro) - formato HSL */
+    --background: 0 0% 100%; /* #ffffff */
+    --foreground: 222.2 84% 4.9%; /* #020817 */
+    
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 222.2 84% 4.9%; /* #020817 */
+    
+    --popover: 0 0% 100%; /* #ffffff */
+    --popover-foreground: 222.2 84% 4.9%; /* #020817 */
+    
+    --primary: 122 39% 39%; /* #4CAF50 */
+    --primary-foreground: 0 0% 100%; /* #ffffff */
+    
+    --secondary: 16 23% 38%; /* #8D6E63 */
+    --secondary-foreground: 0 0% 100%; /* #ffffff */
+    
+    --muted: 210 16% 95%; /* #f1f5f9 */
+    --muted-foreground: 215 14% 40%; /* #64748b */
+    
+    --accent: 36 95% 65%; /* #FFB74D */
+    --accent-foreground: 222.2 84% 4.9%; /* #020817 */
+    
+    --destructive: 0 72% 53%; /* #EF5350 */
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
+    
+    --border: 214.3 31.8% 91.4%; /* #e2e8f0 */
+    --input: 214.3 31.8% 91.4%; /* #e2e8f0 */
+    --ring: 122 39% 39%; /* #4CAF50 */
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 215 25% 27%;
-    --sidebar-primary: 142 43% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96.1%;
-    --sidebar-accent-foreground: 215 25% 27%;
-    --sidebar-border: 214.3 31.8% 91.4%;
-    --sidebar-ring: 142 43% 42%;
+    --sidebar-background: 0 0% 100%; /* #ffffff */
+    --sidebar-foreground: 222.2 84% 4.9%; /* #020817 */
+    --sidebar-primary: 122 39% 39%; /* #4CAF50 */
+    --sidebar-primary-foreground: 0 0% 100%; /* #ffffff */
+    --sidebar-accent: 210 16% 95%; /* #f1f5f9 */
+    --sidebar-accent-foreground: 222.2 84% 4.9%; /* #020817 */
+    --sidebar-border: 214.3 31.8% 91.4%; /* #e2e8f0 */
+    --sidebar-ring: 122 39% 39%; /* #4CAF50 */
   }
 
   .dark {
-    --background: 220 20% 10%;
-    --foreground: 0 0% 98%;
+    /* Paleta de cores fixa para o tema escuro - formato HSL */
+    --background: 220 20% 10%; /* #0c0c14 - Azul muito escuro, similar à barra de navegação */
+    --foreground: 0 0% 98%; /* #f8fafc - Branco acinzentado para textos */
+    
+    --card: 0 0% 7%; /* #121212 - Preto suave para cartões */
+    --card-foreground: 0 0% 98%; /* #f8fafc */
+    
+    --popover: 0 0% 7%; /* #121212 */
+    --popover-foreground: 0 0% 98%; /* #f8fafc */
+    
+    --primary: 142 43% 42%; /* #4ade80 - Verde primário mantido */
+    --primary-foreground: 0 0% 100%; /* #ffffff */
+    
+    --secondary: 215 16% 47%; /* #64748b - Cinza azulado para elementos secundários */
+    --secondary-foreground: 0 0% 100%; /* #ffffff */
+    
+    --muted: 215 25% 18%; /* #1e293b - Azul-acinzentado escuro para elementos muted */
+    --muted-foreground: 217.2 32.6% 65%; /* #94a3b8 */
+    
+    --accent: 28 90% 65%; /* #f97316 - Laranja para elementos de destaque */
+    --accent-foreground: 0 0% 7%; /* #121212 */
+    
+    --destructive: 0 72% 53%; /* #ef4444 - Vermelho para ações destrutivas */
+    --destructive-foreground: 0 0% 98%; /* #f8fafc */
+    
+    --border: 215 25% 18%; /* #334155 - Azul-acinzentado para bordas */
+    --input: 215 25% 18%; /* #334155 */
+    --ring: 142 43% 42%; /* #4ade80 - Verde para anéis de foco */
 
-    --card: 224 71% 4%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 224 71% 4%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 142 43% 42%;
-    --primary-foreground: 0 0% 100%;
-
-    --secondary: 15 16% 47%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 215 25% 18%;
-    --muted-foreground: 217.2 32.6% 65%;
-
-    --accent: 32 90% 65%;
-    --accent-foreground: 215 25% 27%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 215 25% 18%;
-    --input: 215 25% 18%;
-    --ring: 142 43% 42%;
-
-    --sidebar-background: 224 71% 4%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 142 43% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 25% 18%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 215 25% 18%;
-    --sidebar-ring: 142 43% 42%;
+    --sidebar-background: 220 20% 10%; /* #0c0c14 - Mesma cor do background principal */
+    --sidebar-foreground: 0 0% 98%; /* #f8fafc */
+    --sidebar-primary: 142 43% 42%; /* #4ade80 - Verde primário */
+    --sidebar-primary-foreground: 0 0% 100%; /* #ffffff */
+    --sidebar-accent: 215 25% 18%; /* #1e293b - Cor muted para elementos de destaque na barra lateral */
+    --sidebar-accent-foreground: 0 0% 98%; /* #f8fafc */
+    --sidebar-border: 215 25% 18%; /* #334155 - Mesma cor das bordas */
+    --sidebar-ring: 142 43% 42%; /* #4ade80 - Verde para anéis de foco */
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+@apply border-border;
   }
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-  }
+}
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-medium tracking-tight;
@@ -116,7 +118,7 @@
 @layer components {
   /* Glass UI components */
   .glass {
-    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-glass;
+    @apply bg-background/80 backdrop-blur-md border border-border shadow-glass;
   }
   
   .glass-hover {
@@ -129,7 +131,7 @@
   
   /* Dashboard cards */
   .dashboard-card {
-    @apply bg-white rounded-xl shadow-card p-5 border border-border/50;
+    @apply bg-card rounded-xl shadow-card p-5 border border-border;
   }
   
   /* Stat cards */

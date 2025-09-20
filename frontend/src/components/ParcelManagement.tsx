@@ -178,9 +178,9 @@ const ParcelCard = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-agri-success';
-      case 'inactive': return 'bg-agri-danger';
-      case 'planned': return 'bg-agri-warning';
-      default: return 'bg-gray-300';
+      case 'inactive': return 'bg-destructive';
+      case 'planned': return 'bg-warning';
+      default: return 'bg-muted';
     }
   };
 
@@ -204,7 +204,7 @@ const ParcelCard = ({
 
   return (
     <div 
-      className="border rounded-xl p-4 bg-white hover:shadow-md transition-shadow cursor-pointer card-hover"
+      className="border rounded-xl p-4 bg-card hover:shadow-md transition-shadow cursor-pointer card-hover"
       onClick={() => onSelect(parcel)}
     >
       <div className="flex justify-between items-start mb-3">
@@ -224,7 +224,7 @@ const ParcelCard = ({
           <Calendar className="h-4 w-4 mr-1.5" />
           <span>{new Date(parcel.lastActivity).toLocaleDateString()}</span>
         </div>
-        <div className="col-span-2 mt-1 py-1 px-2 bg-agri-primary/5 rounded-md text-center">
+        <div className="col-span-2 mt-1 py-1 px-2 bg-primary/5 rounded-md text-center">
           <span className="text-agri-primary font-medium">{parcel.crop}</span>
           {parcel.harvestDate && (
             <p className="text-xs mt-1">Colheita em: {calculateDays(parcel.harvestDate)} dias</p>
@@ -234,7 +234,7 @@ const ParcelCard = ({
       
       <div className="flex justify-between mt-2 pt-2 border-t border-border">
         <button 
-          className="p-1.5 hover:bg-gray-100 rounded"
+          className="p-1.5 hover:bg-muted rounded"
           onClick={(e) => {
             e.stopPropagation();
             onEdit(parcel);
@@ -242,10 +242,10 @@ const ParcelCard = ({
         >
           <Edit className="h-4 w-4 text-muted-foreground" />
         </button>
-        <button className="p-1.5 hover:bg-gray-100 rounded">
+        <button className="p-1.5 hover:bg-muted rounded">
           <MapPin className="h-4 w-4 text-muted-foreground" />
         </button>
-        <button className="p-1.5 hover:bg-gray-100 rounded text-agri-danger">
+        <button className="p-1.5 hover:bg-muted rounded text-destructive">
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
@@ -367,13 +367,13 @@ const ParcelManagement = ({ searchTerm = '', filterStatus = 'all' }: ParcelManag
         <div className="lg:col-span-2">
           {selectedParcel ? (
             <div className="border rounded-xl overflow-hidden h-full">
-              <div className="bg-agri-primary text-white p-4 flex justify-between items-center">
+              <div className="bg-primary text-primary-foreground p-4 flex justify-between items-center">
                 {isEditMode ? (
                   <input 
                     type="text" 
                     value={editedParcel?.name || ''} 
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className="px-2 py-1 bg-white/10 border border-white/30 rounded text-white text-xl w-full"
+                    className="px-2 py-1 bg-muted/10 border border-muted/30 rounded text-foreground text-xl w-full"
                   />
                 ) : (
                   <h2 className="text-xl font-semibold">{selectedParcel.name}</h2>
@@ -383,23 +383,23 @@ const ParcelManagement = ({ searchTerm = '', filterStatus = 'all' }: ParcelManag
                   <div className="flex space-x-2">
                     <button 
                       onClick={handleSaveEdit}
-                      className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full"
+                      className="p-1.5 bg-muted/10 hover:bg-muted/20 rounded-full"
                     >
-                      <Save className="h-5 w-5 text-white" />
+                      <Save className="h-5 w-5 text-foreground" />
                     </button>
                     <button 
                       onClick={handleCancelEdit}
-                      className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full"
+                      className="p-1.5 bg-muted/10 hover:bg-muted/20 rounded-full"
                     >
-                      <Trash2 className="h-5 w-5 text-white" />
+                      <Trash2 className="h-5 w-5 text-foreground" />
                     </button>
                   </div>
                 ) : (
                   <button 
                     onClick={() => handleEditStart(selectedParcel)}
-                    className="p-1.5 bg-white/10 hover:bg-white/20 rounded-full"
+                    className="p-1.5 bg-muted/10 hover:bg-muted/20 rounded-full"
                   >
-                    <Edit className="h-5 w-5 text-white" />
+                    <Edit className="h-5 w-5 text-foreground" />
                   </button>
                 )}
               </div>
@@ -461,19 +461,19 @@ const ParcelManagement = ({ searchTerm = '', filterStatus = 'all' }: ParcelManag
                           <label className="text-sm text-muted-foreground">Status</label>
                           <div className="flex space-x-2 mt-1">
                             <button 
-                              className={`px-3 py-1.5 text-xs rounded-md ${editedParcel?.status === 'active' ? 'bg-agri-success text-white' : 'bg-muted'}`}
+                              className={`px-3 py-1.5 text-xs rounded-md ${editedParcel?.status === 'active' ? 'bg-success text-success-foreground' : 'bg-muted'}`}
                               onClick={() => handleStatusChange('active')}
                             >
                               Ativa
                             </button>
                             <button 
-                              className={`px-3 py-1.5 text-xs rounded-md ${editedParcel?.status === 'planned' ? 'bg-agri-warning text-white' : 'bg-muted'}`}
+                              className={`px-3 py-1.5 text-xs rounded-md ${editedParcel?.status === 'planned' ? 'bg-warning text-warning-foreground' : 'bg-muted'}`}
                               onClick={() => handleStatusChange('planned')}
                             >
                               Planejada
                             </button>
                             <button 
-                              className={`px-3 py-1.5 text-xs rounded-md ${editedParcel?.status === 'inactive' ? 'bg-agri-danger text-white' : 'bg-muted'}`}
+                              className={`px-3 py-1.5 text-xs rounded-md ${editedParcel?.status === 'inactive' ? 'bg-destructive text-destructive-foreground' : 'bg-muted'}`}
                               onClick={() => handleStatusChange('inactive')}
                             >
                               Inativa
@@ -482,7 +482,7 @@ const ParcelManagement = ({ searchTerm = '', filterStatus = 'all' }: ParcelManag
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-agri-primary/10 rounded-lg p-3 text-center">
+                      <div className="bg-primary/10 rounded-lg p-3 text-center">
                         <span className="font-semibold text-agri-primary">{selectedParcel.crop}</span>
                         {selectedParcel.plantingDate && (
                           <p className="text-sm mt-1">Plantado em: {new Date(selectedParcel.plantingDate).toLocaleDateString()}</p>

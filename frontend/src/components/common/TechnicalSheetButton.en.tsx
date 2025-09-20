@@ -164,7 +164,7 @@ const TechnicalSheetButton: React.FC<TechnicalSheetButtonProps> = ({
         
         <div class="section mb-6">
           <h2 class="text-lg font-semibold ${isDarkMode ? 'text-blue-400' : 'text-blue-800'} border-b pb-2 mb-4">Notes</h2>
-          <div class="${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'} p-4 rounded-md">
+          <div class="${isDarkMode ? 'bg-card' : 'bg-background'} p-4 rounded-md">
             ${item.notes}
           </div>
         </div>
@@ -277,7 +277,7 @@ const TechnicalSheetButton: React.FC<TechnicalSheetButtonProps> = ({
                 <Button
                   variant={variant}
                   size={size}
-                  className={`transition-all duration-300 ${className || `bg-green-600 hover:bg-green-700 text-white`}`}
+                                    className={className || `bg-primary hover:bg-primary/90 text-primary-foreground`}
                   disabled={isGenerating}
                 >
                   {isGenerating ? (
@@ -290,7 +290,7 @@ const TechnicalSheetButton: React.FC<TechnicalSheetButtonProps> = ({
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-white border shadow-lg">
+              <DropdownMenuContent className="bg-background border shadow-lg">
                 <DropdownMenuItem onClick={handleShowPreview} className="cursor-pointer">
                   <Eye className="mr-2 h-4 w-4" />
                   <span>Preview</span>
@@ -306,7 +306,7 @@ const TechnicalSheetButton: React.FC<TechnicalSheetButtonProps> = ({
               </DropdownMenuContent>
             </DropdownMenu>
           </TooltipTrigger>
-          <TooltipContent className="bg-white border shadow-lg">
+          <TooltipContent className="bg-background border shadow-lg">
             <p>Generate a detailed technical sheet</p>
           </TooltipContent>
         </Tooltip>
@@ -320,7 +320,7 @@ const TechnicalSheetButton: React.FC<TechnicalSheetButtonProps> = ({
               Technical sheet preview
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-grow overflow-auto border rounded-md mt-4 bg-white">
+          <div className="flex-grow overflow-auto border rounded-md mt-4 bg-background">
             <iframe
               srcDoc={`
                 <!DOCTYPE html>

@@ -590,11 +590,11 @@ const Inventory: React.FC<InventoryProps> = ({ dateRange, searchTerm: externalSe
       {view === 'list' ? (
         selectedItem ? (
           <div className="border rounded-xl overflow-hidden">
-            <div className="bg-agri-primary text-white p-4 flex justify-between items-center">
+            <div className="bg-primary text-primary-foreground p-4 flex justify-between items-center">
               <div className="flex items-center">
                 <button 
                   onClick={() => setSelectedItem(null)}
-                  className="mr-3 hover:bg-white/10 p-1 rounded"
+                  className="mr-3 hover:bg-primary/10 p-1 rounded"
                   aria-label="Voltar para a lista"
                 >
                   <ChevronRight className="h-5 w-5 transform rotate-180" />
@@ -605,37 +605,37 @@ const Inventory: React.FC<InventoryProps> = ({ dateRange, searchTerm: externalSe
                   className="text-xl font-semibold"
                 />
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex space-x-2">
                 <Button 
-                  onClick={() => handleAddTransaction('in')}
-                  variant="outline"
-                  className="bg-white/10 hover:bg-white/20 text-white border-none"
+                  variant="outline" 
+                  size="sm"
+                  className="bg-primary/10 hover:bg-primary/20 text-primary-foreground border-none"
                 >
-                  <ArrowDown className="mr-1.5 h-4 w-4" />
-                  <span className="hidden sm:inline">Entrada</span>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Exportar
                 </Button>
                 <Button 
-                  onClick={() => handleAddTransaction('out')}
-                  variant="outline"
-                  className="bg-white/10 hover:bg-white/20 text-white border-none"
+                  variant="outline" 
+                  size="sm"
+                  className="bg-primary/10 hover:bg-primary/20 text-primary-foreground border-none"
                 >
-                  <ArrowUp className="mr-1.5 h-4 w-4" />
-                  <span className="hidden sm:inline">Saída</span>
+                  <FileUp className="h-4 w-4 mr-2" />
+                  Importar
                 </Button>
                 <Button 
-                  onClick={() => confirmDeleteItem(selectedItem.id)}
-                  variant="outline"
-                  className="bg-white/10 hover:bg-white/20 text-white border-none"
+                  variant="outline" 
+                  size="sm"
+                  className="bg-primary/10 hover:bg-primary/20 text-primary-foreground border-none"
                 >
-                  <Trash2 className="mr-1.5 h-4 w-4" />
-                  <span className="hidden sm:inline">Remover</span>
+                  <BarChart2 className="h-4 w-4 mr-2" />
+                  Estatísticas
                 </Button>
               </div>
             </div>
             
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-white rounded-lg border p-4">
+                <div className="bg-card rounded-lg border p-4">
                   <h3 className="font-medium mb-3">Detalhes do Item</h3>
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
@@ -701,7 +701,7 @@ const Inventory: React.FC<InventoryProps> = ({ dateRange, searchTerm: externalSe
                   </div>
                 </div>
                 
-                <div className="bg-white rounded-lg border p-4">
+                <div className="bg-card rounded-lg border p-4">
                   <h3 className="font-medium mb-3">Estatísticas</h3>
                   <div className="h-[200px]">
                     <ResponsiveContainer width="100%" height="100%">

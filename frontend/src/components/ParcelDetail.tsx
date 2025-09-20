@@ -223,7 +223,7 @@ const ParcelDetail = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl border p-6">
+      <div className="bg-card rounded-xl border p-6">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
           <div>
             <h2 className="text-xl font-bold flex items-center">

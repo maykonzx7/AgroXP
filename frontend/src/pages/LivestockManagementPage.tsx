@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import PageLayout from '../components/layout/PageLayout';
+import PageHeader from '../components/layout/PageHeader';
 import TabContainer, { TabItem } from '../components/layout/TabContainer';
 import LivestockTracking from '../components/LivestockTracking';
 import SpecificLivestock from '../components/SpecificLivestock';
@@ -24,6 +25,7 @@ import BatchLivestockRegistration from '../components/BatchLivestockRegistration
 import PreviewPrintButton from '@/components/common/PreviewPrintButton';
 
 import { useCRM } from '../contexts/CRMContext';
+import usePageMetadata from '../hooks/use-page-metadata';
 import useSpacing from '@/hooks/use-spacing';
 
 
@@ -31,6 +33,16 @@ const LivestockPage = () => {
   const [activeTab, setActiveTab] = useState<string>('tracking');
   const { getModuleData } = useCRM();
   const spacing = useSpacing();
+  
+  const { 
+    title, 
+    description, 
+    handleTitleChange, 
+    handleDescriptionChange 
+  } = usePageMetadata({
+    defaultTitle: 'Gestão de Pecuária',
+    defaultDescription: 'Gerencie seus animais e acompanhe o progresso'
+  });
   
   // Obter dados de pecuária para visualização/impressão
   const livestockData = getModuleData('livestock')?.items || [];
@@ -405,21 +417,22 @@ const LivestockPage = () => {
 
   return (
     <PageLayout>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Gestão de Pecuária</h1>
-          <p className="text-muted-foreground">Gerencie seus animais e acompanhe o progresso</p>
-        </div>
-        <div className="flex space-x-2">
-          {getTabActions()}
-        </div>
+      <div className={spacing.getPageContainerClasses()}>
+        <PageHeader 
+          title={title}
+          description={description}
+          onTitleChange={handleTitleChange}
+          onDescriptionChange={handleDescriptionChange}
+          actions={getTabActions()}
+          
+        />
+        
+        <TabContainer 
+          tabs={tabs}
+          defaultValue={activeTab}
+          onValueChange={handleTabChange}
+        />
       </div>
-      
-      <TabContainer 
-        tabs={tabs}
-        defaultValue={activeTab}
-        onValueChange={handleTabChange}
-      />
     </PageLayout>
   );
 };

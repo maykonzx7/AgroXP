@@ -38,7 +38,7 @@ const PreviewDialog: React.FC<PreviewDialogProps> = ({
             Preview before printing
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-grow overflow-auto border rounded-md mt-4 bg-white">
+        <div className="flex-grow overflow-auto border rounded-md mt-4 bg-background">
           <iframe
             srcDoc={`
               <!DOCTYPE html>

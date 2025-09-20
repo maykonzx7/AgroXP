@@ -278,7 +278,7 @@ const WeatherAlerts = () => {
   
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl border p-6">
+      <div className="bg-card rounded-xl border p-6">
         <div className="mb-6">
           <h2 className="text-xl font-bold flex items-center">
             <CloudLightning className="h-6 w-6 mr-2 text-purple-500" />

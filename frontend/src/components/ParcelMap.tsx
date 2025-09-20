@@ -35,7 +35,7 @@ const ParcelMap = ({ coordinates, parcelName, isEditing, onCoordinatesChange }: 
   };
   
   return (
-    <div className="relative w-full h-[300px] bg-gray-100 rounded-lg overflow-hidden">
+    <div className="relative w-full h-[300px] bg-muted rounded-lg overflow-hidden">
       {/* This would be replaced with an actual map component */}
       <div 
         className="w-full h-full bg-[#e8eef4] relative cursor-pointer"
@@ -60,20 +60,20 @@ const ParcelMap = ({ coordinates, parcelName, isEditing, onCoordinatesChange }: 
           }}
         >
           <MapPin className="h-8 w-8 text-agri-primary drop-shadow-md" />
-          <div className="bg-white px-2 py-0.5 rounded shadow text-xs mt-1">
+          <div className="bg-background px-2 py-0.5 rounded shadow text-xs mt-1">
             {parcelName}
           </div>
         </div>
         
         {/* Instruction for editing mode */}
         {isEditing && (
-          <div className="absolute bottom-2 left-0 right-0 text-center bg-white/80 py-1 text-xs">
+          <div className="absolute bottom-2 left-0 right-0 text-center bg-background/80 py-1 text-xs">
             Clique no mapa para mover o marcador
           </div>
         )}
         
         {/* Coordinates display */}
-        <div className="absolute top-2 right-2 bg-white px-2 py-1 text-xs rounded shadow">
+        <div className="absolute top-2 right-2 bg-background px-2 py-1 text-xs rounded shadow">
           Lat: {coordinates.lat} | Lng: {coordinates.lng}
         </div>
       </div>

@@ -136,7 +136,7 @@ const HarvestTracking = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="bg-card rounded-lg shadow p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div>
             <h2 className="text-xl font-bold mb-1">
@@ -200,7 +200,7 @@ const HarvestTracking = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+          <div className="bg-card p-4 rounded-lg border">
             <h3 className="text-lg font-semibold mb-4">Rendimento por Cultura</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={chartData}>
@@ -218,7 +218,7 @@ const HarvestTracking = () => {
             </ResponsiveContainer>
           </div>
           
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+          <div className="bg-card p-4 rounded-lg border">
             <h3 className="text-lg font-semibold mb-4">Distribuição por Área</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -243,8 +243,8 @@ const HarvestTracking = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
-          <h3 className="text-lg font-semibold mb-4">Dados de Colheita</h3>
+        <div className="bg-card p-4 rounded-lg border">
+          <h3 className="text-lg font-semibold mb-4">Previsão de Colheita</h3>
           <EditableTable
             data={harvestData}
             columns={columns}

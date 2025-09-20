@@ -76,8 +76,8 @@ export const EditableTable = ({
   };
 
   const getRowClass = (row: Record<string, any>) => {
-    if (row.status === 'critical') return 'bg-red-50';
-    if (row.status === 'warning') return 'bg-yellow-50';
+    if (row.status === 'critical') return 'bg-agri-danger/5 dark:bg-agri-danger/10';
+    if (row.status === 'warning') return 'bg-agri-warning/5 dark:bg-agri-warning/10';
     return '';
   };
 
@@ -98,7 +98,7 @@ export const EditableTable = ({
   };
 
   return (
-    <div className={`bg-white rounded-xl border overflow-hidden ${className}`}>
+    <div className={`bg-card rounded-xl border overflow-hidden ${className}`}>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-muted text-xs uppercase">

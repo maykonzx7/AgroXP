@@ -409,7 +409,7 @@ const Dashboard = () => {
       </div>
 
       {/* Weather alerts section */}
-      <div className="bg-white rounded-xl border p-6">
+      <div className="bg-card rounded-xl border p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Alertas Meteorológicos</h2>
           <Button 
@@ -713,10 +713,10 @@ const Dashboard = () => {
                 key={alert.id} 
                 className={`p-3 rounded-lg ${
                   alert.type === 'danger' 
-                    ? 'bg-agri-danger/10 border-l-4 border-agri-danger' 
+                    ? 'bg-agri-danger/10 border-l-4 border-agri-danger dark:bg-agri-danger/20 dark:border-agri-danger' 
                     : alert.type === 'warning' 
-                      ? 'bg-agri-warning/10 border-l-4 border-agri-warning' 
-                      : 'bg-agri-info/10 border-l-4 border-agri-info'
+                      ? 'bg-agri-warning/10 border-l-4 border-agri-warning dark:bg-agri-warning/20 dark:border-agri-warning' 
+                      : 'bg-agri-info/10 border-l-4 border-agri-info dark:bg-agri-info/20 dark:border-agri-info'
                 }`}
               >
                 <div className="flex items-start justify-between">

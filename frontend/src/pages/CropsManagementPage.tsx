@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Plus, Filter, RefreshCw, CalendarRange } from 'lucide-react';
+import { Download, Plus, Filter, RefreshCw, CalendarRange, Leaf } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { 
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import PageLayout from '../components/layout/PageLayout';
+import PageHeader from '../components/layout/PageHeader';
 import TabContainer, { TabItem } from '../components/layout/TabContainer';
 import HarvestTracking from '../components/HarvestTracking';
 import SpecificCrops from '../components/SpecificCrops';
@@ -18,11 +19,25 @@ import CropPlanning from '../components/cultures/CropPlanningForm';
 import PreviewPrintButton from '@/components/common/PreviewPrintButton';
 
 import { useCRM } from '../contexts/CRMContext';
+import usePageMetadata from '../hooks/use-page-metadata';
+import useSpacing from '@/hooks/use-spacing';
 
 
 const CropsPage = () => {
   const [activeTab, setActiveTab] = useState<string>('harvest');
   const { getModuleData } = useCRM();
+  
+  const { 
+    title, 
+    description, 
+    handleTitleChange, 
+    handleDescriptionChange 
+  } = usePageMetadata({
+    defaultTitle: 'Gestão de Culturas',
+    defaultDescription: 'Gerencie suas culturas e acompanhe o progresso'
+  });
+  
+  const spacing = useSpacing();
   
   // Obter dados da colheita para visualização/impressão
   const harvestData = getModuleData('cultures')?.items || [];
@@ -55,7 +70,7 @@ const CropsPage = () => {
     switch (activeTab) {
       case 'harvest':
         return (
-          <div className="flex flex-wrap gap-2">
+          <div className={spacing.getActionButtonGroupClasses()}>
             <PreviewPrintButton 
               data={harvestData}
               moduleName="harvest"
@@ -117,7 +132,7 @@ const CropsPage = () => {
         );
       case 'specific':
         return (
-          <div className="flex flex-wrap gap-2">
+          <div className={spacing.getActionButtonGroupClasses()}>
             <PreviewPrintButton 
               data={getModuleData('cultures')?.items || []}
               moduleName="cultures"
@@ -149,7 +164,7 @@ const CropsPage = () => {
         );
       case 'planning':
         return (
-          <div className="flex flex-wrap gap-2">
+          <div className={spacing.getActionButtonGroupClasses()}>
             <PreviewPrintButton 
               data={[]}
               moduleName="planning"
@@ -217,21 +232,22 @@ const CropsPage = () => {
 
   return (
     <PageLayout>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Gestão de Culturas</h1>
-          <p className="text-muted-foreground">Gerencie suas culturas e acompanhe o progresso</p>
-        </div>
-        <div className="flex space-x-2">
-          {getTabActions()}
-        </div>
+      <div className={spacing.getPageContainerClasses()}>
+        <PageHeader 
+          title={title}
+          description={description}
+          onTitleChange={handleTitleChange}
+          onDescriptionChange={handleDescriptionChange}
+          actions={getTabActions()}
+          icon={<Leaf className="h-6 w-6" />}
+        />
+        
+        <TabContainer 
+          tabs={tabs}
+          defaultValue={activeTab}
+          onValueChange={handleTabChange}
+        />
       </div>
-      
-      <TabContainer 
-        tabs={tabs}
-        defaultValue={activeTab}
-        onValueChange={handleTabChange}
-      />
     </PageLayout>
   );
 };

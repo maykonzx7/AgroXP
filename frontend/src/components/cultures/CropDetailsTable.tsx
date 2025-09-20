@@ -16,6 +16,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useCRM } from "../../contexts/CRMContext";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const initialCultureData = [
   {
@@ -71,7 +78,7 @@ const initialCultureData = [
   },
   {
     id: 4,
-    name: "Cana-de-açúcar",
+    name: "Cana de açúcar",
     scientificName: "Saccharum officinarum",
     family: "Poaceae",
     origin: "Nova Guiné",
@@ -365,7 +372,7 @@ export const CultureDetailTable = ({
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl p-6 max-w-3xl w-full">
+        <div className="bg-card rounded-xl p-6 max-w-3xl w-full">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">
               Detalhes da Cultura: {selectedCulture.name}
@@ -427,28 +434,29 @@ export const CultureDetailTable = ({
 
             <div>
               <Label>Tipo de Cultura</Label>
-              <select
-                value={selectedCulture.type}
-                onChange={(e) => {
-                  const newValue = e.target.value;
-                  setSelectedCulture({ ...selectedCulture, type: newValue });
+              <Select value={selectedCulture.type} onValueChange={(value) => {
+                const newValue = value;
+                setSelectedCulture({ ...selectedCulture, type: newValue });
 
-                  const updatedData = [...cultureData];
-                  const index = updatedData.findIndex(
-                    (c) => c.id === selectedCulture.id
-                  );
-                  if (index !== -1) {
-                    updatedData[index].type = newValue;
-                    setCultureData(updatedData);
-                  }
-                }}
-                className="w-full h-10 border border-input rounded-md px-3 mt-1"
-              >
-                <option value="vegetables">Vegetais</option>
-                <option value="fruits">Frutas</option>
-                <option value="tubers">Tubérculos</option>
-                <option value="cash">Culturas Comerciais</option>
-              </select>
+                const updatedData = [...cultureData];
+                const index = updatedData.findIndex(
+                  (c) => c.id === selectedCulture.id
+                );
+                if (index !== -1) {
+                  updatedData[index].type = newValue;
+                  setCultureData(updatedData);
+                }
+              }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="vegetables">Vegetais</SelectItem>
+                  <SelectItem value="fruits">Frutas</SelectItem>
+                  <SelectItem value="tubers">Tubérculos</SelectItem>
+                  <SelectItem value="cash">Culturas Comerciais</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
@@ -757,7 +765,7 @@ export const CultureDetailTable = ({
 
       {localShowAddForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-3xl w-full">
+          <div className="bg-card rounded-xl p-6 max-w-3xl w-full">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Adicionar Nova Cultura</h2>
               <Button
@@ -803,19 +811,17 @@ export const CultureDetailTable = ({
 
                 <div>
                   <Label htmlFor="type">Tipo de Cultura</Label>
-                  <select
-                    id="type"
-                    className="w-full h-10 border border-input rounded-md px-3 mt-1"
-                    value={newCulture.type}
-                    onChange={(e) =>
-                      setNewCulture({ ...newCulture, type: e.target.value })
-                    }
-                  >
-                    <option value="vegetables">Vegetais</option>
-                    <option value="fruits">Frutas</option>
-                    <option value="tubers">Tubérculos</option>
-                    <option value="cash">Culturas Comerciais</option>
-                  </select>
+                  <Select value={newCulture.type} onValueChange={(value) => setNewCulture({ ...newCulture, type: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="vegetables">Vegetais</SelectItem>
+                      <SelectItem value="fruits">Frutas</SelectItem>
+                      <SelectItem value="tubers">Tubérculos</SelectItem>
+                      <SelectItem value="cash">Culturas Comerciais</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>

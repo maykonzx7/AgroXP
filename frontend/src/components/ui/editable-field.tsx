@@ -100,7 +100,7 @@ export const EditableField = ({
             value={inputValue as string}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className={`px-2 py-1 border rounded-md focus:ring-1 focus:ring-primary focus:outline-none ${inputClassName}`}
+            className={`px-2 py-1 border border-input rounded-md focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground ${inputClassName}`}
           >
             {options.map((option) => (
               <option key={option.value} value={option.value}>
@@ -115,7 +115,7 @@ export const EditableField = ({
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            className={`px-2 py-1 border rounded-md focus:ring-1 focus:ring-primary focus:outline-none ${inputClassName}`}
+            className={`px-2 py-1 border border-input rounded-md focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground ${inputClassName}`}
             placeholder={placeholder}
           />
         )}

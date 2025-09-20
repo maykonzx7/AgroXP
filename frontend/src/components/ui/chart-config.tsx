@@ -52,7 +52,7 @@ export const ChartConfig = ({
   };
 
   return (
-    <div className={`bg-white rounded-xl border overflow-hidden relative ${className}`}>
+    <div className={`bg-card rounded-xl border overflow-hidden relative ${className}`}>
       <div className="p-4 border-b flex justify-between items-center">
         <div>
           {onTitleChange ? (

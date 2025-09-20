@@ -17,7 +17,7 @@ const PreviewContainer: React.FC<PreviewContainerProps> = ({
   return (
     <div 
       className={`preview-container rounded-lg shadow-sm overflow-hidden ${
-        settings.darkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-800'
+        settings.darkMode ? 'bg-card text-foreground' : 'bg-background text-foreground'
       }`}
       role="region"
       aria-label={title || "Content preview"}

@@ -177,7 +177,7 @@ const ParcelsPage = () => {
       <Button 
         variant="outline" 
         onClick={() => setMapPreviewOpen(true)}
-        className="bg-white border-gray-200 hover:bg-gray-50"
+        className="bg-background border-input hover:bg-accent"
       >
         <Map className="mr-2 h-4 w-4 text-gray-600" />
         Mapa
@@ -186,7 +186,7 @@ const ParcelsPage = () => {
       <Button 
         variant="outline" 
         onClick={handleGenerateStatistics}
-        className="bg-white border-gray-200 hover:bg-gray-50"
+        className="bg-background border-input hover:bg-accent"
       >
         <BarChart3 className="mr-2 h-4 w-4 text-gray-600" />
         Estatísticas
@@ -197,7 +197,7 @@ const ParcelsPage = () => {
         <PopoverTrigger asChild>
           <Button 
             variant="outline" 
-            className="bg-white border-gray-200 hover:bg-gray-50"
+            className="bg-background border-input hover:bg-accent"
           >
             Mais ações
           </Button>
@@ -280,7 +280,7 @@ const ParcelsPage = () => {
 
   // Filter bar component
   const FilterBar = () => (
-    <div className="flex flex-wrap gap-3 items-center bg-white p-4 rounded-lg border mb-6">
+    <div className="flex flex-wrap gap-3 items-center bg-background p-4 rounded-lg border mb-6">
       {/* Search input */}
       <form onSubmit={handleSearch} className="flex">
         <div className="relative">
@@ -402,16 +402,13 @@ const ParcelsPage = () => {
   return (
     <PageLayout>
       <div className={spacing.getPageContainerClasses()}>
-        {/* Page header with title and description */}
-        <div className="mb-6">
-          <PageHeader 
-            title={title}
-            description={description}
-            onTitleChange={handleTitleChange}
-            onDescriptionChange={handleDescriptionChange}
-            actions={<ActionButtons />}
-          />
-        </div>
+        <PageHeader 
+          title={title}
+          description={description}
+          onTitleChange={handleTitleChange}
+          onDescriptionChange={handleDescriptionChange}
+          actions={<ActionButtons />}
+        />
         
         {/* Filter bar */}
         <FilterBar />
@@ -428,19 +425,19 @@ const ParcelsPage = () => {
             <h2 className="text-lg font-medium">Visão geral das estatísticas de parcelas</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 bg-white rounded-lg border hover:shadow-sm transition-shadow">
+            <div className="p-4 bg-card rounded-lg border hover:shadow-sm transition-shadow">
               <p className="text-sm text-muted-foreground">Área total</p>
               <p className="text-2xl font-semibold">128.5 ha</p>
             </div>
-            <div className="p-4 bg-white rounded-lg border hover:shadow-sm transition-shadow">
+            <div className="p-4 bg-card rounded-lg border hover:shadow-sm transition-shadow">
               <p className="text-sm text-muted-foreground">Parcelas ativas</p>
               <p className="text-2xl font-semibold">42</p>
             </div>
-            <div className="p-4 bg-white rounded-lg border hover:shadow-sm transition-shadow">
+            <div className="p-4 bg-card rounded-lg border hover:shadow-sm transition-shadow">
               <p className="text-sm text-muted-foreground">Rendimento médio</p>
               <p className="text-2xl font-semibold">7.2 t/ha</p>
             </div>
-            <div className="p-4 bg-white rounded-lg border hover:shadow-sm transition-shadow">
+            <div className="p-4 bg-card rounded-lg border hover:shadow-sm transition-shadow">
               <p className="text-sm text-muted-foreground">Culturas principais</p>
               <p className="text-xl font-semibold">Milho, Trigo, Colza</p>
             </div>

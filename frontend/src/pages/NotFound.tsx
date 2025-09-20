@@ -25,7 +25,7 @@ const NotFound = () => {
         </p>
         <Link 
           to="/"
-          className="inline-flex items-center px-4 py-2 bg-agri-primary text-white rounded-lg hover:bg-agri-primary-dark transition-colors"
+          className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar para a página inicial
