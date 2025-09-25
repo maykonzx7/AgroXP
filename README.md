@@ -50,6 +50,10 @@ npm run dev
 
 A API estará disponível em http://localhost:3001
 
+### Documentação da API
+
+Para informações detalhadas sobre os endpoints da API, consulte a [documentação completa da API](backend/README.md).
+
 ## Variáveis de Ambiente
 
 Crie um arquivo `.env` na pasta `backend` com sua string de conexão do PostgreSQL:

@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  farmName  String?
+  phone     String?
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sessions  Session[]
+  farms     Farm[]
+}
+
+// Session model for user sessions
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Farm model representing agricultural properties
+model Farm {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  location    String?
+  size        Float?
+  sizeUnit    String?   @default("hectares")
+  ownerId     Int
+  owner       User      @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  parcels     Parcel[]
+  inventory   InventoryItem[]
+}
+
+// Parcel model representing sections of a farm
+model Parcel {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  size        Float
+  sizeUnit    String    @default("hectares")
+  farmId      Int
+  farm        Farm      @relation(fields: [farmId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  crops       Crop[]
+  livestock   Livestock[]
+}
+
+// Crop model representing planted crops
+model Crop {
+  id          Int       @id @default(autoincrement())
+  name        String
+  variety     String?
+  plantingDate DateTime?
+  harvestDate DateTime?
+  status      String    @default("planted")
+  parcelId    Int
+  parcel      Parcel    @relation(fields: [parcelId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Livestock model representing farm animals
+model Livestock {
+  id          Int       @id @default(autoincrement())
+  name        String
+  breed       String?
+  quantity    Int
+  status      String    @default("active")
+  parcelId    Int
+  parcel      Parcel    @relation(fields: [parcelId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Inventory model for farm supplies and equipment
+model InventoryItem {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  category    String
+  quantity    Int
+  unit        String
+  farmId      Int
+  farm        Farm      @relation(fields: [farmId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}

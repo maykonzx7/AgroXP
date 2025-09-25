@@ -1,19 +1,20 @@
 import express from 'express';
 import cors from 'cors';
-import sequelize from './config/database.js';
+import sequelize from './config/database.config.js';
 import { Parcel, Crop, Livestock } from './associations.js';
-import Inventory from './models/Inventory.js';
-import Finance from './models/Finance.js';
+import Inventory from './modules/inventory/Inventory.model.js';
+import Finance from './modules/finance/Finance.model.js';
 import parcelsRouter from './routes/parcels.js';
 import cropsRouter from './routes/crops.js';
-import inventoryRouter from './routes/inventory.js';
-import financeRouter from './routes/finance.js';
+import inventoryRouter from './modules/inventory/inventory.routes.js';
+import financeRouter from './modules/finance/finance.routes.js';
 import livestockRouter from './routes/livestock.js';
 import feedingRouter from './modules/livestock/feeding.routes.js';
 import vaccinationRouter from './modules/livestock/vaccination.routes.js';
 import reproductionRouter from './modules/livestock/reproduction.routes.js';
 import veterinarySupplyRouter from './modules/livestock/veterinarySupply.routes.js';
 import livestockSupplyUsageRouter from './modules/livestock/livestockSupplyUsage.routes.js';
+import authRouter from './routes/auth.routes.ts';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -33,6 +34,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes
+app.use('/api/auth', authRouter);
 app.use('/api/parcels', parcelsRouter);
 app.use('/api/crops', cropsRouter);
 app.use('/api/inventory', inventoryRouter);

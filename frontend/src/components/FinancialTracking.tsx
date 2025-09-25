@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   BarChart,
   Bar,
@@ -44,21 +44,12 @@ import {
   Printer,
   Trash2,
   FileText,
+  RefreshCw
 } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import PageHeader from "./layout/PageHeader";
-
-// Define monthly data
-const monthlyData = [
-  { name: "Jan", income: 8500, expenses: 7200 },
-  { name: "Fev", income: 9200, expenses: 7800 },
-  { name: "Mar", income: 8800, expenses: 7400 },
-  { name: "Abr", income: 10500, expenses: 8100 },
-  { name: "Mai", income: 11200, expenses: 9500 },
-  { name: "Jun", income: 9800, expenses: 7900 },
-  { name: "Jul", income: 12500, expenses: 10200 },
-];
+import { useCRM } from "@/contexts/CRMContext";
 
 // Schema for transaction form
 const transactionSchema = z.object({
@@ -71,7 +62,40 @@ const transactionSchema = z.object({
   type: z.enum(["income", "expense"]),
 });
 
+// Generate monthly data based on actual transactions
+const generateMonthlyData = (transactions: any[]) => {
+  // Create an array with the last 12 months
+  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const monthlyData = [];
+  
+  // Initialize with zero values for all months
+  for (let i = 0; i < 12; i++) {
+    monthlyData.push({
+      name: months[i],
+      income: 0,
+      expenses: 0
+    });
+  }
+  
+  // Process transactions to populate monthly data
+  transactions.forEach(transaction => {
+    const date = new Date(transaction.date);
+    const monthIndex = date.getMonth(); // 0-11
+    
+    if (monthIndex < 12) {
+      if (transaction.type === 'income') {
+        monthlyData[monthIndex].income += transaction.amount;
+      } else {
+        monthlyData[monthIndex].expenses += transaction.amount;
+      }
+    }
+  });
+  
+  return monthlyData;
+};
+
 const FinancialTracking = () => {
+  const { getModuleData, syncDataAcrossCRM, isRefreshing } = useCRM();
   // State for editable content
   const [title, setTitle] = useState("Controle Financeiro");
   const [description, setDescription] = useState(
@@ -79,64 +103,36 @@ const FinancialTracking = () => {
   );
 
   // State for transactions
-  const [transactions, setTransactions] = useState([
-    {
-      id: 1,
-      date: "2023-07-05",
-      description: "Venda de colheita",
-      amount: 3200,
-      category: "Vendas",
-      type: "income",
-    },
-    {
-      id: 2,
-      date: "2023-07-10",
-      description: "Compra de fertilizantes",
-      amount: 850,
-      category: "Suprimentos",
-      type: "expense",
-    },
-    {
-      id: 3,
-      date: "2023-07-12",
-      description: "Conta de energia",
-      amount: 320,
-      category: "Utilidades",
-      type: "expense",
-    },
-    {
-      id: 4,
-      date: "2023-07-15",
-      description: "Venda de bananas",
-      amount: 1500,
-      category: "Vendas",
-      type: "income",
-    },
-    {
-      id: 5,
-      date: "2023-07-20",
-      description: "Reparo do trator",
-      amount: 750,
-      category: "Manutenção",
-      type: "expense",
-    },
-    {
-      id: 6,
-      date: "2023-07-25",
-      description: "Subsídio agrícola",
-      amount: 4200,
-      category: "Subsídios",
-      type: "income",
-    },
-    {
-      id: 7,
-      date: "2023-07-28",
-      description: "Salários dos funcionários",
-      amount: 2800,
-      category: "Salários",
-      type: "expense",
-    },
-  ]);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  
+  // Generate monthly data based on transactions
+  const [monthlyData, setMonthlyData] = useState<any[]>([]);
+  
+  // Obter dados de finanças do contexto CRM
+  const financeModuleData = getModuleData('finances').items || [];
+  
+  // Converter dados do backend para o formato esperado
+  useEffect(() => {
+    const convertedTransactions = financeModuleData.map((item: any) => ({
+      id: item.id,
+      date: item.date ? new Date(item.date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0],
+      description: item.description || 'Transação sem descrição',
+      amount: item.amount || 0,
+      category: item.category || 'Não categorizado',
+      type: item.type === 'revenue' || item.type === 'income' ? 'income' : 'expense',
+    }));
+    
+    setTransactions(convertedTransactions);
+    
+    // Generate monthly data
+    const generatedMonthlyData = generateMonthlyData(convertedTransactions);
+    setMonthlyData(generatedMonthlyData);
+  }, [financeModuleData]);
+  
+  const handleRefresh = () => {
+    syncDataAcrossCRM();
+    toast.success('Dados financeiros atualizados');
+  };
 
   // Filter and stats
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -435,6 +431,15 @@ const FinancialTracking = () => {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Transações Recentes</CardTitle>
             <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+              </Button>
               <Button variant="outline" size="sm" onClick={exportToCSV}>
                 <Download className="h-4 w-4 mr-1" />
                 Exportar

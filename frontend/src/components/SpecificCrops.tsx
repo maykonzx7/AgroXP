@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Leaf, Calendar, Filter, Download, Upload, FileUp } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Leaf, Calendar, Filter, Download, Upload, FileUp, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCRM } from '../contexts/CRMContext';
 import CultureDetailTable from './cultures/CropDetailsTable';
@@ -22,13 +22,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from '@/hooks/use-toast';
 
 const SpecificCrops = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const { exportModuleData, importModuleData, getModuleData } = useCRM();
+  const { exportModuleData, importModuleData, getModuleData, syncDataAcrossCRM, isRefreshing } = useCRM();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
   
   // Obter dados de culturas para visualização/impressão
   const culturesData = getModuleData('cultures').items || [];
@@ -61,8 +63,26 @@ const SpecificCrops = () => {
       
       if (success) {
         console.log("Importação bem-sucedida - Os dados das culturas foram atualizados");
+        toast({
+          title: "Importação bem-sucedida",
+          description: "Os dados das culturas foram atualizados",
+        });
+      } else {
+        toast({
+          title: "Erro na importação",
+          description: "Não foi possível importar os dados das culturas",
+          variant: "destructive",
+        });
       }
     }
+  };
+
+  const handleRefresh = () => {
+    syncDataAcrossCRM();
+    toast({
+      title: "Dados atualizados",
+      description: "Os dados das culturas foram atualizados com sucesso",
+    });
   };
 
   const filterOptions = [
@@ -86,15 +106,25 @@ const SpecificCrops = () => {
           <p className="text-muted-foreground">Gerencie as informações sobre suas culturas locais</p>
         </div>
         <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            className="transition-colors hover:bg-gray-100"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+          </Button>
+          
           <PreviewPrintButton 
             data={culturesData}
             moduleName="cultures"
             title="Culturas Específicas"
             columns={[
-              { key: "nome", header: "Nome" },
-              { key: "variedade", header: "Variedade" },
-              { key: "dateDebut", header: "Data de início" },
-              { key: "dateFin", header: "Data de término" }
+              { key: "name", header: "Nome" },
+              { key: "variety", header: "Variedade" },
+              { key: "plantingDate", header: "Data de início" },
+              { key: "harvestDate", header: "Data de término" }
             ]}
           />
           

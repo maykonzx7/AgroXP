@@ -1,12 +1,12 @@
 // Atualizar associações no associations.js
-import sequelize from './config/database.js';
+import sequelize from './config/database.config.js';
 
 // Importar todos os modelos
 import Parcel from './modules/parcels/Parcel.model.js';
 import Crop from './modules/crops/Crop.model.js';
 import Livestock from './modules/livestock/Livestock.model.js';
-import Inventory from './models/Inventory.js';
-import Finance from './models/Finance.js';
+import Inventory from './modules/inventory/Inventory.model.js';
+import Finance from './modules/finance/Finance.model.js';
 import Feeding from './modules/livestock/feeding.model.js';
 import Vaccination from './modules/livestock/vaccination.model.js';
 import Reproduction from './modules/livestock/reproduction.model.js';
@@ -24,23 +24,23 @@ Livestock.belongsTo(Parcel, { foreignKey: 'parcelId', as: 'parcel' });
 
 // Livestock - Feeding (1:N)
 Livestock.hasMany(Feeding, { foreignKey: 'livestockId', as: 'feedings' });
-Feeding.belongsTo(Livestock, { foreignKey: 'livestockId', as: 'livestock' });
+Feeding.belongsTo(Livestock, { foreignKey: 'livestockId', as: 'feedingLivestock' });
 
 // Livestock - Vaccination (1:N)
 Livestock.hasMany(Vaccination, { foreignKey: 'livestockId', as: 'vaccinations' });
-Vaccination.belongsTo(Livestock, { foreignKey: 'livestockId', as: 'livestock' });
+Vaccination.belongsTo(Livestock, { foreignKey: 'livestockId', as: 'vaccinationLivestock' });
 
 // Livestock - Reproduction (1:N)
 Livestock.hasMany(Reproduction, { foreignKey: 'livestockId', as: 'reproductions' });
-Reproduction.belongsTo(Livestock, { foreignKey: 'livestockId', as: 'livestock' });
+Reproduction.belongsTo(Livestock, { foreignKey: 'livestockId', as: 'reproductionLivestock' });
 
 // VeterinarySupply - LivestockSupplyUsage (1:N)
-VeterinarySupply.hasMany(LivestockSupplyUsage, { foreignKey: 'supplyId', as: 'usages' });
-LivestockSupplyUsage.belongsTo(VeterinarySupply, { foreignKey: 'supplyId', as: 'supply' });
+VeterinarySupply.hasMany(LivestockSupplyUsage, { foreignKey: 'supplyId', as: 'supplyUsages' });
+LivestockSupplyUsage.belongsTo(VeterinarySupply, { foreignKey: 'supplyId', as: 'usageSupply' });
 
 // Livestock - LivestockSupplyUsage (1:N)
 Livestock.hasMany(LivestockSupplyUsage, { foreignKey: 'livestockId', as: 'supplyUsages' });
-LivestockSupplyUsage.belongsTo(Livestock, { foreignKey: 'livestockId', as: 'livestock' });
+LivestockSupplyUsage.belongsTo(Livestock, { foreignKey: 'livestockId', as: 'usageLivestock' });
 
 // Exportar modelos
 export {

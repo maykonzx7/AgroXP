@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { EditableTable, Column } from "@/components/ui/editable-table";
 import {
   Trash2,
@@ -8,6 +8,7 @@ import {
   ExternalLink,
   Download,
   FileText,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,161 +25,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const initialCultureData = [
-  {
-    id: 1,
-    name: "Inhame",
-    scientificName: "Dioscorea alata",
-    family: "Dioscoreaceae",
-    origin: "Ásia do Sudeste",
-    growingSeason: "Maio-Dezembro",
-    soilType: "Argiloso, bem drenado",
-    waterNeeds: "Moderado",
-    fertilization: "NPK 10-10-20",
-    pests: "Charançons, cochonilhas",
-    diseases: "Antracnose",
-    notes: "Cultura importante no Brasil, várias variedades locais",
-    type: "tubers",
-    harvestPeriod: "7-9 meses",
-    yieldPerHectare: "15-25 toneladas",
-  },
-  {
-    id: 2,
-    name: "Taioba",
-    scientificName: "Colocasia esculenta",
-    family: "Araceae",
-    origin: "Ásia do Sudeste",
-    growingSeason: "Ano todo",
-    soilType: "Úmido, rico em matéria orgânica",
-    waterNeeds: "Elevado",
-    fertilization: "NPK 14-14-14",
-    pests: "Pulgões",
-    diseases: "Podridão das raízes",
-    notes: "Cultivada em áreas úmidas",
-    type: "tubers",
-    harvestPeriod: "9-12 meses",
-    yieldPerHectare: "10-15 toneladas",
-  },
-  {
-    id: 3,
-    name: "Chuchu",
-    scientificName: "Sechium edule",
-    family: "Cucurbitaceae",
-    origin: "América Central",
-    growingSeason: "Ano todo",
-    soilType: "Bem drenado, rico",
-    waterNeeds: "Moderado a elevado",
-    fertilization: "NPK 12-12-17",
-    pests: "Moscas brancas, ácaros",
-    diseases: "Míldio",
-    notes: "Cultivo em treliça",
-    type: "vegetables",
-    harvestPeriod: "2-3 meses",
-    yieldPerHectare: "30-40 toneladas",
-  },
-  {
-    id: 4,
-    name: "Cana de açúcar",
-    scientificName: "Saccharum officinarum",
-    family: "Poaceae",
-    origin: "Nova Guiné",
-    growingSeason: "Ano todo",
-    soilType: "Argiloso, profundo",
-    waterNeeds: "Elevado",
-    fertilization: "NPK 16-4-16",
-    pests: "Broca da cana, pulgões",
-    diseases: "Carvão, ferrugem",
-    notes: "Cultura econômica principal no Brasil",
-    type: "cash",
-    harvestPeriod: "11-13 meses",
-    yieldPerHectare: "70-100 toneladas",
-  },
-  {
-    id: 5,
-    name: "Banana",
-    scientificName: "Musa paradisiaca",
-    family: "Musaceae",
-    origin: "Ásia do Sudeste",
-    growingSeason: "Ano todo",
-    soilType: "Argiloso, profundo",
-    waterNeeds: "Elevado",
-    fertilization: "NPK 14-4-28",
-    pests: "Charançon, trips",
-    diseases: "Cercosporiose, fusariose",
-    notes: "Principalmente para exportação",
-    type: "fruits",
-    harvestPeriod: "10-14 meses",
-    yieldPerHectare: "30-60 toneladas",
-  },
-  {
-    id: 6,
-    name: "Taioba",
-    scientificName: "Colocasia esculenta",
-    family: "Araceae",
-    origin: "Ásia do Sudeste",
-    growingSeason: "Ano todo",
-    soilType: "Úmido, rico em matéria orgânica",
-    waterNeeds: "Elevado",
-    fertilization: "NPK 14-14-14",
-    pests: "Pulgões",
-    diseases: "Podridão das raízes",
-    notes: "Cultivada em áreas úmidas",
-    type: "tubers",
-    harvestPeriod: "9-12 meses",
-    yieldPerHectare: "10-15 toneladas",
-  },
-  {
-    id: 7,
-    name: "Chuchu",
-    scientificName: "Sechium edule",
-    family: "Cucurbitaceae",
-    origin: "América Central",
-    growingSeason: "Ano todo",
-    soilType: "Bem drenado, rico",
-    waterNeeds: "Moderado a elevado",
-    fertilization: "NPK 12-12-17",
-    pests: "Moscas brancas, ácaros",
-    diseases: "Míldio",
-    notes: "Cultivo em treliça",
-    type: "vegetables",
-    harvestPeriod: "2-3 meses",
-    yieldPerHectare: "30-40 toneladas",
-  },
-  {
-    id: 8,
-    name: "Cana-de-açúcar",
-    scientificName: "Saccharum officinarum",
-    family: "Poaceae",
-    origin: "Nova Guiné",
-    growingSeason: "Ano todo",
-    soilType: "Argiloso, profundo",
-    waterNeeds: "Elevado",
-    fertilization: "NPK 16-4-16",
-    pests: "Broca da cana, pulgões",
-    diseases: "Carvão, ferrugem",
-    notes: "Cultura econômica principal no Brasil",
-    type: "cash",
-    harvestPeriod: "11-13 meses",
-    yieldPerHectare: "70-100 toneladas",
-  },
-  {
-    id: 9,
-    name: "Banana",
-    scientificName: "Musa paradisiaca",
-    family: "Musaceae",
-    origin: "Ásia do Sudeste",
-    growingSeason: "Ano todo",
-    soilType: "Argiloso, profundo",
-    waterNeeds: "Elevado",
-    fertilization: "NPK 14-4-28",
-    pests: "Charançon, trips",
-    diseases: "Cercosporiose, fusariose",
-    notes: "Principalmente para exportação",
-    type: "fruits",
-    harvestPeriod: "10-14 meses",
-    yieldPerHectare: "30-60 toneladas",
-  },
-];
+// Interface para os dados de cultura
+interface CultureData {
+  id: number;
+  name: string;
+  scientificName?: string;
+  family?: string;
+  origin?: string;
+  growingSeason?: string;
+  soilType?: string;
+  waterNeeds?: string;
+  fertilization?: string;
+  pests?: string;
+  diseases?: string;
+  notes?: string;
+  type?: string;
+  harvestPeriod?: string;
+  yieldPerHectare?: string;
+  variety?: string;
+  plantingDate?: string;
+  harvestDate?: string;
+}
 
 interface CultureDetailTableProps {
   showAddForm?: boolean;
@@ -194,9 +61,10 @@ export const CultureDetailTable = ({
   filterType = "all",
 }: CultureDetailTableProps) => {
   const { toast: shadowToast } = useToast();
-  const [cultureData, setCultureData] = useState(initialCultureData);
+  const { getModuleData, syncDataAcrossCRM, isRefreshing } = useCRM();
+  const [cultureData, setCultureData] = useState<CultureData[]>([]);
   const [isAddFormVisible, setIsAddFormVisible] = useState(false);
-  const [selectedCulture, setSelectedCulture] = useState<null | any>(null);
+  const [selectedCulture, setSelectedCulture] = useState<null | CultureData>(null);
   const { exportModuleData } = useCRM();
   const [newCulture, setNewCulture] = useState({
     name: "",
@@ -215,6 +83,40 @@ export const CultureDetailTable = ({
     yieldPerHectare: "",
   });
 
+  // Obter dados de culturas do contexto CRM
+  const culturesModuleData = getModuleData('cultures').items || [];
+  
+  // Converter dados do backend para o formato esperado
+  useEffect(() => {
+    const convertedCultures = culturesModuleData.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      variety: item.variety,
+      scientificName: item.scientificName || '', // TODO: Adicionar campo no backend
+      family: item.family || '', // TODO: Adicionar campo no backend
+      origin: item.origin || '', // TODO: Adicionar campo no backend
+      growingSeason: item.growingSeason || '', // TODO: Adicionar campo no backend
+      soilType: item.soilType || '', // TODO: Adicionar campo no backend
+      waterNeeds: item.waterNeeds || '', // TODO: Adicionar campo no backend
+      fertilization: item.fertilization || '', // TODO: Adicionar campo no backend
+      pests: item.pests || '', // TODO: Adicionar campo no backend
+      diseases: item.diseases || '', // TODO: Adicionar campo no backend
+      notes: item.notes || '', // TODO: Adicionar campo no backend
+      type: item.type || 'vegetables', // TODO: Adicionar campo no backend
+      harvestPeriod: item.harvestPeriod || '', // TODO: Adicionar campo no backend
+      yieldPerHectare: item.yieldPerHectare || '', // TODO: Adicionar campo no backend
+      plantingDate: item.plantingDate ? new Date(item.plantingDate).toISOString().split('T')[0] : '',
+      harvestDate: item.harvestDate ? new Date(item.harvestDate).toISOString().split('T')[0] : '',
+    }));
+    
+    setCultureData(convertedCultures);
+  }, [culturesModuleData]);
+  
+  const handleRefresh = () => {
+    syncDataAcrossCRM();
+    toast.success('Dados de culturas atualizados');
+  };
+
   const localShowAddForm =
     showAddForm !== undefined ? showAddForm : isAddFormVisible;
   const localSetShowAddForm = setShowAddForm || setIsAddFormVisible;
@@ -222,8 +124,8 @@ export const CultureDetailTable = ({
   const filteredCultures = cultureData.filter((culture) => {
     const matchesSearch =
       culture.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      culture.scientificName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      culture.family.toLowerCase().includes(searchTerm.toLowerCase());
+      (culture.scientificName && culture.scientificName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (culture.family && culture.family.toLowerCase().includes(searchTerm.toLowerCase()));
 
     if (filterType === "all") return matchesSearch;
     return matchesSearch && culture.type === filterType;
@@ -731,7 +633,16 @@ export const CultureDetailTable = ({
 
   return (
     <div>
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex justify-end space-x-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+        >
+          <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+        </Button>
         <Button
           variant="outline"
           size="sm"

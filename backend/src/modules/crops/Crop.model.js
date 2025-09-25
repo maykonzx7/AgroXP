@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/database.js';
+import sequelize from '../../config/database.config.js';
 
 const Crop = sequelize.define('Crop', {
   id: {
@@ -9,29 +9,73 @@ const Crop = sequelize.define('Crop', {
   },
   name: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
+    validate: {
+      notEmpty: {
+        msg: 'Name cannot be empty'
+      },
+      len: {
+        args: [1, 100],
+        msg: 'Name must be between 1 and 100 characters'
+      }
+    }
   },
   variety: {
     type: DataTypes.STRING,
-    allowNull: false
+    allowNull: false,
+    validate: {
+      notEmpty: {
+        msg: 'Variety cannot be empty'
+      },
+      len: {
+        args: [1, 100],
+        msg: 'Variety must be between 1 and 100 characters'
+      }
+    }
   },
   plantingDate: {
     type: DataTypes.DATE,
-    allowNull: false
+    allowNull: false,
+    validate: {
+      isDate: {
+        msg: 'Planting date must be a valid date'
+      }
+    }
   },
   harvestDate: {
-    type: DataTypes.DATE
+    type: DataTypes.DATE,
+    validate: {
+      isDate: {
+        msg: 'Harvest date must be a valid date'
+      },
+      isAfterPlantingDate(value) {
+        if (value && this.plantingDate && value < this.plantingDate) {
+          throw new Error('Harvest date must be after planting date');
+        }
+      }
+    }
   },
   parcelId: {
     type: DataTypes.INTEGER,
     references: {
       model: 'Parcels',
       key: 'id'
+    },
+    validate: {
+      isInt: {
+        msg: 'Parcel ID must be an integer'
+      }
     }
   },
   status: {
     type: DataTypes.ENUM('planned', 'planting', 'growing', 'harvesting', 'completed'),
-    defaultValue: 'planned'
+    defaultValue: 'planned',
+    validate: {
+      isIn: {
+        args: [['planned', 'planting', 'growing', 'harvesting', 'completed']],
+        msg: 'Status must be one of: planned, planting, growing, harvesting, completed'
+      }
+    }
   },
   createdAt: {
     type: DataTypes.DATE,

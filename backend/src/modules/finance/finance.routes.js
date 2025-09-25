@@ -1,5 +1,5 @@
 import express from 'express';
-import Finance from '../models/Finance.js';
+import Finance from './Finance.model.js';
 
 const router = express.Router();
 

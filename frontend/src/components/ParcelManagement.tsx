@@ -45,7 +45,8 @@ import {
   DollarSign,
   AlertTriangle,
   Clock,
-  Wallet
+  Wallet,
+  RefreshCw
 } from 'lucide-react';
 import { EditableField } from '@/components/ui/editable-field';
 import { useCRM } from '../contexts/CRMContext';
@@ -77,93 +78,7 @@ interface ParcelData {
 interface ParcelManagementProps {
   searchTerm?: string;
   filterStatus?: string;
-}
-
-// Dados iniciais das parcelas
-const initialParcelData: ParcelData[] = [
-  { 
-    id: 1, 
-    name: 'Norte da Ilha Principal', 
-    area: 12.5, 
-    crop: 'Cana-de-açúcar', 
-    status: 'active', 
-    lastActivity: '2023-08-15', 
-    soilType: 'Argilo-calcário', 
-    coordinates: { lat: 16.3772, lng: -61.4483 },
-    irrigation: 'Gotejamento',
-    plantingDate: '2023-02-15',
-    harvestDate: '2024-02-15',
-    rainfall: 1200,
-    photos: [
-      'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1597568775807-c11e30e0b3d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
-    ]
-  },
-  { 
-    id: 2, 
-    name: 'Sul da Ilha Menor', 
-    area: 8.3, 
-    crop: 'Banana', 
-    status: 'active', 
-    lastActivity: '2023-08-10', 
-    soilType: 'Vulcânico', 
-    coordinates: { lat: 16.0220, lng: -61.7425 },
-    irrigation: 'Aspersão',
-    plantingDate: '2023-04-10',
-    harvestDate: '2023-12-10',
-    rainfall: 2500,
-    photos: [
-      'https://images.unsplash.com/photo-1598983069273-58f0c7b1c7a8?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
-    ]
-  },
-  { 
-    id: 3, 
-    name: 'Região Oeste', 
-    area: 15.7, 
-    crop: 'Abacaxi', 
-    status: 'active', 
-    lastActivity: '2023-08-05', 
-    soilType: 'Vulcânico', 
-    coordinates: { lat: 16.0504, lng: -61.5643 },
-    irrigation: 'Gotejamento',
-    plantingDate: '2023-05-20',
-    harvestDate: '2024-01-20',
-    rainfall: 2300
-  },
-  { 
-    id: 4, 
-    name: 'Ilha Vizinha', 
-    area: 10.2, 
-    crop: 'Taro', 
-    status: 'inactive', 
-    lastActivity: '2023-07-20', 
-    soilType: 'Arenoso', 
-    coordinates: { lat: 15.9412, lng: -61.2983 },
-    irrigation: 'Manual',
-    plantingDate: '2023-03-15',
-    harvestDate: '2023-11-01',
-    rainfall: 1100,
-    photos: [
-      'https://images.unsplash.com/photo-1600222584421-60d3f0a2a7c7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1593118247621-91c8c7e2d0bf?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1597568775807-c11e30e0b3d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
-    ]
-  },
-  { 
-    id: 5, 
-    name: 'Norte da Ilha Principal', 
-    area: 6.8, 
-    crop: 'Inhame', 
-    status: 'planned', 
-    lastActivity: '2023-08-01', 
-    soilType: 'Limono-argiloso', 
-    coordinates: { lat: 16.3943, lng: -61.4789 },
-    irrigation: 'Nenhuma',
-    plantingDate: '2023-09-15',
-    harvestDate: '2024-03-15',
-    rainfall: 1400
-  },
-];
+};
 
 // Componente para a representação visual de uma parcela
 const ParcelCard = ({ 
@@ -254,10 +169,36 @@ const ParcelCard = ({
 };
 
 const ParcelManagement = ({ searchTerm = '', filterStatus = 'all' }: ParcelManagementProps) => {
-  const [parcels, setParcels] = useState<ParcelData[]>(initialParcelData);
+  const { getModuleData, syncDataAcrossCRM, isRefreshing } = useCRM();
+  const [parcels, setParcels] = useState<ParcelData[]>([]);
   const [selectedParcel, setSelectedParcel] = useState<ParcelData | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedParcel, setEditedParcel] = useState<ParcelData | null>(null);
+  
+  // Obter dados de parcelas do contexto CRM
+  const parcelData = getModuleData('parcelles').items || [];
+  
+  // Converter dados do backend para o formato esperado
+  useEffect(() => {
+    const convertedParcels = parcelData.map((parcel: any) => ({
+      id: parcel.id,
+      name: parcel.name,
+      area: parcel.size,
+      crop: parcel.crops?.[0]?.name || 'Não especificado',
+      status: 'active', // TODO: Obter status real do backend
+      lastActivity: parcel.updatedAt ? new Date(parcel.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      soilType: 'Não especificado', // TODO: Obter tipo de solo do backend
+      coordinates: { lat: 16.265, lng: -61.551 }, // Coordenadas padrão, TODO: Obter do backend
+      irrigation: 'Não especificado', // TODO: Obter irrigação do backend
+      plantingDate: parcel.crops?.[0]?.plantingDate ? new Date(parcel.crops[0].plantingDate).toISOString().split('T')[0] : undefined,
+      harvestDate: parcel.crops?.[0]?.harvestDate ? new Date(parcel.crops[0].harvestDate).toISOString().split('T')[0] : undefined,
+      rainfall: undefined, // TODO: Obter pluviosidade do backend
+      notes: parcel.description || '',
+      photos: [] // TODO: Obter fotos do backend
+    }));
+    
+    setParcels(convertedParcels);
+  }, [parcelData]);
   
   // Filtrar as parcelas com base nos critérios de pesquisa e no filtro
   const filteredParcels = parcels.filter(parcel => {
@@ -268,6 +209,11 @@ const ParcelManagement = ({ searchTerm = '', filterStatus = 'all' }: ParcelManag
     if (filterStatus === 'all') return matchesSearch;
     return matchesSearch && parcel.status === filterStatus;
   });
+
+  const handleRefresh = () => {
+    syncDataAcrossCRM();
+    toast.success('Dados das parcelas atualizados');
+  };
 
   const handleSelectParcel = (parcel: ParcelData) => {
     setSelectedParcel(parcel);
@@ -340,6 +286,18 @@ const ParcelManagement = ({ searchTerm = '', filterStatus = 'all' }: ParcelManag
   
   return (
     <div className="p-6 animate-enter">
+      {/* Header with refresh button */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="flex items-center px-3 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+        </button>
+      </div>
+      
       {/* Main content grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Coluna da esquerda - Lista de parcelas */}

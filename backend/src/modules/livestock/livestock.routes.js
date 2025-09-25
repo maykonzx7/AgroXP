@@ -1,6 +1,6 @@
 import express from 'express';
-import Livestock from '../models/Livestock.js';
-import Parcel from '../models/Parcel.js';
+import Livestock from './Livestock.model.js';
+import Parcel from '../parcels/Parcel.model.js';
 
 const router = express.Router();
 

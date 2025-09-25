@@ -121,19 +121,14 @@ const Index = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [connectedModules, setConnectedModules] = useState(["parcels", "crops", "livestock"]);
   
-  const { syncDataAcrossCRM } = useCRM();
+  const { syncDataAcrossCRM, getModuleData } = useCRM();
   
-  const [tasks, setTasks] = useState<Task[]>([
-    { id: 1, title: "Preparar o solo para plantio", description: "Preparar o solo da parcela A12 para o plantio de cana-de-açúcar", assignee: "João Silva", dueDate: "2023-09-15", priority: "high", status: "in-progress" },
-    { id: 2, title: "Colher bananas", description: "Colher as bananas da parcela B05 que estão maduras", assignee: "Maria Oliveira", dueDate: "2023-09-10", priority: "medium", status: "todo" },
-    { id: 3, title: "Aplicar fertilizante", description: "Aplicar fertilizante na parcela C08 para melhorar o rendimento", assignee: "Pedro Santos", dueDate: "2023-09-20", priority: "low", status: "todo" },
-    { id: 4, title: "Verificar sistema de irrigação", description: "Verificar e reparar possíveis vazamentos no sistema de irrigação", assignee: "Ana Costa", dueDate: "2023-09-05", priority: "urgent", status: "done" }
-  ]);
+  // Get data from CRM modules
+  const tasksData = getModuleData('tasks')?.items || [];
+  const weatherData = getModuleData('weather')?.items || [];
   
-  const [weatherAlerts, setWeatherAlerts] = useState([
-    { id: 1, location: "Região Norte", type: "Chuva intensa", severity: "Alta", date: "2023-09-12" },
-    { id: 2, location: "Região Sul", type: "Seca", severity: "Média", date: "2023-09-08" }
-  ]);
+  const [tasks, setTasks] = useState<Task[]>(tasksData);
+  const [weatherAlerts, setWeatherAlerts] = useState(weatherData);
 
   useEffect(() => {
     const initialSync = setTimeout(() => {

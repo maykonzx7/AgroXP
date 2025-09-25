@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Rotas</title>
+</head>
+<body>
+    <h1>Teste de Rotas do AgroXP</h1>
+    <p>Clique nos links abaixo para testar as rotas:</p>
+    <ul>
+        <li><a href="http://localhost:8081/login" target="_blank">Página de Login</a></li>
+        <li><a href="http://localhost:8081/register" target="_blank">Página de Registro</a></li>
+        <li><a href="http://localhost:8081/forgot-password" target="_blank">Página de Recuperação de Senha</a></li>
+    </ul>
+    
+    <h2>Status dos Serviços</h2>
+    <p>Frontend: <span id="frontend-status">Verificando...</span></p>
+    <p>Backend: <span id="backend-status">Verificando...</span></p>
+    
+    <script>
+        // Testar se o frontend está respondendo
+        fetch('http://localhost:8081/')
+            .then(response => {
+                document.getElementById('frontend-status').textContent = response.ok ? 'Funcionando' : 'Erro';
+                document.getElementById('frontend-status').style.color = response.ok ? 'green' : 'red';
+            })
+            .catch(error => {
+                document.getElementById('frontend-status').textContent = 'Erro: ' + error.message;
+                document.getElementById('frontend-status').style.color = 'red';
+            });
+            
+        // Testar se o backend está respondendo
+        fetch('http://localhost:3001/api/health')
+            .then(response => {
+                document.getElementById('backend-status').textContent = response.ok ? 'Funcionando' : 'Erro';
+                document.getElementById('backend-status').style.color = response.ok ? 'green' : 'red';
+            })
+            .catch(error => {
+                document.getElementById('backend-status').textContent = 'Erro: ' + error.message;
+                document.getElementById('backend-status').style.color = 'red';
+            });
+    </script>
+</body>
+</html>

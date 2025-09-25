@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   MapPin, 
@@ -15,14 +15,19 @@ import {
   ChevronRight,
   Settings,
   Users,
-  FileText
+  FileText,
+  User,
+  LogOut
 } from 'lucide-react';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { settings, toggleDarkMode } = useAppSettings();
+  const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   
   // Close mobile menu when route changes
   useEffect(() => {
@@ -35,7 +40,13 @@ const Navbar = () => {
     toggleDarkMode();
   };
 
-  const navItems = [
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  // Nav items that are always visible
+  const baseNavItems = [
     { title: 'Painel de Controle', path: '/', icon: Home },
     { title: 'Parcelas', path: '/parcelas', icon: MapPin },
     { title: 'Culturas', path: '/culturas', icon: Sprout },
@@ -44,6 +55,17 @@ const Navbar = () => {
     { title: 'Finanças', path: '/financas', icon: Wallet },
     { title: 'Configurações', path: '/configuracoes', icon: Settings },
   ];
+
+  // Nav items that are only visible when not authenticated
+  const authNavItems = [
+    { title: 'Login', path: '/login', icon: Users },
+    { title: 'Registro', path: '/register', icon: User },
+  ];
+
+  // Combine nav items based on authentication status
+  const navItems = isAuthenticated 
+    ? baseNavItems 
+    : [...baseNavItems, ...authNavItems];
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname === '/') return true;
@@ -109,17 +131,28 @@ const Navbar = () => {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-border">
-          <div className="flex items-center space-x-3 px-3 py-2">
-            <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium">AD</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">VrumVrum</p>
-              <p className="text-xs text-muted-foreground truncate">agricultor@example.com</p>
+        {isAuthenticated && (
+          <div className="p-4 border-t border-border">
+            <div className="flex items-center space-x-3 px-3 py-2">
+              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <span className="text-sm font-medium">
+                  {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{user?.name || 'Usuário'}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+              </div>
+              <button 
+                onClick={handleLogout}
+                className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                aria-label="Logout"
+              >
+                <LogOut className="h-4 w-4 text-muted-foreground" />
+              </button>
             </div>
           </div>
-        </div>
+        )}
       </aside>
 
       {/* Overlay for mobile with improved transition */}

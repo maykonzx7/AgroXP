@@ -1,5 +1,5 @@
 import express from 'express';
-import Crop from '../models/Crop.js';
+import Crop from './Crop.model.js';
 
 const router = express.Router();
 
