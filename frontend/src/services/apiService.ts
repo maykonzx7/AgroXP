@@ -79,6 +79,91 @@ export const livestockApi = {
   }),
 };
 
+// Feeding API
+export const feedingApi = {
+  getAll: () => fetchWithAuth('/livestock/feeding'),
+  getByLivestock: (livestockId: string) => fetchWithAuth(`/livestock/feeding/livestock/${livestockId}`),
+  create: (data: any) => fetchWithAuth('/livestock/feeding', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id: string, data: any) => fetchWithAuth(`/livestock/feeding/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: string) => fetchWithAuth(`/livestock/feeding/${id}`, {
+    method: 'DELETE',
+  }),
+};
+
+// Vaccination API
+export const vaccinationApi = {
+  getAll: () => fetchWithAuth('/livestock/vaccination'),
+  getByLivestock: (livestockId: string) => fetchWithAuth(`/livestock/vaccination/livestock/${livestockId}`),
+  create: (data: any) => fetchWithAuth('/livestock/vaccination', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id: string, data: any) => fetchWithAuth(`/livestock/vaccination/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: string) => fetchWithAuth(`/livestock/vaccination/${id}`, {
+    method: 'DELETE',
+  }),
+};
+
+// Reproduction API
+export const reproductionApi = {
+  getAll: () => fetchWithAuth('/livestock/reproduction'),
+  getByLivestock: (livestockId: string) => fetchWithAuth(`/livestock/reproduction/livestock/${livestockId}`),
+  create: (data: any) => fetchWithAuth('/livestock/reproduction', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id: string, data: any) => fetchWithAuth(`/livestock/reproduction/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: string) => fetchWithAuth(`/livestock/reproduction/${id}`, {
+    method: 'DELETE',
+  }),
+};
+
+// Veterinary Supply API
+export const veterinarySupplyApi = {
+  getAll: () => fetchWithAuth('/livestock/supplies'),
+  getById: (id: string) => fetchWithAuth(`/livestock/supplies/${id}`),
+  create: (data: any) => fetchWithAuth('/livestock/supplies', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id: string, data: any) => fetchWithAuth(`/livestock/supplies/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: string) => fetchWithAuth(`/livestock/supplies/${id}`, {
+    method: 'DELETE',
+  }),
+};
+
+// Supply Usage API
+export const supplyUsageApi = {
+  getAll: () => fetchWithAuth('/livestock/supply-usage'),
+  getByLivestock: (livestockId: string) => fetchWithAuth(`/livestock/supply-usage/livestock/${livestockId}`),
+  create: (data: any) => fetchWithAuth('/livestock/supply-usage', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id: string, data: any) => fetchWithAuth(`/livestock/supply-usage/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: string) => fetchWithAuth(`/livestock/supply-usage/${id}`, {
+    method: 'DELETE',
+  }),
+};
+
 // Inventory API
 export const inventoryApi = {
   getAll: () => fetchWithAuth('/inventory'),

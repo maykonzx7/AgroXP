@@ -37,15 +37,16 @@ const SpecificCrops = () => {
 
   const handleAddCulture = () => {
     setShowAddForm(true);
-    console.log("Abrindo o formulário de adição de cultura");
   };
 
   const handleExportData = async (format: 'csv' | 'pdf' = 'csv') => {
-    console.log(`Exportando no formato ${format}...`);
     const success = await exportModuleData('cultures', format);
     
     if (success) {
-      console.log(`Os dados das culturas foram exportados em ${format.toUpperCase()}`);
+      toast({
+        title: "Exportação bem-sucedida",
+        description: `Os dados das culturas foram exportados em ${format.toUpperCase()}`,
+      });
     }
   };
 
@@ -58,11 +59,9 @@ const SpecificCrops = () => {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log(`Importando ${file.name}...`);
       const success = await importModuleData('cultures', file);
       
       if (success) {
-        console.log("Importação bem-sucedida - Os dados das culturas foram atualizados");
         toast({
           title: "Importação bem-sucedida",
           description: "Os dados das culturas foram atualizados",

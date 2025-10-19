@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,100 +7,144 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// User model for authentication
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
   password  String
   name      String?
   farmName  String?
   phone     String?
-  role      String   @default("user")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  sessions  Session[]
+  role      String    @default("user")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   farms     Farm[]
+  sessions  Session[]
 }
 
-// Session model for user sessions
 model Session {
   id        Int      @id @default(autoincrement())
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 }
 
-// Farm model representing agricultural properties
 model Farm {
-  id          Int       @id @default(autoincrement())
+  id          Int             @id @default(autoincrement())
   name        String
   description String?
   location    String?
   size        Float?
-  sizeUnit    String?   @default("hectares")
+  sizeUnit    String?         @default("hectares")
   ownerId     Int
-  owner       User      @relation(fields: [ownerId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  parcels     Parcel[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  owner       User            @relation(fields: [ownerId], references: [id])
   inventory   InventoryItem[]
+  parcels     Parcel[]
 }
 
-// Parcel model representing sections of a farm
 model Parcel {
-  id          Int       @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   name        String
   description String?
   size        Float
-  sizeUnit    String    @default("hectares")
+  sizeUnit    String      @default("hectares")
   farmId      Int
-  farm        Farm      @relation(fields: [farmId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   crops       Crop[]
   livestock   Livestock[]
+  farm        Farm        @relation(fields: [farmId], references: [id])
 }
 
-// Crop model representing planted crops
 model Crop {
-  id          Int       @id @default(autoincrement())
-  name        String
-  variety     String?
+  id           Int       @id @default(autoincrement())
+  name         String
+  variety      String?
   plantingDate DateTime?
-  harvestDate DateTime?
-  status      String    @default("planted")
-  parcelId    Int
-  parcel      Parcel    @relation(fields: [parcelId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  harvestDate  DateTime?
+  status       String    @default("planted")
+  parcelId     Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  parcel       Parcel    @relation(fields: [parcelId], references: [id])
 }
 
-// Livestock model representing farm animals
 model Livestock {
-  id          Int       @id @default(autoincrement())
-  name        String
-  breed       String?
-  quantity    Int
-  status      String    @default("active")
-  parcelId    Int
-  parcel      Parcel    @relation(fields: [parcelId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id        Int                     @id @default(autoincrement())
+  name      String                  @db.VarChar(255)
+  breed     String                  @db.VarChar(255)
+  quantity  Int
+  status    String                  @default("active")
+  parcelId  Int
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+  age       Int?
+  weight    Decimal?                @db.Decimal(10, 2)
+  category  enum_Livestock_category
+  parcel    Parcel                  @relation(fields: [parcelId], references: [id])
 }
 
-// Inventory model for farm supplies and equipment
 model InventoryItem {
-  id          Int       @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   description String?
   category    String
   quantity    Int
   unit        String
   farmId      Int
-  farm        Farm      @relation(fields: [farmId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  farm        Farm     @relation(fields: [farmId], references: [id])
+}
+
+model Crops {
+  id           Int                @id @default(autoincrement())
+  name         String             @db.VarChar(255)
+  variety      String             @db.VarChar(255)
+  plantingDate DateTime           @db.Timestamptz(6)
+  harvestDate  DateTime?          @db.Timestamptz(6)
+  parcelId     Int?
+  status       enum_Crops_status? @default(planned)
+  createdAt    DateTime?          @db.Timestamptz(6)
+  updatedAt    DateTime?          @db.Timestamptz(6)
+  Parcels      Parcels?           @relation(fields: [parcelId], references: [id], onDelete: Cascade)
+}
+
+model Parcels {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  size      Decimal   @db.Decimal(10, 2)
+  location  String    @db.VarChar(255)
+  createdAt DateTime? @db.Timestamptz(6)
+  updatedAt DateTime? @db.Timestamptz(6)
+  Crops     Crops[]
+}
+
+enum enum_Crops_status {
+  planned
+  planting
+  growing
+  harvesting
+  completed
+}
+
+enum enum_Livestock_category {
+  bovino
+  su_no   @map("suíno")
+  ovino
+  caprino
+  av_cola @map("avícola")
+  equino
+  outros
+}
+
+enum enum_Livestock_status {
+  ativo
+  vendido
+  morto
+  transferido
 }

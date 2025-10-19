@@ -1,19 +1,159 @@
 version: '3.8'
-
 services:
+  # Banco de dados compartilhado
   postgres:
-    image: postgres:15
-    container_name: agroxp-postgres
-    restart: always
+    image: postgres:13
     environment:
+      POSTGRES_DB: agroxp_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123456
-      POSTGRES_DB: agroxp
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - agroxp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # Redis para cache e sessões
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - agroxp-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      JWT_SECRET: ${JWT_SECRET:-agroxp_secret_key}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - agroxp-network
+    restart: unless-stopped
+
+  # User Service
+  user-service:
+    build: ./services/user-service
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: development
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: agroxp_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      JWT_SECRET: ${JWT_SECRET:-agroxp_secret_key}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - agroxp-network
+    restart: unless-stopped
+
+  # Farm Service
+  farm-service:
+    build: ./services/farm-service
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: development
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: agroxp_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - agroxp-network
+    restart: unless-stopped
+
+  # Parcel Service
+  parcel-service:
+    build: ./services/parcel-service
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: development
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: agroxp_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - agroxp-network
+    restart: unless-stopped
+
+  # Livestock Service
+  livestock-service:
+    build: ./services/livestock-service
+    ports:
+      - "3004:3004"
+    environment:
+      NODE_ENV: development
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: agroxp_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - agroxp-network
+    restart: unless-stopped
+
+  # Admin Dashboard
+  admin-dashboard:
+    build: ./admin-dashboard
+    ports:
+      - "5174:80"
+    environment:
+      - API_BASE_URL=http://api-gateway:3000
+    depends_on:
+      - api-gateway
+    networks:
+      - agroxp-network
+    restart: unless-stopped
+
+networks:
+  agroxp-network:
+    driver: bridge
 
 volumes:
   postgres_data:

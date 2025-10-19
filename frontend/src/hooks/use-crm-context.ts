@@ -6,28 +6,22 @@ import {
   importFromCSV,
   printData,
 } from "../utils/crm-data-operations";
-import { parcelApi, cropApi, livestockApi, inventoryApi, financeApi } from "../services/api";
+import { 
+  parcelsApi, 
+  cropsApi, 
+  livestockApi, 
+  feedingApi, 
+  vaccinationApi, 
+  reproductionApi, 
+  veterinarySupplyApi, 
+  supplyUsageApi, 
+  inventoryApi, 
+  financeApi 
+} from "../services/apiService";
+import { CRMContextType } from "../contexts/CRMContext";
 
-// Types for the context CRM global
-interface CRMContextState {
-  lastSync: Date;
-  isRefreshing: boolean;
-  companyName: string;
-  activeModules: string[];
-  syncDataAcrossCRM: () => void;
-  updateModuleData: (moduleName: string, data: any) => void;
-  getModuleData: (moduleName: string) => any;
-  exportModuleData: (
-    moduleName: string,
-    format: "csv" | "excel" | "pdf",
-    customData?: any[]
-  ) => Promise<boolean>;
-  importModuleData: (moduleName: string, file: File) => Promise<boolean>;
-  printModuleData: (moduleName: string, options?: any) => Promise<boolean>;
-}
-
-// Hook personnalisé pour gérer le contexte global du CRM
-export const useCRMContext = (): CRMContextState => {
+// Hook personalizado para gerenciar o contexto global do CRM
+export const useCRMContext = (): CRMContextType => {
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [moduleData, setModuleData] = useState<Record<string, any>>({});
@@ -40,7 +34,7 @@ export const useCRMContext = (): CRMContextState => {
     "inventaire",
   ]);
 
-  // Nom de l'entreprise
+  // Nome da empresa
   const companyName = "AgroXP";
 
   // Fetch data from backend
@@ -49,10 +43,26 @@ export const useCRMContext = (): CRMContextState => {
     
     try {
       // Fetch all module data
-      const [parcels, crops, livestock, inventory, finances] = await Promise.all([
-        parcelApi.getAll(),
-        cropApi.getAll(),
+      const [
+        parcels, 
+        crops, 
+        livestock, 
+        feeding, 
+        vaccination, 
+        reproduction, 
+        veterinarySupplies, 
+        supplyUsage, 
+        inventory, 
+        finances
+      ] = await Promise.all([
+        parcelsApi.getAll(),
+        cropsApi.getAll(),
         livestockApi.getAll(),
+        feedingApi.getAll(),
+        vaccinationApi.getAll(),
+        reproductionApi.getAll(),
+        veterinarySupplyApi.getAll(),
+        supplyUsageApi.getAll(),
         inventoryApi.getAll(),
         financeApi.getAll(),
       ]);
@@ -317,6 +327,97 @@ export const useCRMContext = (): CRMContextState => {
     [getModuleData, companyName]
   );
 
+  // Métodos genéricos para operações CRUD
+  const addData = useCallback(async <T,>(moduleName: string, item: T) => {
+    setModuleData(prev => {
+      const module = prev[moduleName];
+      if (!module || !module.items) {
+        return prev;
+      }
+      
+      // Adiciona o novo item com ID único
+      const newItem = {
+        ...item,
+        id: Date.now().toString(), // Gerar ID único
+      } as T & { id: string };
+      
+      return {
+        ...prev,
+        [moduleName]: {
+          ...module,
+          items: [...module.items, newItem]
+        }
+      };
+    });
+
+    // Atualizar a data de última sincronização
+    setLastSync(new Date());
+  }, []);
+
+  const updateData = useCallback(async <T,>(moduleName: string, id: string | number, updates: Partial<T>) => {
+    setModuleData(prev => {
+      const module = prev[moduleName];
+      if (!module || !module.items) {
+        return prev;
+      }
+      
+      return {
+        ...prev,
+        [moduleName]: {
+          ...module,
+          items: module.items.map((item: any) => 
+            item.id === id || item._id === id ? { ...item, ...updates } : item
+          )
+        }
+      };
+    });
+
+    // Atualizar a data de última sincronização
+    setLastSync(new Date());
+  }, []);
+
+  const deleteData = useCallback(async (moduleName: string, id: string | number) => {
+    setModuleData(prev => {
+      const module = prev[moduleName];
+      if (!module || !module.items) {
+        return prev;
+      }
+      
+      return {
+        ...prev,
+        [moduleName]: {
+          ...module,
+          items: module.items.filter((item: any) => 
+            item.id !== id && item._id !== id
+          )
+        }
+      };
+    });
+
+    // Atualizar a data de última sincronização
+    setLastSync(new Date());
+  }, []);
+
+  const findData = useCallback(<T,>(moduleName: string, id: string | number): T | undefined => {
+    const module = moduleData[moduleName];
+    if (!module || !module.items) {
+      return undefined;
+    }
+    
+    return module.items.find((item: any) => 
+      item.id === id || item._id === id
+    );
+  }, [moduleData]);
+
+  const filterData = useCallback(<T,>(moduleName: string, predicate: (item: T) => boolean): T[] => {
+    const module = moduleData[moduleName];
+    if (!module || !module.items) {
+      return [];
+    }
+    
+    return module.items.filter(predicate);
+  }, [moduleData]);
+
   // Synchronisation initiale au chargement
   useEffect(() => {
     fetchData();
@@ -333,6 +434,12 @@ export const useCRMContext = (): CRMContextState => {
     exportModuleData,
     importModuleData,
     printModuleData,
+    // Novos métodos genéricos
+    addData,
+    updateData,
+    deleteData,
+    findData,
+    filterData,
   };
 };
 

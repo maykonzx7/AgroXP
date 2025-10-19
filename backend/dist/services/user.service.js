@@ -35,10 +35,10 @@ export const authenticateUser = async (email, password) => {
     const { password: _, ...userWithoutPassword } = user;
     return userWithoutPassword;
 };
-// Get user by ID
-export const getUserById = async (id) => {
+// Check if user exists by email
+export const getUserByEmail = async (email) => {
     const user = await prisma.user.findUnique({
-        where: { id },
+        where: { email },
     });
     if (!user) {
         return null;
@@ -46,10 +46,10 @@ export const getUserById = async (id) => {
     const { password: _, ...userWithoutPassword } = user;
     return userWithoutPassword;
 };
-// Get user by email
-export const getUserByEmail = async (email) => {
+// Get user by ID
+export const getUserById = async (id) => {
     const user = await prisma.user.findUnique({
-        where: { email },
+        where: { id },
     });
     if (!user) {
         return null;
@@ -69,7 +69,7 @@ export const updateUser = async (id, data) => {
 export default {
     createUser,
     authenticateUser,
-    getUserById,
     getUserByEmail,
+    getUserById,
     updateUser,
 };

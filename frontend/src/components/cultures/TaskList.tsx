@@ -51,12 +51,10 @@ const TaskList = () => {
   };
 
   const handleTaskComplete = (id: number) => {
-    console.log('Tarefa marcada como concluída');
     setTasks(tasks.filter(task => task.id !== id));
   };
 
   const handleTaskDelete = (id: number) => {
-    console.log('Tarefa removida com sucesso');
     setTasks(tasks.filter(task => task.id !== id));
   };
 
@@ -64,12 +62,10 @@ const TaskList = () => {
     setTasks(tasks.map(task => 
       task.id === id ? { ...task, priority } : task
     ));
-    console.log(`Prioridade alterada para "${priority}"`);
   };
 
   const handleAddTask = () => {
     if (!newTask.task || !newTask.culture || !newTask.date) {
-      console.error('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
@@ -89,7 +85,6 @@ const TaskList = () => {
       priority: 'Média'
     });
     setShowAddTask(false);
-    console.log('Nova tarefa adicionada com sucesso');
   };
 
   return (

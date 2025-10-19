@@ -1,32 +1,43 @@
 #!/bin/bash
+# start-dev.sh
 
-# Start the development servers for both frontend and backend
-echo "Starting AgroXP development servers..."
+echo "🚀 Iniciando ambiente de desenvolvimento AgroXP..."
 
-# Check if the processes are already running
-if pgrep -f "npm.*dev.*backend" > /dev/null || pgrep -f "npm.*dev.*frontend" > /dev/null; then
-    echo "Development servers are already running. Please stop them first."
+# Verificar se Docker está instalado
+if ! command -v docker &> /dev/null; then
+    echo "❌ Docker não encontrado. Por favor instale o Docker."
     exit 1
 fi
 
-# Start backend server
-echo "Starting backend server..."
-cd /home/maycolaz/AgroXP/backend
-npm run dev > /tmp/agroxp-backend.log 2>&1 &
-BACKEND_PID=$!
+# Verificar se Docker Compose está instalado
+if ! command -v docker-compose &> /dev/null; then
+    echo "❌ Docker Compose não encontrado. Por favor instale o Docker Compose."
+    exit 1
+fi
 
-# Start frontend server
-echo "Starting frontend server..."
-cd /home/maycolaz/AgroXP/frontend
-npm run dev > /tmp/agroxp-frontend.log 2>&1 &
-FRONTEND_PID=$!
+# Navegar para o diretório raiz
+cd /home/maycolaz/AgroXP
 
-echo "Backend PID: $BACKEND_PID"
-echo "Frontend PID: $FRONTEND_PID"
-echo "Servers started successfully!"
-echo "Frontend will be available at http://localhost:5173"
-echo "Backend API will be available at http://localhost:3001"
-echo "Press Ctrl+C to stop both servers"
+# Verificar se o banco de dados já está em execução
+if docker-compose ps | grep -q "postgres.*Up"; then
+    echo "⚠️  Banco de dados já está em execução"
+else
+    echo "🚀 Iniciando banco de dados e serviços..."
+    docker-compose up -d postgres redis
+    echo "⏳ Aguardando inicialização do banco de dados..."
+    sleep 15
+fi
 
-# Wait for both processes
-wait $BACKEND_PID $FRONTEND_PID
+# Iniciar todos os serviços em segundo plano
+echo "🚀 Iniciando serviços..."
+npm run dev &
+
+# Aguardar alguns segundos para os serviços iniciarem
+sleep 5
+
+echo "✅ Ambiente de desenvolvimento iniciado!"
+echo "🌐 Frontend: http://localhost:5173"
+echo "📊 Admin Dashboard: http://localhost:5174"
+echo "🗄️  Banco de dados: localhost:5432"
+echo ""
+echo "Para parar o ambiente, execute: ./stop-dev.sh"

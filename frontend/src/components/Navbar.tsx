@@ -7,7 +7,6 @@ import {
   Sprout, 
   Package, 
   Wallet, 
-  BarChart2, 
   Menu, 
   X,
   Sun,
@@ -15,15 +14,27 @@ import {
   ChevronRight,
   Settings,
   Users,
-  FileText,
   User,
-  LogOut
+  LogOut,
+  BarChart3,
+  Layers,
+  TrendingUp
 } from 'lucide-react';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+
+// Definindo o tipo para os itens de navegação
+interface NavItem {
+  title: string;
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  category?: string; // Para agrupar itens por categoria
+}
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const { settings, toggleDarkMode } = useAppSettings();
   const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
@@ -45,27 +56,38 @@ const Navbar = () => {
     navigate('/login');
   };
 
-  // Nav items that are always visible
-  const baseNavItems = [
-    { title: 'Painel de Controle', path: '/', icon: Home },
-    { title: 'Parcelas', path: '/parcelas', icon: MapPin },
-    { title: 'Culturas', path: '/culturas', icon: Sprout },
-    { title: 'Pecuária', path: '/pecuaria', icon: Users },
-    { title: 'Inventário', path: '/inventario', icon: Package },
-    { title: 'Finanças', path: '/financas', icon: Wallet },
-    { title: 'Configurações', path: '/configuracoes', icon: Settings },
+  // Definindo categorias para agrupamento
+  const navCategories = [
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+    { id: 'management', label: 'Gestão', icon: Layers },
+    { id: 'analytics', label: 'Análises', icon: TrendingUp },
   ];
 
-  // Nav items that are only visible when not authenticated
-  const authNavItems = [
+  // Nav items organizados por categorias
+  const navItems: NavItem[] = [
+    // Dashboard
+    { title: 'Painel de Controle', path: '/', icon: Home, category: 'dashboard' },
+    
+    // Gestão
+    { title: 'Parcelas', path: '/parcelas', icon: MapPin, category: 'management' },
+    { title: 'Culturas', path: '/culturas', icon: Sprout, category: 'management' },
+    { title: 'Pecuária', path: '/pecuaria', icon: Users, category: 'management' },
+    { title: 'Inventário', path: '/inventario', icon: Package, category: 'management' },
+    { title: 'Finanças', path: '/financas', icon: Wallet, category: 'management' },
+    
+    // Análises
+    { title: 'Relatórios', path: '/relatorios', icon: TrendingUp, category: 'analytics' },
+    { title: 'Configurações', path: '/configuracoes', icon: Settings, category: 'analytics' },
+  ];
+
+  // Itens de navegação para quando não autenticado
+  const authNavItems: NavItem[] = [
     { title: 'Login', path: '/login', icon: Users },
     { title: 'Registro', path: '/register', icon: User },
   ];
 
-  // Combine nav items based on authentication status
-  const navItems = isAuthenticated 
-    ? baseNavItems 
-    : [...baseNavItems, ...authNavItems];
+  // Filtrar itens com base na autenticação
+  const displayedNavItems = isAuthenticated ? navItems : [...navItems, ...authNavItems];
 
   const isActive = (path: string) => {
     if (path === '/' && location.pathname === '/') return true;
@@ -73,17 +95,34 @@ const Navbar = () => {
     return false;
   };
 
+  // Agrupar itens por categoria
+  const groupedNavItems = displayedNavItems.reduce((acc, item) => {
+    const category = item.category || 'outros';
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(item);
+    return acc;
+  }, {} as Record<string, NavItem[]>);
+
+  // Obter categorias visíveis
+  const visibleCategories = Array.from(
+    new Set(displayedNavItems.map(item => item.category).filter(Boolean))
+  ) as string[];
+
   return (
     <>
       {/* Mobile Navigation Toggle with improved animation */}
       <div className="fixed top-4 left-4 z-50 md:hidden">
-        <button 
+        <Button 
+          variant="ghost" 
+          size="icon"
           onClick={toggleSidebar} 
           className="p-2 bg-sidebar-background rounded-full shadow-md hover:bg-sidebar-accent transition-all active:scale-95 border border-sidebar-border"
           aria-label="Toggle navigation"
         >
           {isOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+        </Button>
       </div>
 
       {/* Sidebar Navigation with improved animation and transitions */}
@@ -97,38 +136,109 @@ const Navbar = () => {
             <Sprout className="h-6 w-6 text-agri-primary" />
             <span className="text-lg font-bold text-foreground">AgroXP</span>
           </Link>
-          <button 
+          <Button 
+            variant="ghost" 
+            size="icon"
             onClick={handleToggleTheme} 
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             aria-label="Toggle theme"
           >
             {settings.darkMode ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
+          </Button>
         </div>
 
         <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`nav-link flex items-center space-x-3 py-3 px-4 rounded-lg transition-colors ${
-                isActive(item.path) 
-                  ? 'bg-agri-primary/10 text-agri-primary font-medium' 
-                  : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-foreground'
-              }`}
-              onClick={() => setIsOpen(false)}
-            >
-              <item.icon className={`h-5 w-5 ${isActive(item.path) ? 'text-agri-primary' : ''}`} />
-              <span>{item.title}</span>
-              
-              {isActive(item.path) && (
-                <div className="ml-auto flex items-center">
-                  <span className="h-2 w-2 rounded-full bg-agri-primary animate-pulse-slow"></span>
-                  <ChevronRight className="h-4 w-4 text-agri-primary ml-1" />
-                </div>
-              )}
-            </Link>
-          ))}
+          {/* Menu agrupado por categorias */}
+          {visibleCategories.map(categoryId => {
+            const category = navCategories.find(cat => cat.id === categoryId);
+            const items = groupedNavItems[categoryId] || [];
+            
+            if (!category) return null;
+            
+            const isCategoryActive = items.some(item => isActive(item.path));
+            const isExpanded = activeCategory === categoryId || isCategoryActive;
+            
+            return (
+              <div key={categoryId} className="mb-4">
+                <Button
+                  variant="ghost"
+                  className={`w-full justify-between px-2 py-2 text-sm ${
+                    isCategoryActive ? 'text-agri-primary font-medium' : 'text-foreground'
+                  }`}
+                  onClick={() => {
+                    if (activeCategory === categoryId) {
+                      setActiveCategory(null);
+                    } else {
+                      setActiveCategory(categoryId);
+                    }
+                  }}
+                >
+                  <div className="flex items-center">
+                    <category.icon className="h-4 w-4 mr-2" />
+                    {category.label}
+                  </div>
+                  <ChevronRight 
+                    className={`h-4 w-4 transform transition-transform ${
+                      isExpanded ? 'rotate-90' : ''
+                    }`} 
+                  />
+                </Button>
+                
+                {isExpanded && (
+                  <div className="ml-6 space-y-1 mt-1">
+                    {items.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`nav-link flex items-center space-x-3 py-2 px-3 rounded-lg transition-colors ${
+                          isActive(item.path) 
+                            ? 'bg-agri-primary/10 text-agri-primary font-medium' 
+                            : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-foreground'
+                        }`}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <item.icon className={`h-4 w-4 ${isActive(item.path) ? 'text-agri-primary' : ''}`} />
+                        <span>{item.title}</span>
+                        
+                        {isActive(item.path) && (
+                          <div className="ml-auto flex items-center">
+                            <span className="h-2 w-2 rounded-full bg-agri-primary animate-pulse-slow"></span>
+                          </div>
+                        )}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          
+          {/* Itens que não pertencem a nenhuma categoria (quando não autenticado) */}
+          {groupedNavItems['outros'] && (
+            <div className="mt-4">
+              {groupedNavItems['outros'].map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`nav-link flex items-center space-x-3 py-3 px-4 rounded-lg transition-colors ${
+                    isActive(item.path) 
+                      ? 'bg-agri-primary/10 text-agri-primary font-medium' 
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-foreground'
+                  }`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  <item.icon className={`h-5 w-5 ${isActive(item.path) ? 'text-agri-primary' : ''}`} />
+                  <span>{item.title}</span>
+                  
+                  {isActive(item.path) && (
+                    <div className="ml-auto flex items-center">
+                      <span className="h-2 w-2 rounded-full bg-agri-primary animate-pulse-slow"></span>
+                      <ChevronRight className="h-4 w-4 text-agri-primary ml-1" />
+                    </div>
+                  )}
+                </Link>
+              ))}
+            </div>
+          )}
         </nav>
 
         {isAuthenticated && (
@@ -143,13 +253,14 @@ const Navbar = () => {
                 <p className="text-sm font-medium truncate">{user?.name || 'Usuário'}</p>
                 <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
               </div>
-              <button 
+              <Button 
+                variant="ghost" 
+                size="icon"
                 onClick={handleLogout}
-                className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 aria-label="Logout"
               >
                 <LogOut className="h-4 w-4 text-muted-foreground" />
-              </button>
+              </Button>
             </div>
           </div>
         )}

@@ -47,7 +47,7 @@ import {
   Filter
 } from "lucide-react";
 
-import PageLayout from "../components/layout/PageLayout";
+import DashboardLayoutTemplate from "../components/templates/DashboardLayoutTemplate";
 import PageHeader from "../components/layout/PageHeader";
 import Dashboard from "../components/dashboard/MainDashboard";
 import TabContainer, { TabItem } from "../components/layout/TabContainer";
@@ -252,7 +252,7 @@ const Index = () => {
   ];
 
   return (
-    <PageLayout>
+    <DashboardLayoutTemplate breadcrumbItems={[{ label: "Início", path: "/", isCurrent: true }]}>
       <div className={spacing.getPageContainerClasses()}>
         <PageHeader 
           title={title}
@@ -386,7 +386,7 @@ const Index = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </PageLayout>
+    </DashboardLayoutTemplate>
   );
 };
 

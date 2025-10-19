@@ -1,40 +1,23 @@
 #!/bin/bash
+# stop-dev.sh
 
-# Stop the development servers for both frontend and backend
-echo "Stopping AgroXP development servers..."
+echo "⏹️  Parando ambiente de desenvolvimento AgroXP..."
 
-# Kill backend processes
-BACKEND_PIDS=$(pgrep -f "npm.*dev.*backend")
-if [ ! -z "$BACKEND_PIDS" ]; then
-    echo "Stopping backend server (PIDs: $BACKEND_PIDS)..."
-    kill $BACKEND_PIDS
+# Navegar para o diretório raiz
+cd /home/maycolaz/AgroXP
+
+# Parar todos os containers Docker em execução
+if docker-compose ps | grep -q "Up"; then
+    echo "⏹️  Parando containers Docker..."
+    docker-compose down
 else
-    echo "No backend server found running."
+    echo "ℹ️  Nenhum container Docker em execução"
 fi
 
-# Kill frontend processes
-FRONTEND_PIDS=$(pgrep -f "npm.*dev.*frontend")
-if [ ! -z "$FRONTEND_PIDS" ]; then
-    echo "Stopping frontend server (PIDs: $FRONTEND_PIDS)..."
-    kill $FRONTEND_PIDS
-else
-    echo "No frontend server found running."
-fi
+# Parar processos Node.js em execução
+echo "⏹️  Parando processos Node.js..."
+pkill -f "node.*server" 2>/dev/null || true
+pkill -f "vite" 2>/dev/null || true
+pkill -f "npm.*dev" 2>/dev/null || true
 
-# Wait a moment for processes to terminate
-sleep 2
-
-# Force kill if still running
-BACKEND_PIDS=$(pgrep -f "npm.*dev.*backend")
-if [ ! -z "$BACKEND_PIDS" ]; then
-    echo "Force stopping backend server (PIDs: $BACKEND_PIDS)..."
-    kill -9 $BACKEND_PIDS
-fi
-
-FRONTEND_PIDS=$(pgrep -f "npm.*dev.*frontend")
-if [ ! -z "$FRONTEND_PIDS" ]; then
-    echo "Force stopping frontend server (PIDs: $FRONTEND_PIDS)..."
-    kill -9 $FRONTEND_PIDS
-fi
-
-echo "Servers stopped."
+echo "✅ Ambiente de desenvolvimento parado!"

@@ -4,21 +4,15 @@ import authService from '../services/auth.service.js';
 export const register = async (req, res) => {
     try {
         const { email, password, name, farmName, phone } = req.body;
-        
         // Check if user already exists by email
-        // This is no longer a placeholder - we're actually checking the database
         const existingUser = await userService.getUserByEmail(email);
-        
         if (existingUser) {
-            return res.status(400).json({ error: 'User already exists' });
+            return res.status(400).json({ error: 'User with this email already exists' });
         }
-        
         // Create the user
         const user = await userService.createUser(email, password, name, farmName, phone);
-        
         // Create a session for the user
         const session = await authService.createSession(user.id);
-        
         // Return the user and session token
         res.status(201).json({
             user: { id: user.id, email: user.email, name: user.name, farmName: user.farmName, phone: user.phone },
@@ -27,10 +21,6 @@ export const register = async (req, res) => {
     }
     catch (error) {
         console.error('Registration error:', error);
-        // Check if it's a database connection error
-        if (error.message && error.message.includes('Can\'t reach database server')) {
-            return res.status(503).json({ error: 'Database service unavailable. Please contact system administrator.' });
-        }
         res.status(500).json({ error: 'Internal server error' });
     }
 };
@@ -53,10 +43,6 @@ export const login = async (req, res) => {
     }
     catch (error) {
         console.error('Login error:', error);
-        // Check if it's a database connection error
-        if (error.message && error.message.includes('Can\'t reach database server')) {
-            return res.status(503).json({ error: 'Database service unavailable. Please contact system administrator.' });
-        }
         res.status(500).json({ error: 'Internal server error' });
     }
 };

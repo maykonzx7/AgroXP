@@ -44,6 +44,20 @@ export const authenticateUser = async (email: string, password: string) => {
   return userWithoutPassword;
 };
 
+// Check if user exists by email
+export const getUserByEmail = async (email: string) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+  
+  if (!user) {
+    return null;
+  }
+  
+  const { password: _, ...userWithoutPassword } = user;
+  return userWithoutPassword;
+};
+
 // Get user by ID
 export const getUserById = async (id: number) => {
   const user = await prisma.user.findUnique({
@@ -72,6 +86,7 @@ export const updateUser = async (id: number, data: Partial<{ name: string; farmN
 export default {
   createUser,
   authenticateUser,
+  getUserByEmail,
   getUserById,
   updateUser,
 };

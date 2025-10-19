@@ -42,7 +42,6 @@ const VaccinationManagement = () => {
   const handleSaveVaccination = (e) => {
     e.preventDefault();
     // Lógica para salvar o registro de vacinação
-    console.log("Salvando registro de vacinação");
     setIsDialogOpen(false);
   };
 

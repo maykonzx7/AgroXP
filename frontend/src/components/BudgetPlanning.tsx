@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -16,6 +16,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { toast } from 'sonner';
 import { Plus, Save, Download, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useCRM } from '@/contexts/CRMContext';
 
 interface BudgetItem {
   id: number;
@@ -25,18 +26,9 @@ interface BudgetItem {
   color: string;
 }
 
-const INITIAL_BUDGET_DATA: BudgetItem[] = [
-  { id: 1, category: 'Insumos', planned: 25000, actual: 22500, color: '#4CAF50' },
-  { id: 2, category: 'Equipamentos', planned: 30000, actual: 32000, color: '#2196F3' },
-  { id: 3, category: 'Mão de Obra', planned: 40000, actual: 39000, color: '#FFC107' },
-  { id: 4, category: 'Combustível', planned: 12000, actual: 13500, color: '#F44336' },
-  { id: 5, category: 'Manutenção', planned: 8000, actual: 7200, color: '#9C27B0' },
-  { id: 6, category: 'Serviços', planned: 15000, actual: 14000, color: '#00BCD4' },
-  { id: 7, category: 'Administrativo', planned: 10000, actual: 9800, color: '#FF9800' },
-];
-
 const BudgetPlanning = () => {
-  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>(INITIAL_BUDGET_DATA);
+  const { getModuleData, addData, updateData, deleteData } = useCRM();
+  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newCategory, setNewCategory] = useState('');
   const [newPlanned, setNewPlanned] = useState('');
@@ -58,7 +50,7 @@ const BudgetPlanning = () => {
   }));
   
   // Handle adding new budget item
-  const handleAddBudgetItem = () => {
+  const handleAddBudgetItem = async () => {
     if (!newCategory || !newPlanned) {
       toast.error("Por favor, preencha os campos obrigatórios");
       return;
@@ -76,16 +68,23 @@ const BudgetPlanning = () => {
     const colors = ['#4CAF50', '#2196F3', '#FFC107', '#F44336', '#9C27B0', '#00BCD4', '#FF9800', '#673AB7'];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
     
-    const newItem: BudgetItem = {
-      id: Math.max(...budgetItems.map(item => item.id), 0) + 1,
+    const newItem = {
       category: newCategory,
       planned: planned,
       actual: actual,
       color: randomColor
     };
     
-    setBudgetItems([...budgetItems, newItem]);
-    toast.success("Categoria de orçamento adicionada com sucesso");
+    try {
+      await addData('budget', newItem);
+      // Refresh data from CRM
+      const updatedBudgetData = getModuleData('budget')?.items || [];
+      setBudgetItems(updatedBudgetData);
+      toast.success("Categoria de orçamento adicionada com sucesso");
+    } catch (error) {
+      toast.error("Erro ao adicionar categoria de orçamento");
+    }
+    
     setShowAddDialog(false);
     setNewCategory('');
     setNewPlanned('');
@@ -93,19 +92,32 @@ const BudgetPlanning = () => {
   };
   
   // Handle updating actual amount
-  const handleUpdateActual = (id: number, value: string) => {
+  const handleUpdateActual = async (id: number, value: string) => {
     const actual = parseFloat(value);
     if (isNaN(actual)) return;
     
-    setBudgetItems(budgetItems.map(item => 
-      item.id === id ? { ...item, actual } : item
-    ));
+    try {
+      await updateData('budget', id, { actual });
+      // Refresh data from CRM
+      const updatedBudgetData = getModuleData('budget')?.items || [];
+      setBudgetItems(updatedBudgetData);
+      toast.success("Valor atualizado com sucesso");
+    } catch (error) {
+      toast.error("Erro ao atualizar valor");
+    }
   };
   
   // Handle removing a budget item
-  const handleRemoveItem = (id: number) => {
-    setBudgetItems(budgetItems.filter(item => item.id !== id));
-    toast.success("Categoria de orçamento removida");
+  const handleRemoveItem = async (id: number) => {
+    try {
+      await deleteData('budget', id);
+      // Refresh data from CRM
+      const updatedBudgetData = getModuleData('budget')?.items || [];
+      setBudgetItems(updatedBudgetData);
+      toast.success("Categoria de orçamento removida");
+    } catch (error) {
+      toast.error("Erro ao remover categoria de orçamento");
+    }
   };
   
   // Handle saving budget

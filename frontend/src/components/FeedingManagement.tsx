@@ -1,50 +1,133 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar, Plus, Edit3, Trash2 } from 'lucide-react';
 import { useCRM } from '@/contexts/CRMContext';
+import { useToast } from '@/hooks/use-toast';
 
 const FeedingManagement = () => {
-  const { getModuleData } = useCRM();
+  const { getModuleData, addData, updateData, deleteData } = useCRM();
+  const { toast } = useToast();
   const livestockData = getModuleData('livestock')?.items || [];
+  
+  const [feedingRecords, setFeedingRecords] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingFeeding, setEditingFeeding] = useState(null);
+  const [editingFeeding, setEditingFeeding] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    livestockId: '',
+    feedType: '',
+    quantity: 0,
+    unit: 'kg',
+    feedingDate: new Date().toISOString().split('T')[0],
+    notes: ''
+  });
 
-  // Dados de exemplo para alimentação
-  const feedingData = [
-    {
-      id: 1,
-      livestockId: 1,
-      animalName: "Vaca 1",
-      feedType: "Ração Premium",
-      quantity: 15.5,
-      unit: "kg",
-      feedingDate: "2023-06-15",
-      notes: "Ração para lactação"
-    },
-    {
-      id: 2,
-      livestockId: 2,
-      animalName: "Porco 1",
-      feedType: "Ração Crescimento",
-      quantity: 8.2,
-      unit: "kg",
-      feedingDate: "2023-06-15",
-      notes: "Ração para crescimento"
-    }
-  ];
+  // Load feeding records from CRM context
+  useEffect(() => {
+    const feedingData = getModuleData('feeding')?.items || [];
+    setFeedingRecords(feedingData);
+  }, [getModuleData]);
 
-  const handleSaveFeeding = (e) => {
-    e.preventDefault();
-    // Lógica para salvar o registro de alimentação
-    console.log("Salvando registro de alimentação");
-    setIsDialogOpen(false);
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'quantity' ? parseFloat(value) || 0 : value
+    }));
   };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      if (editingFeeding) {
+        // Update existing feeding record
+        await updateData('feeding', editingFeeding.id, formData);
+        toast({
+          title: "Registro atualizado",
+          description: "O registro de alimentação foi atualizado com sucesso.",
+        });
+      } else {
+        // Add new feeding record
+        await addData('feeding', formData);
+        toast({
+          title: "Registro adicionado",
+          description: "O registro de alimentação foi adicionado com sucesso.",
+        });
+      }
+      
+      // Refresh records from backend
+      const updatedFeedingData = getModuleData('feeding')?.items || [];
+      setFeedingRecords(updatedFeedingData);
+      setIsDialogOpen(false);
+      setEditingFeeding(null);
+      setFormData({
+        livestockId: '',
+        feedType: '',
+        quantity: 0,
+        unit: 'kg',
+        feedingDate: new Date().toISOString().split('T')[0],
+        notes: ''
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar o registro de alimentação.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Handle editing a feeding record
+  const handleEdit = (feeding: any) => {
+    const animal = livestockData.find((item: any) => item.id === feeding.livestockId);
+    setFormData({
+      livestockId: feeding.livestockId,
+      feedType: feeding.feedType,
+      quantity: feeding.quantity,
+      unit: feeding.unit,
+      feedingDate: feeding.feedingDate,
+      notes: feeding.notes
+    });
+    setEditingFeeding(feeding);
+    setIsDialogOpen(true);
+  };
+
+  // Handle deleting a feeding record
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteData('feeding', id);
+      toast({
+        title: "Registro excluído",
+        description: "O registro de alimentação foi excluído com sucesso.",
+      });
+      // Refresh records from backend
+      const updatedFeedingData = getModuleData('feeding')?.items || [];
+      setFeedingRecords(updatedFeedingData);
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir",
+        description: "Ocorreu um erro ao excluir o registro de alimentação.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Populate animal names for records
+  const feedingRecordsWithNames = feedingRecords.map(record => {
+    const animal = livestockData.find((item: any) => item.id === record.livestockId);
+    return {
+      ...record,
+      animalName: animal ? animal.name || animal.nom || animal.animalName : 'Animal Desconhecido'
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -65,20 +148,25 @@ const FeedingManagement = () => {
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Registrar Alimentação</DialogTitle>
+              <DialogTitle>
+                {editingFeeding ? 'Editar Alimentação' : 'Registrar Alimentação'}
+              </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSaveFeeding} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="livestock">Animal</Label>
+                <Label htmlFor="livestockId">Animal</Label>
                 <select 
-                  id="livestock" 
+                  id="livestockId"
+                  name="livestockId"
+                  value={formData.livestockId}
+                  onChange={handleInputChange}
                   className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
                   required
                 >
                   <option value="">Selecione um animal</option>
                   {livestockData.map((animal: any) => (
                     <option key={animal.id} value={animal.id}>
-                      {animal.nom} - {animal.categorie}
+                      {animal.name || animal.nom || animal.animalName} - {animal.breed || animal.race || animal.categorie}
                     </option>
                   ))}
                 </select>
@@ -87,7 +175,10 @@ const FeedingManagement = () => {
               <div className="space-y-2">
                 <Label htmlFor="feedType">Tipo de Alimento</Label>
                 <Input 
-                  id="feedType" 
+                  id="feedType"
+                  name="feedType"
+                  value={formData.feedType}
+                  onChange={handleInputChange}
                   placeholder="Nome do alimento" 
                   required
                 />
@@ -97,9 +188,12 @@ const FeedingManagement = () => {
                 <div className="space-y-2">
                   <Label htmlFor="quantity">Quantidade</Label>
                   <Input 
-                    id="quantity" 
+                    id="quantity"
+                    name="quantity"
                     type="number" 
                     step="0.1"
+                    value={formData.quantity}
+                    onChange={handleInputChange}
                     placeholder="Quantidade" 
                     required
                   />
@@ -107,7 +201,10 @@ const FeedingManagement = () => {
                 <div className="space-y-2">
                   <Label htmlFor="unit">Unidade</Label>
                   <select 
-                    id="unit" 
+                    id="unit"
+                    name="unit"
+                    value={formData.unit}
+                    onChange={handleInputChange}
                     className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
                     required
                   >
@@ -124,8 +221,11 @@ const FeedingManagement = () => {
                 <div className="relative">
                   <Calendar className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input 
-                    id="feedingDate" 
+                    id="feedingDate"
+                    name="feedingDate"
                     type="date" 
+                    value={formData.feedingDate}
+                    onChange={handleInputChange}
                     required
                   />
                 </div>
@@ -134,14 +234,24 @@ const FeedingManagement = () => {
               <div className="space-y-2">
                 <Label htmlFor="notes">Observações</Label>
                 <Textarea 
-                  id="notes" 
+                  id="notes"
+                  name="notes"
+                  value={formData.notes}
+                  onChange={handleInputChange}
                   placeholder="Observações sobre a alimentação" 
                 />
               </div>
               
-              <Button type="submit" className="w-full">
-                Registrar Alimentação
-              </Button>
+              <div className="flex space-x-2 pt-2">
+                <DialogClose asChild>
+                  <Button type="button" variant="outline" className="flex-1">
+                    Cancelar
+                  </Button>
+                </DialogClose>
+                <Button type="submit" className="flex-1">
+                  {editingFeeding ? 'Atualizar' : 'Registrar'}
+                </Button>
+              </div>
             </form>
           </DialogContent>
         </Dialog>
@@ -164,26 +274,28 @@ const FeedingManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {feedingData.map((item) => (
+              {feedingRecordsWithNames.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.animalName}</TableCell>
                   <TableCell>{item.feedType}</TableCell>
                   <TableCell>{item.quantity} {item.unit}</TableCell>
-                  <TableCell>{item.feedingDate}</TableCell>
+                  <TableCell>{new Date(item.feedingDate).toLocaleDateString()}</TableCell>
                   <TableCell>{item.notes}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => {
-                          setEditingFeeding(item);
-                          setIsDialogOpen(true);
-                        }}
+                        onClick={() => handleEdit(item)}
                       >
                         <Edit3 className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" className="text-red-600">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600"
+                        onClick={() => handleDelete(item.id)}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

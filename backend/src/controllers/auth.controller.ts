@@ -7,14 +7,11 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { email, password, name, farmName, phone } = req.body;
     
-    // Check if user already exists
-    const existingUser = await userService.getUserById(0); // This is a placeholder
-    
-    // In a real implementation, we would check if the user exists by email
-    // const existingUser = await prisma.user.findUnique({ where: { email } });
+    // Check if user already exists by email
+    const existingUser = await userService.getUserByEmail(email);
     
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ error: 'User with this email already exists' });
     }
     
     // Create the user

@@ -15,7 +15,7 @@ interface AppSettingsContextType {
 
 const defaultSettings: AppSettings = {
   darkMode: true,
-  locale: 'fr-FR',
+  locale: 'pt-BR',
   // Default values for other settings
 
 
@@ -33,7 +33,6 @@ const defaultSettings: AppSettings = {
   
 };
 
-console.log('Default settings:', defaultSettings);
 
 const AppSettingsContext = createContext<AppSettingsContextType>({
   settings: defaultSettings,
@@ -55,16 +54,13 @@ export const AppSettingsProvider: React.FC<AppSettingsProviderProps> = ({ childr
     if (savedSettings) {
       try {
         const parsedSettings = JSON.parse(savedSettings);
-        console.log('Loaded settings from localStorage:', parsedSettings);
         return parsedSettings;
       } catch {
-        console.log('Failed to parse settings from localStorage, using defaults');
         return defaultSettings;
       }
     }
     
     // Default to dark mode as requested
-    console.log('Using default settings (dark mode):', defaultSettings);
     return defaultSettings;
   });
 
@@ -72,12 +68,9 @@ export const AppSettingsProvider: React.FC<AppSettingsProviderProps> = ({ childr
   useEffect(() => {
     if (settings.darkMode) {
       document.documentElement.classList.add('dark');
-      console.log('Dark class applied to document element');
     } else {
       document.documentElement.classList.remove('dark');
-      console.log('Dark class removed from document element');
     }
-    console.log('Current document classes:', document.documentElement.classList);
     
     // Save settings to localStorage
     localStorage.setItem('appSettings', JSON.stringify(settings));
@@ -91,10 +84,10 @@ export const AppSettingsProvider: React.FC<AppSettingsProviderProps> = ({ childr
   };
 
   const toggleDarkMode = () => {
-    setSettings(prevSettings => ({
-      ...prevSettings,
-      darkMode: !prevSettings.darkMode,
-    }));
+    setSettings(prev => {
+      const newDarkMode = !prev.darkMode;
+      return { ...prev, darkMode: newDarkMode };
+    });
   };
 
   // Fix the updateNestedSetting function with proper typing

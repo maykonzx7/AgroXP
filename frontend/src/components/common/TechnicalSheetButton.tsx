@@ -79,7 +79,6 @@ const TechnicalSheetButton: React.FC<TechnicalSheetButtonProps> = ({
     
     try {
       await exportModuleData('fiche_technique', 'pdf', techSheetData);
-      console.log("Ficha técnica gerada com sucesso");
     } catch (error) {
       console.error("Error generating technical sheet:", error);
     } finally {

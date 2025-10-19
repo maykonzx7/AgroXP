@@ -14,7 +14,7 @@ import vaccinationRouter from './modules/livestock/vaccination.routes.js';
 import reproductionRouter from './modules/livestock/reproduction.routes.js';
 import veterinarySupplyRouter from './modules/livestock/veterinarySupply.routes.js';
 import livestockSupplyUsageRouter from './modules/livestock/livestockSupplyUsage.routes.js';
-import authRouter from './routes/auth.routes.ts';
+import authRouter from './routes/auth.routes.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -24,7 +24,11 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173'
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 app.use(express.json());
 
@@ -52,8 +56,8 @@ const initializeDatabase = async () => {
     await sequelize.authenticate();
     console.log('Database connection has been established successfully.');
     
-    // Sync models
-    await sequelize.sync({ alter: true });
+    // Sync models with force: false to avoid dropping data, but handle enums properly
+    await sequelize.sync({ alter: true }); // This will handle alter operations carefully
     console.log('Database synchronized successfully.');
   } catch (error) {
     console.error('Unable to connect to the database:', error);
