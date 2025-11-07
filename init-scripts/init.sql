@@ -1,0 +1,3 @@
+-- This file is intentionally left blank
+-- It exists to satisfy the docker-compose.yml configuration
+-- You can add any initialization SQL here if needed

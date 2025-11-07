@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, Upload } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Plus, Trash2, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 interface LivestockItem {
   id: number;
@@ -21,53 +28,59 @@ interface LivestockItem {
 
 const BatchLivestockRegistration = () => {
   const [livestockItems, setLivestockItems] = useState<LivestockItem[]>([
-    { id: Date.now(), name: '', breed: '', quantity: 1, category: 'bovino' }
+    { id: Date.now(), name: "", breed: "", quantity: 1, category: "bovino" },
   ]);
-  const [csvData, setCsvData] = useState<string>('');
+  const [csvData, setCsvData] = useState<string>("");
 
   // Adicionar novo item à lista
   const addLivestockItem = () => {
     setLivestockItems([
       ...livestockItems,
-      { id: Date.now(), name: '', breed: '', quantity: 1, category: 'bovino' }
+      { id: Date.now(), name: "", breed: "", quantity: 1, category: "bovino" },
     ]);
   };
 
   // Remover item da lista
   const removeLivestockItem = (id: number) => {
     if (livestockItems.length > 1) {
-      setLivestockItems(livestockItems.filter(item => item.id !== id));
+      setLivestockItems(livestockItems.filter((item) => item.id !== id));
     } else {
-      toast.warning('Não é possível remover o último item');
+      toast.warning("Não é possível remover o último item");
     }
   };
 
   // Atualizar um item
-  const updateLivestockItem = (id: number, field: keyof LivestockItem, value: string | number) => {
-    setLivestockItems(livestockItems.map(item => 
-      item.id === id ? { ...item, [field]: value } : item
-    ));
+  const updateLivestockItem = (
+    id: number,
+    field: keyof LivestockItem,
+    value: string | number
+  ) => {
+    setLivestockItems(
+      livestockItems.map((item) =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    );
   };
 
   // Parse CSV data
   const parseCSV = (csv: string) => {
-    const lines = csv.trim().split('\n');
+    const lines = csv.trim().split("\n");
     if (lines.length < 2) return;
 
-    const headers = lines[0].split(',').map(h => h.trim());
+    const headers = lines[0].split(",").map((h) => h.trim());
     const newItems: LivestockItem[] = [];
 
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim());
+      const values = lines[i].split(",").map((v) => v.trim());
       if (values.length >= 4) {
         newItems.push({
           id: Date.now() + i,
-          name: values[0] || '',
-          breed: values[1] || '',
+          name: values[0] || "",
+          breed: values[1] || "",
           quantity: parseInt(values[2]) || 1,
-          category: values[3] || 'bovino',
+          category: values[3] || "bovino",
           age: values[4] ? parseInt(values[4]) : undefined,
-          weight: values[5] ? parseFloat(values[5]) : undefined
+          weight: values[5] ? parseFloat(values[5]) : undefined,
         });
       }
     }
@@ -79,39 +92,50 @@ const BatchLivestockRegistration = () => {
   // Registrar todos os animais em lote
   const registerBatch = async () => {
     // Validar dados
-    const invalidItems = livestockItems.filter(item => 
-      !item.name || !item.breed || item.quantity <= 0
+    const invalidItems = livestockItems.filter(
+      (item) => !item.name || !item.breed || item.quantity <= 0
     );
 
     if (invalidItems.length > 0) {
-      toast.error('Por favor, preencha todos os campos obrigatórios');
+      toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:3001/api/livestock/batch', {
-        method: 'POST',
+      // Use centralized API base URL
+      const { API_BASE_URL } = await import("@/lib/api");
+      const response = await fetch(`${API_BASE_URL}/livestock/batch`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ animals: livestockItems }),
       });
 
       if (response.ok) {
-        toast.success('Animais registrados com sucesso em lote', {
-          description: `${livestockItems.length} animais foram adicionados ao sistema.`
+        toast.success("Animais registrados com sucesso em lote", {
+          description: `${livestockItems.length} animais foram adicionados ao sistema.`,
         });
         // Limpar o formulário após o registro
-        setLivestockItems([{ id: Date.now(), name: '', breed: '', quantity: 1, category: 'bovino' }]);
+        setLivestockItems([
+          {
+            id: Date.now(),
+            name: "",
+            breed: "",
+            quantity: 1,
+            category: "bovino",
+          },
+        ]);
       } else {
         const errorData = await response.json();
-        toast.error('Erro ao registrar animais', {
-          description: errorData.error || 'Não foi possível registrar os animais em lote.'
+        toast.error("Erro ao registrar animais", {
+          description:
+            errorData.error || "Não foi possível registrar os animais em lote.",
         });
       }
     } catch (error) {
-      toast.error('Erro de conexão', {
-        description: 'Não foi possível conectar ao servidor.'
+      toast.error("Erro de conexão", {
+        description: "Não foi possível conectar ao servidor.",
       });
     }
   };
@@ -128,8 +152,8 @@ const BatchLivestockRegistration = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">Importar via CSV</h3>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => parseCSV(csvData)}
                   disabled={!csvData}
@@ -148,7 +172,8 @@ Porco 1,Large White,20,suíno,2,120"
                 rows={5}
               />
               <p className="text-sm text-muted-foreground">
-                Formato esperado: nome,raça,quantidade,categoria,idade(opcional),peso(opcional)
+                Formato esperado:
+                nome,raça,quantidade,categoria,idade(opcional),peso(opcional)
               </p>
             </div>
 
@@ -161,7 +186,7 @@ Porco 1,Large White,20,suíno,2,120"
                   Adicionar Item
                 </Button>
               </div>
-              
+
               <div className="border rounded-lg overflow-hidden">
                 <Table>
                   <TableHeader>
@@ -181,14 +206,26 @@ Porco 1,Large White,20,suíno,2,120"
                         <TableCell>
                           <Input
                             value={item.name}
-                            onChange={(e) => updateLivestockItem(item.id, 'name', e.target.value)}
+                            onChange={(e) =>
+                              updateLivestockItem(
+                                item.id,
+                                "name",
+                                e.target.value
+                              )
+                            }
                             placeholder="Nome do animal"
                           />
                         </TableCell>
                         <TableCell>
                           <Input
                             value={item.breed}
-                            onChange={(e) => updateLivestockItem(item.id, 'breed', e.target.value)}
+                            onChange={(e) =>
+                              updateLivestockItem(
+                                item.id,
+                                "breed",
+                                e.target.value
+                              )
+                            }
                             placeholder="Raça"
                           />
                         </TableCell>
@@ -197,13 +234,25 @@ Porco 1,Large White,20,suíno,2,120"
                             type="number"
                             min="1"
                             value={item.quantity}
-                            onChange={(e) => updateLivestockItem(item.id, 'quantity', parseInt(e.target.value) || 1)}
+                            onChange={(e) =>
+                              updateLivestockItem(
+                                item.id,
+                                "quantity",
+                                parseInt(e.target.value) || 1
+                              )
+                            }
                           />
                         </TableCell>
                         <TableCell>
                           <select
                             value={item.category}
-                            onChange={(e) => updateLivestockItem(item.id, 'category', e.target.value)}
+                            onChange={(e) =>
+                              updateLivestockItem(
+                                item.id,
+                                "category",
+                                e.target.value
+                              )
+                            }
                             className="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
                           >
                             <option value="bovino">Bovino</option>
@@ -219,8 +268,16 @@ Porco 1,Large White,20,suíno,2,120"
                           <Input
                             type="number"
                             min="0"
-                            value={item.age || ''}
-                            onChange={(e) => updateLivestockItem(item.id, 'age', parseInt(e.target.value) || undefined)}
+                            value={item.age ?? ""}
+                            onChange={(e) =>
+                              updateLivestockItem(
+                                item.id,
+                                "age",
+                                e.target.value === ""
+                                  ? ""
+                                  : parseInt(e.target.value)
+                              )
+                            }
                             placeholder="Idade"
                           />
                         </TableCell>
@@ -229,8 +286,16 @@ Porco 1,Large White,20,suíno,2,120"
                             type="number"
                             step="0.1"
                             min="0"
-                            value={item.weight || ''}
-                            onChange={(e) => updateLivestockItem(item.id, 'weight', parseFloat(e.target.value) || undefined)}
+                            value={item.weight ?? ""}
+                            onChange={(e) =>
+                              updateLivestockItem(
+                                item.id,
+                                "weight",
+                                e.target.value === ""
+                                  ? ""
+                                  : parseFloat(e.target.value)
+                              )
+                            }
                             placeholder="Peso (kg)"
                           />
                         </TableCell>
@@ -249,7 +314,7 @@ Porco 1,Large White,20,suíno,2,120"
                   </TableBody>
                 </Table>
               </div>
-              
+
               <div className="flex justify-end">
                 <Button onClick={registerBatch} size="lg">
                   Registrar {livestockItems.length} Animais

@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  email        String         @unique
+  password     String
+  firstName    String
+  lastName     String
+  phone        String?
+  role         UserRole       @default(FARMER)
+  isActive     Boolean        @default(true)
+  farms        Farm[]
+  RefreshToken RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Farm {
+  id          String      @id @default(cuid())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  name        String
+  description String?
+  location    String
+  size        Float?
+  ownerId     String
+  address     Address?
+  employees   Employee[]
+  equipment   Equipment[]
+  owner       User        @relation(fields: [ownerId], references: [id])
+  fields      Field[]
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  street     String
+  number     String?
+  complement String?
+  city       String
+  state      String
+  zipCode    String
+  country    String   @default("Brazil")
+  farmId     String   @unique
+  farm       Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+}
+
+model Field {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  description String?
+  size        Float
+  location    String?
+  farmId      String
+  soilType    String?
+  phLevel     Float?
+  crops       Crop[]
+  farm        Farm     @relation(fields: [farmId], references: [id])
+}
+
+model Crop {
+  id            String      @id @default(cuid())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  name          String
+  variety       String?
+  plantingDate  DateTime?
+  harvestDate   DateTime?
+  expectedYield Float?
+  actualYield   Float?
+  status        CropStatus  @default(PLANNED)
+  fieldId       String
+  field         Field       @relation(fields: [fieldId], references: [id])
+  treatments    Treatment[]
+}
+
+model Treatment {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  type        String
+  description String?
+  date        DateTime
+  productUsed String?
+  quantity    Float?
+  cropId      String
+  crop        Crop     @relation(fields: [cropId], references: [id])
+}
+
+model Equipment {
+  id                 String              @id @default(cuid())
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  name               String
+  type               String
+  brand              String?
+  model              String?
+  year               Int?
+  status             EquipmentStatus     @default(AVAILABLE)
+  purchaseDate       DateTime?
+  lastMaintenance    DateTime?
+  farmId             String
+  farm               Farm                @relation(fields: [farmId], references: [id])
+  maintenanceRecords MaintenanceRecord[]
+}
+
+model MaintenanceRecord {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  date        DateTime
+  type        String
+  description String?
+  cost        Float?
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+}
+
+model Employee {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  position  String
+  hireDate  DateTime
+  salary    Float?
+  farmId    String
+  farm      Farm     @relation(fields: [farmId], references: [id])
+}
+
+enum UserRole {
+  ADMIN
+  FARMER
+  WORKER
+  MANAGER
+}
+
+enum CropStatus {
+  PLANNED
+  PLANTED
+  GROWING
+  HARVESTED
+  SOLD
+}
+
+enum EquipmentStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+  OUT_OF_ORDER
+}
