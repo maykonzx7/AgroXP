@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PageLayout from "../components/layout/PageLayout";
 import PageHeader from "../components/layout/PageHeader";
 import usePageMetadata from "../hooks/use-page-metadata";
 import { Button } from "@/components/ui/button";
+import { useCRM } from "../contexts/CRMContext";
 import {
   Download,
   Upload,
@@ -203,13 +204,21 @@ const monthlyRevenueExpenseData = [
 ];
 
 const FinancialManagementPage = () => {
+  const { getModuleData, exportModuleData } = useCRM();
   const spacing = useSpacing();
+  const [financialData, setFinancialData] = useState<FinancialData[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<string>("this-month");
   const [forecastDuration, setForecastDuration] = useState<string>("12");
   const [forecastModel, setForecastModel] = useState<string>("basic");
   const [revenueFactor, setRevenueFactor] = useState<number[]>([100]);
   const [expenseFactor, setExpenseFactor] = useState<number[]>([100]);
   const [revenueScenario, setRevenueScenario] = useState<string>("stable");
+
+  // Load financial data from CRM context
+  useEffect(() => {
+    const data = getModuleData('finance')?.items || [];
+    setFinancialData(data);
+  }, [getModuleData]);
 
   const {
     title,
@@ -222,8 +231,17 @@ const FinancialManagementPage = () => {
       "Acompanhe suas finanças, orçamentos e previsões de receitas e despesas",
   });
 
-  const handleExportData = () => {
-    toast.success("Dados financeiros exportados com sucesso");
+  const handleExportData = async () => {
+    try {
+      const success = await exportModuleData('finance', 'excel');
+      if (success) {
+        toast.success("Dados financeiros exportados com sucesso");
+      } else {
+        toast.error("Erro ao exportar dados financeiros");
+      }
+    } catch (error) {
+      toast.error("Erro ao exportar dados financeiros");
+    }
   };
 
   const handleImportData = () => {
@@ -248,13 +266,13 @@ const FinancialManagementPage = () => {
   };
 
   const calculateTotalIncome = () => {
-    return mockFinancialData
+    return financialData
       .filter((item) => item.type === "income")
       .reduce((sum, item) => sum + item.amount, 0);
   };
 
   const calculateTotalExpenses = () => {
-    return mockFinancialData
+    return financialData
       .filter((item) => item.type === "expense")
       .reduce((sum, item) => sum + item.amount, 0);
   };

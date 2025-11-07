@@ -18,9 +18,9 @@ export const formatDate = (date: Date | string): string => {
  * Format currency with euro symbol
  */
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('fr-FR', {
+  return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'EUR',
+    currency: 'BRL',
     minimumFractionDigits: 2
   }).format(amount);
 };

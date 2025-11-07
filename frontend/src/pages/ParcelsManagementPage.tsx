@@ -19,7 +19,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 
-import PageLayout from '../components/layout/PageLayout';
+import DashboardLayoutTemplate from '../components/templates/DashboardLayoutTemplate';
 import ParcelManagement from '../components/ParcelManagement';
 import PageHeader from '../components/layout/PageHeader';
 import {
@@ -69,7 +69,7 @@ const ParcelsPage = () => {
   const [layersDialogOpen, setLayersDialogOpen] = useState(false);
   const [weatherAlertsOpen, setWeatherAlertsOpen] = useState(false);
   const [lastSyncDate, setLastSyncDate] = useState<Date>(new Date());
-  const { syncDataAcrossCRM } = useCRM();
+  const { syncDataAcrossCRM, exportModuleData, importModuleData } = useCRM();
   const [areaRange, setAreaRange] = useState<[number, number]>([0, 50]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: subDays(new Date(), 30),
@@ -101,9 +101,17 @@ const ParcelsPage = () => {
     syncWithOtherModules();
   }, [syncDataAcrossCRM]);
 
-  const handleExportData = () => {
-    console.log("A exportação de todos os dados das parcelas foi iniciada");
-    console.log("Os dados exportados estão agora disponíveis no módulo de Estatísticas");
+  const handleExportData = async () => {
+    try {
+      const success = await exportModuleData('parcelles', 'excel');
+      if (success) {
+        console.log("Dados exportados com sucesso");
+      } else {
+        console.log("Erro ao exportar dados");
+      }
+    } catch (error) {
+      console.error("Erro na exportação:", error);
+    }
   };
 
   const handleImportData = () => {
@@ -400,7 +408,10 @@ const ParcelsPage = () => {
   );
 
   return (
-    <PageLayout>
+    <DashboardLayoutTemplate breadcrumbItems={[
+      { label: "Início", path: "/" },
+      { label: "Gestão", path: "/parcelas", isCurrent: true }
+    ]}>
       <div className={spacing.getPageContainerClasses()}>
         <PageHeader 
           title={title}
@@ -455,7 +466,7 @@ const ParcelsPage = () => {
           Última sincronização com outros módulos: {lastSyncDate.toLocaleString()}
         </div>
       </div>
-    </PageLayout>
+    </DashboardLayoutTemplate>
   );
 };
 

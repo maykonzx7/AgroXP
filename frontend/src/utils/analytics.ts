@@ -49,7 +49,6 @@ const saveEvents = (events: AnalyticsEvent[]): void => {
 // Initialize by loading stored events
 const initAnalytics = (): void => {
   eventQueue = loadEvents();
-  console.log(`Analytics initialized with ${eventQueue.length} stored events`);
 };
 
 // Track a user event

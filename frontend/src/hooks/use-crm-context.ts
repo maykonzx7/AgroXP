@@ -6,232 +6,26 @@ import {
   importFromCSV,
   printData,
 } from "../utils/crm-data-operations";
+import { 
+  parcelsApi, 
+  cropsApi, 
+  livestockApi, 
+  feedingApi, 
+  vaccinationApi, 
+  reproductionApi, 
+  veterinarySupplyApi, 
+  supplyUsageApi, 
+  inventoryApi, 
+  financeApi 
+} from "../services/apiService";
+import { CRMContextType } from "../contexts/CRMContext";
 
-// Types pour le contexte CRM global
-interface CRMContextState {
-  lastSync: Date;
-  isRefreshing: boolean;
-  companyName: string;
-  activeModules: string[];
-  syncDataAcrossCRM: () => void;
-  updateModuleData: (moduleName: string, data: any) => void;
-  getModuleData: (moduleName: string) => any;
-  exportModuleData: (
-    moduleName: string,
-    format: "csv" | "excel" | "pdf",
-    customData?: any[]
-  ) => Promise<boolean>;
-  importModuleData: (moduleName: string, file: File) => Promise<boolean>;
-  printModuleData: (moduleName: string, options?: any) => Promise<boolean>;
-}
-
-// Hook personnalisé pour gérer le contexte global du CRM
-export const useCRMContext = (): CRMContextState => {
+// Hook personalizado para gerenciar o contexto global do CRM
+export const useCRMContext = (): CRMContextType => {
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [moduleData, setModuleData] = useState<Record<string, any>>({
-    parcelles: {
-      items: [
-        {
-          id: 1,
-          nom: "Parcelle Nord",
-          surface: 12.5,
-          culture: "Canne à Sucre",
-          statut: "En culture",
-        },
-        {
-          id: 2,
-          nom: "Parcelle Sud",
-          surface: 8.3,
-          culture: "Banane",
-          statut: "En récolte",
-        },
-        {
-          id: 3,
-          nom: "Parcelle Est",
-          surface: 5.2,
-          culture: "Ananas",
-          statut: "Em preparação",
-        },
-      ],
-      columns: [
-        { key: "id", header: "ID" },
-        { key: "nom", header: "Nom" },
-        { key: "surface", header: "Surface (ha)" },
-        { key: "culture", header: "Culture" },
-        { key: "statut", header: "Statut" },
-      ],
-    },
-    cultures: {
-      items: [
-        {
-          id: 1,
-          nom: "Canne à Sucre",
-          variete: "R579",
-          dateDebut: "2023-03-15",
-          dateFin: "2024-03-15",
-        },
-        {
-          id: 2,
-          nom: "Banane",
-          variete: "Grande Naine",
-          dateDebut: "2023-02-10",
-          dateFin: "2023-12-10",
-        },
-        {
-          id: 3,
-          nom: "Ananas",
-          variete: "MD-2",
-          dateDebut: "2023-05-05",
-          dateFin: "2024-06-01",
-        },
-      ],
-      columns: [
-        { key: "id", header: "ID" },
-        { key: "nom", header: "Culture" },
-        { key: "variete", header: "Variété" },
-        { key: "dateDebut", header: "Date de début" },
-        { key: "dateFin", header: "Date de fin" },
-      ],
-    },
-    livestock: {
-      items: [
-        {
-          id: 1,
-          nom: "Gado Bovino",
-          race: "Angus",
-          quantite: 120,
-          categorie: "bovino",
-          statut: "ativo",
-        },
-        {
-          id: 2,
-          nom: "Suínos",
-          race: "Large White",
-          quantite: 350,
-          categorie: "suíno",
-          statut: "ativo",
-        },
-        {
-          id: 3,
-          nom: "Aves",
-          race: "Hy-Line Brown",
-          quantite: 1200,
-          categorie: "avícola",
-          statut: "ativo",
-        },
-      ],
-      columns: [
-        { key: "id", header: "ID" },
-        { key: "nom", header: "Animal" },
-        { key: "race", header: "Raça" },
-        { key: "quantite", header: "Quantidade" },
-        { key: "categorie", header: "Categoria" },
-        { key: "statut", header: "Status" },
-      ],
-    },
-    finances: {
-      items: [
-        {
-          id: 1,
-          type: "revenu",
-          montant: 15000,
-          description: "Vente récolte canne",
-          date: "2023-06-15",
-        },
-        {
-          id: 2,
-          type: "depense",
-          montant: 5000,
-          description: "Achat fertilisants",
-          date: "2023-05-10",
-        },
-        {
-          id: 3,
-          type: "revenu",
-          montant: 8500,
-          description: "Vente bananes",
-          date: "2023-07-20",
-        },
-      ],
-      columns: [
-        { key: "id", header: "ID" },
-        { key: "date", header: "Date" },
-        { key: "type", header: "Type" },
-        { key: "description", header: "Description" },
-        { key: "montant", header: "Montant (R$) " },
-      ],
-    },
-    statistiques: {
-      items: [
-        {
-          periode: "2023-T1",
-          cultureId: 1,
-          rendement: 8.2,
-          revenus: 12500,
-          couts: 4200,
-        },
-        {
-          periode: "2023-T2",
-          cultureId: 1,
-          rendement: 8.5,
-          revenus: 13000,
-          couts: 4100,
-        },
-        {
-          periode: "2023-T1",
-          cultureId: 2,
-          rendement: 15.3,
-          revenus: 7800,
-          couts: 2100,
-        },
-      ],
-      columns: [
-        { key: "periode", header: "Période" },
-        { key: "cultureId", header: "Culture ID" },
-        { key: "rendement", header: "Rendement (t/ha)" },
-        { key: "revenus", header: "Revenus (R$)" },
-        { key: "couts", header: "Coûts (R$)" },
-      ],
-    },
-    inventaire: {
-      items: [
-        {
-          id: 1,
-          nom: "Engrais NPK",
-          categorie: "Intrants",
-          quantite: 500,
-          unite: "kg",
-          prix: 2.5,
-        },
-        {
-          id: 2,
-          nom: "Pesticide Bio",
-          categorie: "Intrants",
-          quantite: 50,
-          unite: "L",
-          prix: 18.75,
-        },
-        {
-          id: 3,
-          nom: "Tracteur",
-          categorie: "Matériel",
-          quantite: 2,
-          unite: "unités",
-          prix: 25000,
-        },
-      ],
-      columns: [
-        { key: "id", header: "ID" },
-        { key: "nom", header: "Nom" },
-        { key: "categorie", header: "Catégorie" },
-        { key: "quantite", header: "Quantité" },
-        { key: "unite", header: "Unité" },
-        { key: "prix", header: "Prix unitaire (R$)" },
-      ],
-    },
-  });
-  const [activeModules, setActiveModules] = useState<string[]>([
+  const [moduleData, setModuleData] = useState<Record<string, any>>({});
+  const [activeModules] = useState<string[]>([
     "parcelles",
     "cultures",
     "livestock",
@@ -240,19 +34,159 @@ export const useCRMContext = (): CRMContextState => {
     "inventaire",
   ]);
 
-  // Nom de l'entreprise
+  // Nome da empresa
   const companyName = "AgroXP";
+
+  // Fetch data from backend
+  const fetchData = useCallback(async () => {
+    setIsRefreshing(true);
+    
+    try {
+      // Fetch all module data
+      const [
+        parcels, 
+        crops, 
+        livestock, 
+        feeding, 
+        vaccination, 
+        reproduction, 
+        veterinarySupplies, 
+        supplyUsage, 
+        inventory, 
+        finances
+      ] = await Promise.all([
+        parcelsApi.getAll(),
+        cropsApi.getAll(),
+        livestockApi.getAll(),
+        feedingApi.getAll(),
+        vaccinationApi.getAll(),
+        reproductionApi.getAll(),
+        veterinarySupplyApi.getAll(),
+        supplyUsageApi.getAll(),
+        inventoryApi.getAll(),
+        financeApi.getAll(),
+      ]);
+      
+      // Update state with real data
+      setModuleData({
+        parcelles: {
+          items: parcels,
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "name", header: "Nom" },
+            { key: "size", header: "Surface (ha)" },
+            { key: "location", header: "Localisation" },
+          ],
+        },
+        cultures: {
+          items: crops,
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "name", header: "Culture" },
+            { key: "variety", header: "Variété" },
+            { key: "plantingDate", header: "Date de début" },
+            { key: "harvestDate", header: "Date de fin" },
+          ],
+        },
+        livestock: {
+          items: livestock,
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "name", header: "Animal" },
+            { key: "breed", header: "Raça" },
+            { key: "quantity", header: "Quantidade" },
+            { key: "category", header: "Categoria" },
+            { key: "status", header: "Status" },
+          ],
+        },
+        finances: {
+          items: finances,
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "date", header: "Date" },
+            { key: "type", header: "Type" },
+            { key: "description", header: "Description" },
+            { key: "amount", header: "Montant (R$) " },
+          ],
+        },
+        inventaire: {
+          items: inventory,
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "itemName", header: "Nom" },
+            { key: "category", header: "Catégorie" },
+            { key: "quantity", header: "Quantité" },
+            { key: "unit", header: "Unité" },
+            { key: "cost", header: "Prix unitaire (R$)" },
+          ],
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      // Fallback to empty data if API fails
+      setModuleData({
+        parcelles: {
+          items: [],
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "name", header: "Nom" },
+            { key: "size", header: "Surface (ha)" },
+            { key: "location", header: "Localisation" },
+          ],
+        },
+        cultures: {
+          items: [],
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "name", header: "Culture" },
+            { key: "variety", header: "Variété" },
+            { key: "plantingDate", header: "Date de début" },
+            { key: "harvestDate", header: "Date de fin" },
+          ],
+        },
+        livestock: {
+          items: [],
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "name", header: "Animal" },
+            { key: "breed", header: "Raça" },
+            { key: "quantity", header: "Quantidade" },
+            { key: "category", header: "Categoria" },
+            { key: "status", header: "Status" },
+          ],
+        },
+        finances: {
+          items: [],
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "date", header: "Date" },
+            { key: "type", header: "Type" },
+            { key: "description", header: "Description" },
+            { key: "amount", header: "Montant (R$) " },
+          ],
+        },
+        inventaire: {
+          items: [],
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "itemName", header: "Nom" },
+            { key: "category", header: "Catégorie" },
+            { key: "quantity", header: "Quantité" },
+            { key: "unit", header: "Unité" },
+            { key: "cost", header: "Prix unitaire (R$)" },
+          ],
+        },
+      });
+    } finally {
+      setIsRefreshing(false);
+      setLastSync(new Date());
+    }
+  }, []);
 
   // Synchronisation des données à travers tous les modules du CRM
   const syncDataAcrossCRM = useCallback(() => {
-    setIsRefreshing(true);
-
-    // Simuler un temps de synchronisation
-    setTimeout(() => {
-      setLastSync(new Date());
-      setIsRefreshing(false);
-    }, 1500);
-  }, []);
+    fetchData();
+  }, [fetchData]);
 
   // Mettre à jour les données d'un module spécifique
   const updateModuleData = useCallback((moduleName: string, data: any) => {
@@ -393,14 +327,101 @@ export const useCRMContext = (): CRMContextState => {
     [getModuleData, companyName]
   );
 
+  // Métodos genéricos para operações CRUD
+  const addData = useCallback(async <T,>(moduleName: string, item: T) => {
+    setModuleData(prev => {
+      const module = prev[moduleName];
+      if (!module || !module.items) {
+        return prev;
+      }
+      
+      // Adiciona o novo item com ID único
+      const newItem = {
+        ...item,
+        id: Date.now().toString(), // Gerar ID único
+      } as T & { id: string };
+      
+      return {
+        ...prev,
+        [moduleName]: {
+          ...module,
+          items: [...module.items, newItem]
+        }
+      };
+    });
+
+    // Atualizar a data de última sincronização
+    setLastSync(new Date());
+  }, []);
+
+  const updateData = useCallback(async <T,>(moduleName: string, id: string | number, updates: Partial<T>) => {
+    setModuleData(prev => {
+      const module = prev[moduleName];
+      if (!module || !module.items) {
+        return prev;
+      }
+      
+      return {
+        ...prev,
+        [moduleName]: {
+          ...module,
+          items: module.items.map((item: any) => 
+            item.id === id || item._id === id ? { ...item, ...updates } : item
+          )
+        }
+      };
+    });
+
+    // Atualizar a data de última sincronização
+    setLastSync(new Date());
+  }, []);
+
+  const deleteData = useCallback(async (moduleName: string, id: string | number) => {
+    setModuleData(prev => {
+      const module = prev[moduleName];
+      if (!module || !module.items) {
+        return prev;
+      }
+      
+      return {
+        ...prev,
+        [moduleName]: {
+          ...module,
+          items: module.items.filter((item: any) => 
+            item.id !== id && item._id !== id
+          )
+        }
+      };
+    });
+
+    // Atualizar a data de última sincronização
+    setLastSync(new Date());
+  }, []);
+
+  const findData = useCallback(<T,>(moduleName: string, id: string | number): T | undefined => {
+    const module = moduleData[moduleName];
+    if (!module || !module.items) {
+      return undefined;
+    }
+    
+    return module.items.find((item: any) => 
+      item.id === id || item._id === id
+    );
+  }, [moduleData]);
+
+  const filterData = useCallback(<T,>(moduleName: string, predicate: (item: T) => boolean): T[] => {
+    const module = moduleData[moduleName];
+    if (!module || !module.items) {
+      return [];
+    }
+    
+    return module.items.filter(predicate);
+  }, [moduleData]);
+
   // Synchronisation initiale au chargement
   useEffect(() => {
-    const initialSync = setTimeout(() => {
-      syncDataAcrossCRM();
-    }, 1000);
-
-    return () => clearTimeout(initialSync);
-  }, [syncDataAcrossCRM]);
+    fetchData();
+  }, [fetchData]);
 
   return {
     lastSync,
@@ -413,6 +434,12 @@ export const useCRMContext = (): CRMContextState => {
     exportModuleData,
     importModuleData,
     printModuleData,
+    // Novos métodos genéricos
+    addData,
+    updateData,
+    deleteData,
+    findData,
+    filterData,
   };
 };
 

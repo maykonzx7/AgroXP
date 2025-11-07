@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, TrendingUp, Filter, Download, BarChart3, Leaf, Tractor, Carrot, ArrowUp, ArrowDown, MapPin } from 'lucide-react';
 import { EditableField } from '@/components/ui/editable-field';
 import { EditableTable, Column } from '@/components/ui/editable-table';
@@ -20,7 +20,7 @@ import {
 } from 'recharts';
 
 interface HarvestData {
-  id: number;
+  id: string;
   crop: string;
   date: string;
   yield: number;
@@ -30,35 +30,51 @@ interface HarvestData {
 }
 
 const HarvestTracking = () => {
+  const { getModuleData, addData, updateData, deleteData } = useCRM();
   const [title, setTitle] = useState('Acompanhamento de Colheitas');
   const [description, setDescription] = useState('Acompanhe os rendimentos e a qualidade das colheitas para as principais culturas');
   
-  // Mock data for charts
-  const [chartData, setChartData] = useState([
-    { name: 'Jan', cana: 72, banana: 14, cafe: 1.9, milho: 8.2, soja: 3.1 },
-    { name: 'Fev', cana: 74, banana: 14.5, cafe: 2.0, milho: 8.5, soja: 3.2 },
-    { name: 'Mar', cana: 75, banana: 15, cafe: 2.1, milho: 8.7, soja: 3.4 },
-    { name: 'Abr', cana: 76, banana: 15.2, cafe: 2.1, milho: 8.8, soja: 3.4 },
-    { name: 'Mai', cana: 75.5, banana: 15.3, cafe: 2.1, milho: 8.7, soja: 3.4 },
-    { name: 'Jun', cana: 75.2, banana: 15.3, cafe: 2.1, milho: 8.7, soja: 3.4 }
-  ]);
+  // Load harvest data from CRM context
+  const [harvestData, setHarvestData] = useState<HarvestData[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [pieData, setPieData] = useState<any[]>([]);
 
-  const [pieData, setPieData] = useState([
-    { name: 'Canas de Açúcar', value: 12.5 },
-    { name: 'Bananas', value: 8.3 },
-    { name: 'Café', value: 5.2 },
-    { name: 'Milho', value: 6.8 },
-    { name: 'Soja', value: 4.5 }
-  ]);
-
-  // Converter os dados de rendimento para se adaptarem ao formato esperado
-  const [harvestData, setHarvestData] = useState<HarvestData[]>([
-    { id: 1, crop: 'Canas de Açúcar', date: '2023-06-15', yield: 75.2, expectedYield: 80.5, harvestArea: 12.5, quality: 'Boa' },
-    { id: 2, crop: 'Bananas', date: '2023-06-18', yield: 15.3, expectedYield: 16.8, harvestArea: 8.3, quality: 'Excelente' },
-    { id: 3, crop: 'Café', date: '2023-06-20', yield: 2.1, expectedYield: 2.3, harvestArea: 5.2, quality: 'Média' },
-    { id: 4, crop: 'Milho', date: '2023-06-22', yield: 8.7, expectedYield: 9.2, harvestArea: 6.8, quality: 'Boa' },
-    { id: 5, crop: 'Soja', date: '2023-06-25', yield: 3.4, expectedYield: 3.6, harvestArea: 4.5, quality: 'Excelente' }
-  ]);
+  // Load data from CRM on component mount
+  useEffect(() => {
+    const data = getModuleData('harvest')?.items || [];
+    setHarvestData(data);
+  }, [getModuleData]);
+  
+  // Update chart data based on harvest data
+  useEffect(() => {
+    // Prepare chart data aggregated by month
+    const monthlyData: any = {};
+    harvestData.forEach(item => {
+      const month = new Date(item.date).toLocaleString('pt-BR', { month: 'short' });
+      if (!monthlyData[month]) {
+        monthlyData[month] = { name: month };
+      }
+      // Group by crop type, in a real app you'd aggregate by crop
+      const cropKey = item.crop.toLowerCase().replace(/\s+/g, '');
+      if (!monthlyData[month][cropKey]) {
+        monthlyData[month][cropKey] = 0;
+      }
+      monthlyData[month][cropKey] += item.yield;
+    });
+    
+    setChartData(Object.values(monthlyData));
+    
+    // Prepare pie chart data by crop distribution
+    const cropDistribution: any = {};
+    harvestData.forEach(item => {
+      if (!cropDistribution[item.crop]) {
+        cropDistribution[item.crop] = 0;
+      }
+      cropDistribution[item.crop] += item.harvestArea;
+    });
+    
+    setPieData(Object.entries(cropDistribution).map(([name, value]) => ({ name, value })));
+  }, [harvestData]);
 
   const columns: Column[] = [
     { id: 'crop', header: 'Cultura', accessorKey: 'crop', isEditable: true },
@@ -86,31 +102,54 @@ const HarvestTracking = () => {
     }
   ];
 
-  const handleUpdate = (rowIndex: number, columnId: string, value: any) => {
-    const newData = [...harvestData];
-    const row = newData[rowIndex];
-    newData[rowIndex] = { ...row, [columnId]: value };
-    setHarvestData(newData);
+  const handleUpdate = async (rowIndex: number, columnId: string, value: any) => {
+    try {
+      // Get the actual harvest record to update by ID
+      const harvestRecord = harvestData[rowIndex];
+      if (harvestRecord) {
+        await updateData('harvest', harvestRecord.id, { [columnId]: value });
+        // Refresh data from CRM
+        const updatedData = getModuleData('harvest')?.items || [];
+        setHarvestData(updatedData);
+      }
+    } catch (error) {
+      console.error("Error updating harvest data:", error);
+    }
   };
 
-  const handleDelete = (rowIndex: number) => {
-    const newData = [...harvestData];
-    newData.splice(rowIndex, 1);
-    setHarvestData(newData);
+  const handleDelete = async (rowIndex: number) => {
+    try {
+      // Get the actual harvest record to delete by ID
+      const harvestRecord = harvestData[rowIndex];
+      if (harvestRecord) {
+        await deleteData('harvest', harvestRecord.id);
+        // Refresh data from CRM
+        const updatedData = getModuleData('harvest')?.items || [];
+        setHarvestData(updatedData);
+      }
+    } catch (error) {
+      console.error("Error deleting harvest data:", error);
+    }
   };
 
-  const handleAdd = (newRow: Record<string, any>) => {
-    const newId = Math.max(...harvestData.map(item => item.id), 0) + 1;
-    const typedRow: HarvestData = {
-      id: newId,
-      crop: String(newRow.crop || ''),
-      date: String(newRow.date || new Date().toISOString().split('T')[0]),
-      yield: Number(newRow.yield || 0),
-      expectedYield: Number(newRow.expectedYield || 0),
-      harvestArea: Number(newRow.harvestArea || 0),
-      quality: newRow.quality || 'Média'
-    };
-    setHarvestData([...harvestData, typedRow]);
+  const handleAdd = async (newRow: Record<string, any>) => {
+    try {
+      const newHarvestData = {
+        crop: String(newRow.crop || ''),
+        date: String(newRow.date || new Date().toISOString().split('T')[0]),
+        yield: Number(newRow.yield || 0),
+        expectedYield: Number(newRow.expectedYield || 0),
+        harvestArea: Number(newRow.harvestArea || 0),
+        quality: newRow.quality || 'Média'
+      };
+      
+      await addData('harvest', newHarvestData);
+      // Refresh data from CRM
+      const updatedData = getModuleData('harvest')?.items || [];
+      setHarvestData(updatedData);
+    } catch (error) {
+      console.error("Error adding harvest data:", error);
+    }
   };
 
   const handleTitleChange = (value: string | number) => {
@@ -209,11 +248,21 @@ const HarvestTracking = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="cana" name="Canas de Açúcar" fill="#4CAF50" />
-                <Bar dataKey="banana" name="Bananas" fill="#FFC107" />
-                <Bar dataKey="cafe" name="Café" fill="#795548" />
-                <Bar dataKey="milho" name="Milho" fill="#FF9800" />
-                <Bar dataKey="soja" name="Soja" fill="#8BC34A" />
+                {/* Dynamically render bars for each crop type found in the data */}
+                {chartData.length > 0 && Object.keys(chartData[0])
+                  .filter(key => key !== 'name')
+                  .map((cropKey, index) => {
+                    const colors = ['#4CAF50', '#FFC107', '#795548', '#FF9800', '#8BC34A', '#2196F3', '#E91E63', '#9C27B0'];
+                    return (
+                      <Bar 
+                        key={cropKey} 
+                        dataKey={cropKey} 
+                        name={cropKey.charAt(0).toUpperCase() + cropKey.slice(1)} 
+                        fill={colors[index % colors.length]} 
+                      />
+                    );
+                  })
+                }
               </BarChart>
             </ResponsiveContainer>
           </div>

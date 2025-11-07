@@ -60,7 +60,6 @@ const ReproductionManagement = () => {
   const handleSaveReproduction = (e) => {
     e.preventDefault();
     // Lógica para salvar o registro de reprodução
-    console.log("Salvando registro de reprodução");
     setIsDialogOpen(false);
   };
 

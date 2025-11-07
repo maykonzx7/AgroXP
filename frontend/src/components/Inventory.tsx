@@ -14,7 +14,8 @@ import {
   BarChart2,
   Search,
   Filter,
-  Trash2
+  Trash2,
+  RefreshCw
 } from 'lucide-react';
 import { EditableTable, Column } from '@/components/ui/editable-table';
 import { Button } from '@/components/ui/button';
@@ -43,104 +44,25 @@ import {
   Tooltip,
   ResponsiveContainer 
 } from 'recharts';
+import { useCRM } from '@/contexts/CRMContext';
 
-const initialInventoryData: InventoryItem[] = [
-  { 
-    id: 1, 
-    name: 'Sementes de Trigo', 
-    category: 'Sementes', 
-    quantity: 500, 
-    unit: 'kg', 
-    minQuantity: 100, 
-    price: 2.5,
-    location: 'Armazém Principal',
-    lastUpdated: '2023-08-01'
-  },
-  { 
-    id: 2, 
-    name: 'Fertilizante NPK', 
-    category: 'Fertilizantes', 
-    quantity: 800, 
-    unit: 'kg', 
-    minQuantity: 200, 
-    price: 1.2,
-    location: 'Armazém Principal',
-    lastUpdated: '2023-07-15'
-  },
-  { 
-    id: 3, 
-    name: 'Herbicida Glifosato', 
-    category: 'Produtos Fitossanitários', 
-    quantity: 50, 
-    unit: 'L', 
-    minQuantity: 20, 
-    price: 15,
-    location: 'Local Seguro',
-    lastUpdated: '2023-08-10'
-  },
-  { 
-    id: 4, 
-    name: 'Óleo Diesel', 
-    category: 'Combustíveis', 
-    quantity: 350, 
-    unit: 'L', 
-    minQuantity: 100, 
-    price: 5.8,
-    location: 'Tanque Externo',
-    lastUpdated: '2023-08-18'
-  },
-  { 
-    id: 5, 
-    name: 'Sementes de Milho', 
-    category: 'Sementes', 
-    quantity: 80, 
-    unit: 'kg', 
-    minQuantity: 100, 
-    price: 4.5,
-    location: 'Armazém Principal',
-    lastUpdated: '2023-07-22'
-  },
-  { 
-    id: 6, 
-    name: 'Óleo de Motor', 
-    category: 'Lubrificantes', 
-    quantity: 25, 
-    unit: 'L', 
-    minQuantity: 10, 
-    price: 25.2,
-    location: 'Oficina',
-    lastUpdated: '2023-06-30'
-  },
-  { 
-    id: 7, 
-    name: 'Fio para Enfardadeira', 
-    category: 'Consumíveis', 
-    quantity: 15, 
-    unit: 'rolos', 
-    minQuantity: 5, 
-    price: 125,
-    location: 'Depósito de Equipamentos',
-    lastUpdated: '2023-07-05'
-  }
-];
+// Tipos para transações
+interface Transaction {
+  id: number;
+  itemId: number;
+  type: 'in' | 'out';
+  quantity: number;
+  date: string;
+  user: string;
+  notes: string;
+}
 
-const initialTransactionHistory = [
-  { id: 1, itemId: 1, type: 'out', quantity: 50, date: '2023-08-20', user: 'João Silva', notes: 'Plantio talhão norte' },
-  { id: 2, itemId: 2, type: 'out', quantity: 200, date: '2023-08-18', user: 'João Silva', notes: 'Aplicação talhão leste' },
-  { id: 3, itemId: 4, type: 'in', quantity: 500, date: '2023-08-18', user: 'Maria Souza', notes: 'Entrega mensal' },
-  { id: 4, itemId: 3, type: 'out', quantity: 5, date: '2023-08-15', user: 'João Silva', notes: 'Aplicação talhão sul' },
-  { id: 5, itemId: 1, type: 'in', quantity: 200, date: '2023-08-10', user: 'Maria Souza', notes: 'Compra adicional' },
-  { id: 6, itemId: 6, type: 'out', quantity: 5, date: '2023-08-05', user: 'Pedro Costa', notes: 'Troca de óleo trator' },
-];
-
-const initialCategoryStats = [
-  { name: 'Sementes', value: 580, fill: '#4CAF50' },
-  { name: 'Fertilizantes', value: 800, fill: '#8D6E63' },
-  { name: 'Fitossanitários', value: 50, fill: '#F44336' },
-  { name: 'Combustíveis', value: 350, fill: '#2196F3' },
-  { name: 'Lubrificantes', value: 25, fill: '#FFC107' },
-  { name: 'Consumíveis', value: 15, fill: '#9C27B0' }
-];
+// Tipos para estatísticas de categoria
+interface CategoryStat {
+  name: string;
+  value: number;
+  fill: string;
+}
 
 interface InventoryProps {
   dateRange?: DateRange;
@@ -148,9 +70,61 @@ interface InventoryProps {
 }
 
 const Inventory: React.FC<InventoryProps> = ({ dateRange, searchTerm: externalSearchTerm }) => {
-  const [inventoryData, setInventoryData] = useState(initialInventoryData);
-  const [transactionHistory, setTransactionHistory] = useState(initialTransactionHistory);
-  const [categoryStats, setCategoryStats] = useState(initialCategoryStats);
+  const { getModuleData, syncDataAcrossCRM, isRefreshing } = useCRM();
+  const [inventoryData, setInventoryData] = useState<InventoryItem[]>([]);
+  const [transactionHistory, setTransactionHistory] = useState<Transaction[]>([]);
+  const [categoryStats, setCategoryStats] = useState<CategoryStat[]>([]);
+  
+  // Obter dados de inventário do contexto CRM
+  const inventoryModuleData = getModuleData('inventaire').items || [];
+  
+  // Converter dados do backend para o formato esperado
+  useEffect(() => {
+    const convertedInventoryData = inventoryModuleData.map((item: any) => ({
+      id: item.id,
+      name: item.name || item.itemName,
+      category: item.category || 'Não categorizado',
+      quantity: item.quantity || 0,
+      unit: item.unit || 'un',
+      minQuantity: 0, // TODO: Obter do backend
+      price: item.cost || item.price || 0,
+      location: 'Não especificado', // TODO: Obter do backend
+      lastUpdated: item.updatedAt ? new Date(item.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+    }));
+    
+    setInventoryData(convertedInventoryData);
+    
+    // Atualizar estatísticas de categoria
+    const categories: Record<string, number> = {};
+    const colors: Record<string, string> = {
+      'Sementes': '#4CAF50',
+      'Fertilizantes': '#8D6E63',
+      'Fitossanitários': '#F44336',
+      'Combustíveis': '#2196F3',
+      'Lubrificantes': '#FFC107',
+      'Consumíveis': '#9C27B0'
+    };
+    
+    convertedInventoryData.forEach(item => {
+      if (!categories[item.category]) {
+        categories[item.category] = 0;
+      }
+      categories[item.category] += item.quantity;
+    });
+    
+    const newStats = Object.entries(categories).map(([name, value]) => ({
+      name,
+      value,
+      fill: colors[name] || getRandomColor()
+    }));
+    
+    setCategoryStats(newStats);
+  }, [inventoryModuleData]);
+  
+  const handleRefresh = () => {
+    syncDataAcrossCRM();
+    toast.success('Dados de inventário atualizados');
+  };
   
   const [searchTerm, setSearchTerm] = useState(externalSearchTerm || '');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -532,6 +506,15 @@ const Inventory: React.FC<InventoryProps> = ({ dateRange, searchTerm: externalSe
           <p className="text-muted-foreground">Gerencie seu inventário e acompanhe os níveis de estoque</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button 
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="px-4 py-2"
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Atualizando...' : 'Atualizar'}
+          </Button>
           <Button 
             variant={view === 'list' ? 'default' : 'outline'}
             onClick={() => setView('list')}

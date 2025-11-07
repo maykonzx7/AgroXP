@@ -1,202 +1,172 @@
-
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { enhancedExport, enhancedImport, searchInData, filterByDateRange, generateUniqueId } from '../utils/crm-operations';
-import { DateRange } from 'react-day-picker';
 
-interface UseDataOperationsProps<T> {
-  initialData?: T[];
-  idField?: string;
-  dateField?: string;
-  requiredFields?: string[];
-  searchFields?: string[];
+// Interface genérica para dados
+export interface BaseDataItem {
+  id: string | number;
+  [key: string]: any;
 }
 
-export function useDataOperations<T extends Record<string, any>>({
+// Interface para as opções do hook
+export interface UseDataOperationsOptions<T> {
+  initialData?: T[];
+  storageKey?: string;
+  idField?: string;
+  dateField?: string;
+  onAdd?: (item: T) => void;
+  onUpdate?: (item: T) => void;
+  onDelete?: (id: string | number) => void;
+}
+
+// Hook genérico para operações de dados
+export const useDataOperations = <T extends BaseDataItem>({
   initialData = [],
+  storageKey,
   idField = 'id',
-  dateField = 'date',
-  requiredFields = [],
-  searchFields = []
-}: UseDataOperationsProps<T> = {}) {
-  const [data, setData] = useState<T[]>(initialData);
-  const [filteredData, setFilteredData] = useState<T[]>(initialData);
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
-
-  // CRUD operations
-  const addItem = useCallback((item: Omit<T, typeof idField>) => {
-    const newItem = {
-      ...item,
-      [idField]: generateUniqueId(),
-    } as T;
-    
-    setData(prev => [...prev, newItem]);
-    setFilteredData(prev => [...prev, newItem]);
-    toast.success("Elemento adicionado com sucesso");
-    
-    return newItem;
-  }, [idField]);
-
-  const updateItem = useCallback((id: number | string, updates: Partial<T>) => {
-    setData(prev => 
-      prev.map(item => 
-        item[idField] === id ? { ...item, ...updates } : item
-      )
-    );
-    
-    setFilteredData(prev => 
-      prev.map(item => 
-        item[idField] === id ? { ...item, ...updates } : item
-      )
-    );
-    
-    toast.success("Elemento atualizado com sucesso");
-  }, [idField]);
-
-  const deleteItem = useCallback((id: number | string) => {
-    setData(prev => prev.filter(item => item[idField] !== id));
-    setFilteredData(prev => prev.filter(item => item[idField] !== id));
-    toast.success("Elemento removido com sucesso");
-  }, [idField]);
-
-  const bulkDelete = useCallback((ids: (number | string)[]) => {
-    setData(prev => prev.filter(item => !ids.includes(item[idField])));
-    setFilteredData(prev => prev.filter(item => !ids.includes(item[idField])));
-    toast.success(`${ids.length} elemento(s) removido(s) com sucesso`);
-  }, [idField]);
-
-  // Search and filter operations
-  const handleSearch = useCallback((term: string) => {
-    setSearchTerm(term);
-    
-    let filtered = data;
-    
-    // Apply search filter if term is provided
-    if (term) {
-      filtered = searchInData(filtered, term, searchFields);
+  dateField = 'createdAt',
+  onAdd,
+  onUpdate,
+  onDelete,
+}: UseDataOperationsOptions<T>) => {
+  const [data, setData] = useState<T[]>(() => {
+    if (storageKey) {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch {
+          return initialData;
+        }
+      }
     }
-    
-    // Apply date filter if date range is set
-    if (dateRange?.from || dateRange?.to) {
-      filtered = filterByDateRange(
-        filtered, 
-        dateRange.from ?? null, 
-        dateRange.to ?? null, 
-        dateField
-      );
-    }
-    
-    setFilteredData(filtered);
-  }, [data, searchFields, dateRange, dateField]);
+    return initialData;
+  });
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleDateRangeChange = useCallback((range: DateRange | undefined) => {
-    setDateRange(range);
-    
-    let filtered = data;
-    
-    // Apply search filter if term is provided
-    if (searchTerm) {
-      filtered = searchInData(filtered, searchTerm, searchFields);
+  // Salvar no localStorage quando os dados mudarem
+  useEffect(() => {
+    if (storageKey) {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(data));
+      } catch (err) {
+        console.error('Erro ao salvar dados no localStorage:', err);
+      }
     }
+  }, [data, storageKey]);
+
+  // Adicionar item
+  const addItem = (item: Omit<T, 'id'> & Partial<Pick<T, 'id'>>) => {
+    setLoading(true);
+    setError(null);
     
-    // Apply date filter if date range is set
-    if (range?.from || range?.to) {
-      filtered = filterByDateRange(
-        filtered, 
-        range.from ?? null, 
-        range.to ?? null, 
-        dateField
-      );
-    } else {
-      // If no date range, just apply search
-      filtered = searchTerm ? searchInData(data, searchTerm, searchFields) : data;
+    try {
+      const newItem = {
+        ...item,
+        [idField]: item[idField] || Date.now().toString(),
+        [dateField]: item[dateField] || new Date().toISOString(),
+      } as T;
+      
+      setData(prev => [...prev, newItem]);
+      onAdd?.(newItem);
+      toast.success('Item adicionado com sucesso!');
+    } catch (err) {
+      setError('Erro ao adicionar item');
+      toast.error('Erro ao adicionar item');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-    
-    setFilteredData(filtered);
-  }, [data, searchTerm, searchFields, dateField]);
+  };
 
-  // Import/Export operations
-  const handleExport = useCallback(async (
-    format: 'csv' | 'excel' | 'pdf',
-    fileName: string,
-    customData?: T[],
-    options = {}
-  ) => {
-    const dataToExport = customData || filteredData;
-    return enhancedExport(dataToExport, format, fileName, options);
-  }, [filteredData]);
-
-  const handleImport = useCallback((
-    file: File,
-    customValidation?: (row: any) => boolean
-  ) => {
-    setIsLoading(true);
+  // Atualizar item
+  const updateItem = (id: string | number, updates: Partial<T>) => {
+    setLoading(true);
+    setError(null);
     
-    return enhancedImport(
-      file,
-      (importedData) => {
-        setData(prev => [...prev, ...importedData as T[]]);
-        setFilteredData(prev => [...prev, ...importedData as T[]]);
-        setIsLoading(false);
-      },
-      requiredFields,
-      customValidation
-    ).catch(() => {
-      setIsLoading(false);
-      return false;
+    try {
+      setData(prev => {
+        const updated = prev.map(item => 
+          item[idField] === id ? { ...item, ...updates } : item
+        );
+        return updated;
+      });
+      
+      const updatedItem = data.find(item => item[idField] === id);
+      if (updatedItem) {
+        const completeItem = { ...updatedItem, ...updates } as T;
+        onUpdate?.(completeItem);
+        toast.success('Item atualizado com sucesso!');
+      }
+    } catch (err) {
+      setError('Erro ao atualizar item');
+      toast.error('Erro ao atualizar item');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Deletar item
+  const deleteItem = (id: string | number) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      setData(prev => prev.filter(item => item[idField] !== id));
+      onDelete?.(id);
+      toast.success('Item removido com sucesso!');
+    } catch (err) {
+      setError('Erro ao remover item');
+      toast.error('Erro ao remover item');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Buscar item por ID
+  const findItem = (id: string | number): T | undefined => {
+    return data.find(item => item[idField] === id);
+  };
+
+  // Filtrar itens
+  const filterItems = (predicate: (item: T) => boolean): T[] => {
+    return data.filter(predicate);
+  };
+
+  // Ordenar itens
+  const sortItems = (key: keyof T, order: 'asc' | 'desc' = 'asc'): T[] => {
+    return [...data].sort((a, b) => {
+      const valueA = a[key];
+      const valueB = b[key];
+      
+      if (valueA < valueB) return order === 'asc' ? -1 : 1;
+      if (valueA > valueB) return order === 'asc' ? 1 : -1;
+      return 0;
     });
-  }, [requiredFields]);
+  };
 
-  // Bulk operations
-  const bulkUpdate = useCallback((ids: (number | string)[], updates: Partial<T>) => {
-    setData(prev => 
-      prev.map(item => 
-        ids.includes(item[idField]) ? { ...item, ...updates } : item
-      )
-    );
-    
-    setFilteredData(prev => 
-      prev.map(item => 
-        ids.includes(item[idField]) ? { ...item, ...updates } : item
-      )
-    );
-    
-    toast.success(`${ids.length} elemento(s) atualizado(s) com sucesso`);
-  }, [idField]);
-
-  // Reset filters
-  const resetFilters = useCallback(() => {
-    setSearchTerm('');
-    setDateRange(undefined);
-    setFilteredData(data);
-  }, [data]);
-
-  // Set all data at once (useful for init or reset)
-  const setAllData = useCallback((newData: T[]) => {
-    setData(newData);
-    setFilteredData(newData);
-  }, []);
+  // Limpar todos os dados
+  const clearAll = () => {
+    setData([]);
+    toast.success('Todos os dados foram limpos');
+  };
 
   return {
     data,
-    filteredData,
-    isLoading,
-    searchTerm,
-    dateRange,
+    loading,
+    error,
     addItem,
     updateItem,
     deleteItem,
-    bulkDelete,
-    bulkUpdate,
-    handleSearch,
-    handleDateRangeChange,
-    handleExport,
-    handleImport,
-    resetFilters,
-    setAllData
+    findItem,
+    filterItems,
+    sortItems,
+    clearAll,
+    setData, // Para casos especiais onde você precisa substituir todos os dados
   };
-}
+};
 
 export default useDataOperations;

@@ -1,0 +1,17 @@
+{
+  "name": "agroxp",
+  "version": "1.0.0",
+  "description": "AgroXP - Agricultural Management System",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\" \"npm run dev --prefix admin-dashboard\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:admin": "npm run dev --prefix admin-dashboard",
+    "build": "concurrently \"npm run build --prefix frontend\" \"npm run build --prefix admin-dashboard\"",
+    "start": "npm start --prefix backend",
+    "stop": "./stop-dev.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

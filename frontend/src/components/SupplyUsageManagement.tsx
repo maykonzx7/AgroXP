@@ -55,7 +55,6 @@ const SupplyUsageManagement = () => {
   const handleSaveUsage = (e) => {
     e.preventDefault();
     // Lógica para salvar o uso de insumo
-    console.log("Salvando uso de insumo");
     setIsDialogOpen(false);
   };
 

@@ -119,6 +119,39 @@ O projeto está dividido em três partes principais:
 - **PostgreSQL**: 5432
 - **Adminer (opcional)**: 8080
 
+### Documentação da API
+
+Para informações detalhadas sobre os endpoints da API, consulte a [documentação completa da API](backend/README.md).
+
+## Backup e Recuperação
+
+O sistema inclui um sistema de backup local automático:
+
+### Backup Automático
+
+```bash
+# Executar backup manual
+./scripts/backup-local.sh
+
+# Configurar backup automático via cron (diário às 2h da manhã)
+0 2 * * * /home/maycolaz/AgroXP/scripts/backup-local.sh
+```
+
+### Recuperação de Backup
+
+```bash
+# Listar backups disponíveis
+./scripts/restore-backup.sh -l
+
+# Restaurar backup completo
+./scripts/restore-backup.sh backup_completo.sql.gz
+
+# Restaurar schema específico
+./scripts/restore-backup.sh -s users backup_users.sql.gz
+```
+
+Por padrão, os backups são armazenados em `/home/maycolaz/AgroXP/backups` e mantém histórico dos últimos 30 dias.
+
 ## Variáveis de Ambiente
 
 Cada módulo do projeto tem seu próprio arquivo `.env` com variáveis específicas:

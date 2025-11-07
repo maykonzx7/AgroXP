@@ -7,13 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar, Plus, Edit3, Trash2 } from 'lucide-react';
+import { useCRM } from '@/contexts/CRMContext';
 
 const VeterinarySupplyManagement = () => {
+  const { getModuleData } = useCRM();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSupply, setEditingSupply] = useState(null);
 
   // Dados de exemplo para insumos veterinários
-  const supplyData = [
+  const suppliesData = [
     {
       id: 1,
       name: "Vacina Aftosa",
@@ -57,7 +59,6 @@ const VeterinarySupplyManagement = () => {
   const handleSaveSupply = (e) => {
     e.preventDefault();
     // Lógica para salvar o insumo veterinário
-    console.log("Salvando insumo veterinário");
     setIsDialogOpen(false);
   };
 
@@ -192,7 +193,7 @@ const VeterinarySupplyManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {supplyData.map((item) => (
+              {suppliesData.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>{item.description}</TableCell>
