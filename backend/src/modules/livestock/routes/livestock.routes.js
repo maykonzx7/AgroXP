@@ -1,3 +1,12 @@
-// This file is intentionally left blank as we're using the routes from livestock.routes.js
-// This is just to satisfy the import in server.js
-export { default } from '../modules/livestock/livestock.routes.js';
+// Shim router mínimo para evitar ciclos de reexport durante desenvolvimento
+import express from "express";
+
+const router = express.Router();
+
+// rota mínima de sanity
+router.get("/", (req, res) =>
+  res.json({ message: "Livestock routes placeholder" })
+);
+
+export default router;
+export { router };

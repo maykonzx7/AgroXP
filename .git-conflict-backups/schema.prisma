@@ -1,0 +1,320 @@
+generator client {
+  provider = "prisma-client-js"
+<<<<<<< HEAD
+  output   = "../src/generated/prisma"
+  engineType = "binary"
+=======
+>>>>>>> 9453dd120d2b801ae70617bfe2c3fa4498662b9e
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+<<<<<<< HEAD
+  id           String         @id @default(cuid())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  email        String         @unique
+  password     String
+  firstName    String
+  lastName     String
+  phone        String?
+  role         UserRole       @default(FARMER)
+  isActive     Boolean        @default(true)
+  farms        Farm[]
+  RefreshToken RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Farm {
+  id          String      @id @default(cuid())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  name        String
+  description String?
+  location    String
+  size        Float?
+  ownerId     String
+  address     Address?
+  employees   Employee[]
+  equipment   Equipment[]
+  owner       User        @relation(fields: [ownerId], references: [id])
+  fields      Field[]
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  street     String
+  number     String?
+  complement String?
+  city       String
+  state      String
+  zipCode    String
+  country    String   @default("Brazil")
+  farmId     String   @unique
+  farm       Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+}
+
+model Field {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  name        String
+  description String?
+  size        Float
+  location    String?
+  farmId      String
+  soilType    String?
+  phLevel     Float?
+  crops       Crop[]
+  farm        Farm     @relation(fields: [farmId], references: [id])
+}
+
+model Crop {
+  id            String      @id @default(cuid())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  name          String
+  variety       String?
+  plantingDate  DateTime?
+  harvestDate   DateTime?
+  expectedYield Float?
+  actualYield   Float?
+  status        CropStatus  @default(PLANNED)
+  fieldId       String
+  field         Field       @relation(fields: [fieldId], references: [id])
+  treatments    Treatment[]
+}
+
+model Treatment {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  type        String
+  description String?
+  date        DateTime
+  productUsed String?
+  quantity    Float?
+  cropId      String
+  crop        Crop     @relation(fields: [cropId], references: [id])
+}
+
+model Equipment {
+  id                 String              @id @default(cuid())
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  name               String
+  type               String
+  brand              String?
+  model              String?
+  year               Int?
+  status             EquipmentStatus     @default(AVAILABLE)
+  purchaseDate       DateTime?
+  lastMaintenance    DateTime?
+  farmId             String
+  farm               Farm                @relation(fields: [farmId], references: [id])
+  maintenanceRecords MaintenanceRecord[]
+}
+
+model MaintenanceRecord {
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  date        DateTime
+  type        String
+  description String?
+  cost        Float?
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+}
+
+model Employee {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  firstName String
+  lastName  String
+  email     String?
+  phone     String?
+  position  String
+  hireDate  DateTime
+  salary    Float?
+  farmId    String
+  farm      Farm     @relation(fields: [farmId], references: [id])
+}
+
+enum UserRole {
+  ADMIN
+  FARMER
+  WORKER
+  MANAGER
+}
+
+enum CropStatus {
+  PLANNED
+  PLANTED
+  GROWING
+  HARVESTED
+  SOLD
+}
+
+enum EquipmentStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+  OUT_OF_ORDER
+=======
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String?
+  farmName  String?
+  phone     String?
+  role      String    @default("user")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  farms     Farm[]
+  sessions  Session[]
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Farm {
+  id          Int             @id @default(autoincrement())
+  name        String
+  description String?
+  location    String?
+  size        Float?
+  sizeUnit    String?         @default("hectares")
+  ownerId     Int
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  owner       User            @relation(fields: [ownerId], references: [id])
+  inventory   InventoryItem[]
+  parcels     Parcel[]
+}
+
+model Parcel {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String?
+  size        Float
+  sizeUnit    String      @default("hectares")
+  farmId      Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  crops       Crop[]
+  livestock   Livestock[]
+  farm        Farm        @relation(fields: [farmId], references: [id])
+}
+
+model Crop {
+  id           Int       @id @default(autoincrement())
+  name         String
+  variety      String?
+  plantingDate DateTime?
+  harvestDate  DateTime?
+  status       String    @default("planted")
+  parcelId     Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  parcel       Parcel    @relation(fields: [parcelId], references: [id])
+}
+
+model Livestock {
+  id        Int                     @id @default(autoincrement())
+  name      String                  @db.VarChar(255)
+  breed     String                  @db.VarChar(255)
+  quantity  Int
+  status    String                  @default("active")
+  parcelId  Int
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+  age       Int?
+  weight    Decimal?                @db.Decimal(10, 2)
+  category  enum_Livestock_category
+  parcel    Parcel                  @relation(fields: [parcelId], references: [id])
+}
+
+model InventoryItem {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  category    String
+  quantity    Int
+  unit        String
+  farmId      Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  farm        Farm     @relation(fields: [farmId], references: [id])
+}
+
+model Crops {
+  id           Int                @id @default(autoincrement())
+  name         String             @db.VarChar(255)
+  variety      String             @db.VarChar(255)
+  plantingDate DateTime           @db.Timestamptz(6)
+  harvestDate  DateTime?          @db.Timestamptz(6)
+  parcelId     Int?
+  status       enum_Crops_status? @default(planned)
+  createdAt    DateTime?          @db.Timestamptz(6)
+  updatedAt    DateTime?          @db.Timestamptz(6)
+  Parcels      Parcels?           @relation(fields: [parcelId], references: [id], onDelete: Cascade)
+}
+
+model Parcels {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(255)
+  size      Decimal   @db.Decimal(10, 2)
+  location  String    @db.VarChar(255)
+  createdAt DateTime? @db.Timestamptz(6)
+  updatedAt DateTime? @db.Timestamptz(6)
+  Crops     Crops[]
+}
+
+enum enum_Crops_status {
+  planned
+  planting
+  growing
+  harvesting
+  completed
+}
+
+enum enum_Livestock_category {
+  bovino
+  su_no   @map("suíno")
+  ovino
+  caprino
+  av_cola @map("avícola")
+  equino
+  outros
+}
+
+enum enum_Livestock_status {
+  ativo
+  vendido
+  morto
+  transferido
+>>>>>>> 9453dd120d2b801ae70617bfe2c3fa4498662b9e
+}
