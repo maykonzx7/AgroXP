@@ -32,8 +32,15 @@ const LoginPage = () => {
       } else {
         setError('Credenciais inválidas. Por favor, tente novamente.');
       }
-    } catch (err) {
-      setError('Ocorreu um erro durante o login. Por favor, tente novamente.');
+    } catch (err: any) {
+      // Tratar mensagens de erro específicas
+      if (err.message && err.message.includes('invalid credentials')) {
+        setError('Credenciais inválidas. Por favor, verifique seu email e senha.');
+      } else if (err.message && err.message.includes('not found')) {
+        setError('Conta não encontrada. Por favor, verifique seu email.');
+      } else {
+        setError('Ocorreu um erro durante o login. Por favor, tente novamente.');
+      }
       console.error('Login error:', err);
     } finally {
       setIsLoading(false);

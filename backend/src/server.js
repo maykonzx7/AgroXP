@@ -1,13 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import sequelize from './config/database.config.js';
-import { Parcel, Crop, Livestock } from './associations.js';
+import { Parcel, Crop, Livestock, Harvest } from './associations.js';
 import Inventory from './modules/inventory/Inventory.model.js';
 import Finance from './modules/finance/Finance.model.js';
 import parcelsRouter from './routes/parcels.js';
 import cropsRouter from './routes/crops.js';
 import inventoryRouter from './modules/inventory/inventory.routes.js';
 import financeRouter from './modules/finance/finance.routes.js';
+import harvestRouter from './modules/harvest/harvest.routes.js';
 import livestockRouter from './routes/livestock.js';
 import feedingRouter from './modules/livestock/feeding.routes.js';
 import vaccinationRouter from './modules/livestock/vaccination.routes.js';
@@ -15,6 +16,7 @@ import reproductionRouter from './modules/livestock/reproduction.routes.js';
 import veterinarySupplyRouter from './modules/livestock/veterinarySupply.routes.js';
 import livestockSupplyUsageRouter from './modules/livestock/livestockSupplyUsage.routes.js';
 import authRouter from './routes/auth.routes.js';
+import { authenticate } from './middleware/auth.middleware.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -28,7 +30,7 @@ app.use(cors({
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials']
 }));
 app.use(express.json());
 
@@ -43,6 +45,7 @@ app.use('/api/parcels', parcelsRouter);
 app.use('/api/crops', cropsRouter);
 app.use('/api/inventory', inventoryRouter);
 app.use('/api/finance', financeRouter);
+app.use('/api/harvest', harvestRouter);
 app.use('/api/livestock', livestockRouter);
 app.use('/api/livestock/feeding', feedingRouter);
 app.use('/api/livestock/vaccination', vaccinationRouter);

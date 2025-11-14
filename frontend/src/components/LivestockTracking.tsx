@@ -11,11 +11,11 @@ const LivestockTracking = () => {
   const { getModuleData, syncDataAcrossCRM, isRefreshing } = useCRM();
   const livestockData = getModuleData('livestock')?.items || [];
   
-  const [localLivestockData, setLocalLivestockData] = useState(livestockData);
+  const [localLivestockData, setLocalLivestockData] = useState(Array.isArray(livestockData) ? livestockData : []);
 
   // Atualizar dados quando o contexto CRM mudar
   React.useEffect(() => {
-    setLocalLivestockData(livestockData);
+    setLocalLivestockData(Array.isArray(livestockData) ? livestockData : []);
   }, [livestockData]);
 
   const handleRefresh = () => {

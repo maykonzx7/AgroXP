@@ -132,7 +132,7 @@ const Index = () => {
 
   useEffect(() => {
     const initialSync = setTimeout(() => {
-      console.log("Os módulos de Parcelas, Culturas e Pecuária agora estão conectados ao painel de controle");
+
     }, 1000);
     
     return () => clearTimeout(initialSync);
@@ -140,20 +140,18 @@ const Index = () => {
 
   const syncData = () => {
     setIsSyncing(true);
-    console.log("Sincronizando dados de todos os módulos conectados...");
+
     
     setTimeout(() => {
       setIsSyncing(false);
       setLastSyncDate(new Date());
       syncDataAcrossCRM();
-      console.log("Todos os dados do painel de controle estão agora atualizados com os módulos conectados");
-      console.log("Os indicadores de desempenho foram recalculados com os dados mais recentes");
+
     }, 2000);
   };
 
   const handleExportData = () => {
-    console.log("Os dados do painel de controle foram exportados com sucesso");
-    console.log("Os dados exportados estão agora disponíveis no módulo de Estatísticas");
+
   };
 
   const handleImportClick = () => {
@@ -166,7 +164,7 @@ const Index = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    console.log(`Importando o arquivo ${file.name}`);
+
     
     // Redefinir o input de arquivo
     if (fileInputRef.current) {
@@ -177,8 +175,7 @@ const Index = () => {
   const handleImportConfirm = () => {
     if (selectedFile) {
       setImportDialogOpen(false);
-      console.log(`O arquivo ${selectedFile.name} foi importado com sucesso`);
-      console.log("Os módulos de Culturas e Estatísticas foram atualizados com os novos dados");
+
       setSelectedFile(null);
       
       // Reset file input
@@ -191,7 +188,7 @@ const Index = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm) {
-      console.log(`Pesquisa realizada por "${searchTerm}"`);
+
     }
   };
 
@@ -225,7 +222,7 @@ const Index = () => {
     };
     
     const label = tabLabels[value as keyof typeof tabLabels] || value;
-    console.log(`${label} ativado - Exibindo dados correspondentes`);
+
   };
 
   const tabs: TabItem[] = [
@@ -297,7 +294,7 @@ const Index = () => {
                     Importar um arquivo
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => console.log("Modelo de importação baixado")} className="cursor-pointer">
+                  <DropdownMenuItem onClick={() => {}} className="cursor-pointer">
                     <Download className="h-4 w-4 mr-2" />
                     Baixar modelo
                   </DropdownMenuItem>
@@ -324,7 +321,7 @@ const Index = () => {
               
               <Button 
                 variant="outline" 
-                onClick={() => console.log("Filtros aplicados ao painel de controle")}
+                onClick={() => {}}
                 className="flex items-center gap-2 transition-colors hover:bg-muted"
               >
                 <Filter className="h-4 w-4" />

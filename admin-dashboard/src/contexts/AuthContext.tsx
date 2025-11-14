@@ -1,82 +1,181 @@
-import React, { createContext, useState, useContext, useEffect } from 'react'
-import axios from 'axios'
+// src/contexts/AuthContext.tsx (complete version)
 
-// Interface para o contexto de autenticação
-interface AuthContextType {
-  isAuthenticated: boolean
-  loading: boolean
-  user: any
-  login: (email: string, password: string) => Promise<boolean>
-  logout: () => void
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import api from '../services/api';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'moderator' | 'user' | 'farmer';
+  phone?: string;
 }
 
-// Criar contexto
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+interface AuthContextType {
+  isAuthenticated: boolean;
+  loading: boolean;
+  user: User | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  register: (name: string, email: string, password: string, role: string, phone?: string) => Promise<boolean>;
+}
 
-// Provedor de autenticação
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [user, setUser] = useState(null)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-  // Verificar se usuário está autenticado ao carregar a página
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+
+  // Check if user is authenticated on app load
   useEffect(() => {
-    const token = localStorage.getItem('admin_token')
-    if (token) {
-      // Validar token
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      setIsAuthenticated(true)
-    }
-    setLoading(false)
-  }, [])
+    const token = localStorage.getItem('admin_token');
+    const storedUser = localStorage.getItem('admin_user');
 
-  // Função de login
+    if (token && storedUser) {
+      setIsAuthenticated(true);
+      setUser(JSON.parse(storedUser));
+    }
+
+    setLoading(false);
+  }, []);
+
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await axios.post('http://localhost:3001/api/users/login', {
+      setLoading(true);
+
+      // Make API call to backend using the API service
+      const response = await api.post('/auth/login', {
         email,
         password
-      })
+      });
 
-      if (response.data.token) {
-        localStorage.setItem('admin_token', response.data.token)
-        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`
-        setUser(response.data.user)
-        setIsAuthenticated(true)
-        return true
+      // Axios responses are handled differently from fetch
+      const data = response.data;
+      setUser(data.user);
+      setIsAuthenticated(true);
+
+      // Store in localStorage
+      localStorage.setItem("admin_token", data.token);
+      localStorage.setItem("admin_user", JSON.stringify(data.user));
+
+      return true;
+    } catch (error: any) {
+      // Handle different error statuses
+      if (error.response) {
+        if (error.response.status === 401) {
+          // Invalid credentials
+          console.error("Login error: Invalid credentials");
+        } else if (error.response.status === 422) {
+          // Validation error
+          console.error("Login error: Validation error");
+        } else if (error.response.status === 404) {
+          // Endpoint not found
+          console.error("Login error: Login endpoint not found on server");
+        } else {
+          // Other errors
+          console.error("Login error: Server responded with status", error.response.status);
+        }
+
+        // Handle error response data
+        const errorData = error.response.data;
+        console.error("Login error:", errorData.error || "Unknown error occurred");
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error("Login error: No response received from server. Check network connection.");
+      } else {
+        // Something else happened
+        console.error("Login error:", error.message);
       }
       
-      return false
-    } catch (error) {
-      console.error('Erro ao fazer login:', error)
-      return false
+      return false;
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
-  // Função de logout
-  const logout = () => {
-    localStorage.removeItem('admin_token')
-    delete axios.defaults.headers.common['Authorization']
-    setIsAuthenticated(false)
-    setUser(null)
-  }
+  const register = async (name: string, email: string, password: string, role: string, phone?: string): Promise<boolean> => {
+    try {
+      setLoading(true);
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, loading, user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  )
-}
+      // Make API call to backend using the API service
+      const response = await api.post('/auth/register', {
+        name,
+        email,
+        password,
+        role,
+        phone
+      });
 
-// Hook personalizado para usar o contexto de autenticação
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  
+      // If we reach here, the request was successful
+      return true;
+    } catch (error: any) {
+      // Handle different error statuses
+      if (error.response) {
+        if (error.response.status === 409) {
+          // Conflict - email already exists
+          console.error("Registration error: Email already exists");
+        } else if (error.response.status === 422) {
+          // Validation error
+          console.error("Registration error: Validation error");
+        } else if (error.response.status === 404) {
+          // Endpoint not found
+          console.error("Registration error: Registration endpoint not found on server");
+        } else {
+          // Other errors
+          console.error("Registration error: Server responded with status", error.response.status);
+        }
+
+        // Handle error response data
+        const errorData = error.response.data;
+        console.error("Registration error:", errorData.error || "Unknown error occurred");
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error("Registration error: No response received from server. Check network connection.");
+      } else {
+        // Something else happened
+        console.error("Registration error:", error.message);
+      }
+      
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = (): void => {
+    setUser(null);
+    setIsAuthenticated(false);
+
+    // Remove from localStorage
+    localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_user");
+  };
+
+  const value = {
+    isAuthenticated,
+    loading,
+    user,
+    login,
+    logout,
+    register,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+
   if (context === undefined) {
-    throw new Error('useAuth deve ser usado dentro de um AuthProvider')
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  
-  return context
-}
 
-export default AuthContext
+  return context;
+};
+
+export default AuthContext;

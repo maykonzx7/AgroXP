@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Leaf, Eye, EyeOff, Mail, User, Sun, Moon, Building, Phone } from 'lucide-react';
 import { useAppSettings } from '@/contexts/AppSettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { phoneMask } from '@/utils/phoneMask';
 
 const RegisterPage = () => {
   const [name, setName] = useState('');
@@ -43,8 +44,15 @@ const RegisterPage = () => {
       } else {
         setError('Erro ao criar conta. Por favor, tente novamente.');
       }
-    } catch (err) {
-      setError('Ocorreu um erro durante o registro. Por favor, tente novamente.');
+    } catch (err: any) {
+      // Tratar mensagens de erro específicas
+      if (err.message && err.message.includes('already exists')) {
+        setError('Este email já está cadastrado. Por favor, utilize outro email.');
+      } else if (err.message && err.message.includes('validation')) {
+        setError('Dados inválidos. Por favor, verifique os campos e tente novamente.');
+      } else {
+        setError('Ocorreu um erro durante o registro. Por favor, tente novamente.');
+      }
       console.error('Registration error:', err);
     } finally {
       setIsLoading(false);
@@ -132,9 +140,10 @@ const RegisterPage = () => {
                     type="tel"
                     placeholder="(00) 00000-0000"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => setPhone(phoneMask(e.target.value))}
                     className="pl-10"
                     required
+                    maxLength={15} // Máximo de caracteres após a máscara (ex: "(11) 99999-9999" tem 15 caracteres)
                   />
                 </div>
               </div>

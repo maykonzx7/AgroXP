@@ -32,6 +32,28 @@ A API do AgroXP é uma RESTful API que permite gerenciar fazendas, culturas, pec
 http://localhost:3001/api
 ```
 
+## Rodando em desenvolvimento (rápido)
+
+Se quiser subir rapidamente o backend em modo desenvolvimento sem que o processo trave em caso de mismatch de schema, use o script helper:
+
+```bash
+cd backend
+./start-dev.sh
+```
+
+O script faz:
+
+- Gera o Prisma Client se necessário (`npx prisma generate`).
+- Executa `npm run dev` com `PORT=3002` e `SKIP_DB_SYNC=true` por padrão.
+
+Você pode ajustar as variáveis antes de chamar o script:
+
+```bash
+PORT=3001 SKIP_DB_SYNC=false ./start-dev.sh
+```
+
+Obs: `SKIP_DB_SYNC=true` é uma medida temporária de desenvolvimento; o ideal é corrigir modelos e usar migrations em produção.
+
 ### Formato das Respostas
 
 Todas as respostas da API são em formato JSON.
@@ -54,6 +76,7 @@ A maioria dos endpoints da API requer autenticação. Para autenticar, você pre
 Registra um novo usuário no sistema.
 
 **Corpo da Requisição:**
+
 ```json
 {
   "email": "usuario@exemplo.com",
@@ -65,6 +88,7 @@ Registra um novo usuário no sistema.
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "user": {
@@ -85,6 +109,7 @@ Registra um novo usuário no sistema.
 Autentica um usuário e retorna um token de acesso.
 
 **Corpo da Requisição:**
+
 ```json
 {
   "email": "usuario@exemplo.com",
@@ -93,6 +118,7 @@ Autentica um usuário e retorna um token de acesso.
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "user": {
@@ -113,11 +139,13 @@ Autentica um usuário e retorna um token de acesso.
 Invalida o token de acesso do usuário.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Logged out successfully"
@@ -131,11 +159,13 @@ Authorization: Bearer <token>
 Obtém informações do usuário autenticado.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
@@ -157,11 +187,13 @@ Authorization: Bearer <token>
 Obtém todas as fazendas do usuário autenticado.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -191,11 +223,13 @@ Authorization: Bearer <token>
 Obtém uma fazenda específica pelo ID.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
@@ -236,11 +270,13 @@ Authorization: Bearer <token>
 Cria uma nova fazenda.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "name": "Nova Fazenda",
@@ -253,6 +289,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -274,11 +311,13 @@ Authorization: Bearer <token>
 Atualiza uma fazenda existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "name": "Fazenda Atualizada",
@@ -290,6 +329,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -311,11 +351,13 @@ Authorization: Bearer <token>
 Remove uma fazenda existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Farm deleted successfully"
@@ -331,11 +373,13 @@ Authorization: Bearer <token>
 Obtém todas as parcelas.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -358,11 +402,13 @@ Authorization: Bearer <token>
 Obtém uma parcela específica pelo ID.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
@@ -383,11 +429,13 @@ Authorization: Bearer <token>
 Cria uma nova parcela.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "name": "Nova Parcela",
@@ -397,6 +445,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -415,11 +464,13 @@ Authorization: Bearer <token>
 Atualiza uma parcela existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "name": "Parcela Atualizada",
@@ -429,6 +480,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -447,11 +499,13 @@ Authorization: Bearer <token>
 Remove uma parcela existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Parcel deleted successfully"
@@ -467,11 +521,13 @@ Authorization: Bearer <token>
 Obtém todas as culturas.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -495,11 +551,13 @@ Authorization: Bearer <token>
 Obtém uma cultura específica pelo ID.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
@@ -521,11 +579,13 @@ Authorization: Bearer <token>
 Cria uma nova cultura.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "name": "Soja",
@@ -537,6 +597,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -557,11 +618,13 @@ Authorization: Bearer <token>
 Atualiza uma cultura existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "name": "Soja",
@@ -574,6 +637,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -595,11 +659,13 @@ Authorization: Bearer <token>
 Remove uma cultura existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Crop deleted successfully"
@@ -615,11 +681,13 @@ Authorization: Bearer <token>
 Obtém todos os animais.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -645,11 +713,13 @@ Authorization: Bearer <token>
 Obtém um animal específico pelo ID.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
@@ -673,11 +743,13 @@ Authorization: Bearer <token>
 Cria um novo registro de animal.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "name": "Ovelhas",
@@ -692,6 +764,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -715,11 +788,13 @@ Authorization: Bearer <token>
 Atualiza um registro de animal existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "name": "Ovelhas",
@@ -734,6 +809,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -757,11 +833,13 @@ Authorization: Bearer <token>
 Remove um registro de animal existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Livestock deleted successfully"
@@ -777,11 +855,13 @@ Authorization: Bearer <token>
 Obtém todos os itens do inventário.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -790,7 +870,7 @@ Authorization: Bearer <token>
     "category": "Suprimentos",
     "quantity": 100,
     "unit": "kg",
-    "cost": 500.00,
+    "cost": 500.0,
     "supplier": "AgroFertil",
     "purchaseDate": "2023-01-01T00:00:00.000Z",
     "expiryDate": "2024-01-01T00:00:00.000Z",
@@ -807,11 +887,13 @@ Authorization: Bearer <token>
 Obtém um item do inventário específico pelo ID.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
@@ -819,7 +901,7 @@ Authorization: Bearer <token>
   "category": "Suprimentos",
   "quantity": 100,
   "unit": "kg",
-  "cost": 500.00,
+  "cost": 500.0,
   "supplier": "AgroFertil",
   "purchaseDate": "2023-01-01T00:00:00.000Z",
   "expiryDate": "2024-01-01T00:00:00.000Z",
@@ -835,24 +917,27 @@ Authorization: Bearer <token>
 Cria um novo item no inventário.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "itemName": "Semente de Milho",
   "category": "Sementes",
   "quantity": 500,
   "unit": "kg",
-  "cost": 1500.00,
+  "cost": 1500.0,
   "supplier": "AgroSementes",
   "purchaseDate": "2023-01-01T00:00:00.000Z"
 }
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -860,7 +945,7 @@ Authorization: Bearer <token>
   "category": "Sementes",
   "quantity": 500,
   "unit": "kg",
-  "cost": 1500.00,
+  "cost": 1500.0,
   "supplier": "AgroSementes",
   "purchaseDate": "2023-01-01T00:00:00.000Z",
   "createdAt": "2023-01-01T00:00:00.000Z",
@@ -875,24 +960,27 @@ Authorization: Bearer <token>
 Atualiza um item do inventário existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "itemName": "Semente de Milho",
   "category": "Sementes",
   "quantity": 450,
   "unit": "kg",
-  "cost": 1500.00,
+  "cost": 1500.0,
   "supplier": "AgroSementes",
   "purchaseDate": "2023-01-01T00:00:00.000Z"
 }
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -900,7 +988,7 @@ Authorization: Bearer <token>
   "category": "Sementes",
   "quantity": 450,
   "unit": "kg",
-  "cost": 1500.00,
+  "cost": 1500.0,
   "supplier": "AgroSementes",
   "purchaseDate": "2023-01-01T00:00:00.000Z",
   "createdAt": "2023-01-01T00:00:00.000Z",
@@ -915,11 +1003,13 @@ Authorization: Bearer <token>
 Remove um item do inventário existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Inventory item deleted successfully"
@@ -935,18 +1025,20 @@ Authorization: Bearer <token>
 Obtém todos os registros financeiros.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
     "id": 1,
     "type": "expense",
     "category": "Suprimentos",
-    "amount": 500.00,
+    "amount": 500.0,
     "description": "Compra de fertilizante",
     "date": "2023-01-01T00:00:00.000Z",
     "parcelId": 1,
@@ -963,17 +1055,19 @@ Authorization: Bearer <token>
 Obtém um registro financeiro específico pelo ID.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
   "type": "expense",
   "category": "Suprimentos",
-  "amount": 500.00,
+  "amount": 500.0,
   "description": "Compra de fertilizante",
   "date": "2023-01-01T00:00:00.000Z",
   "parcelId": 1,
@@ -989,16 +1083,18 @@ Authorization: Bearer <token>
 Cria um novo registro financeiro.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "type": "income",
   "category": "Venda de Produtos",
-  "amount": 2000.00,
+  "amount": 2000.0,
   "description": "Venda de milho",
   "date": "2023-01-01T00:00:00.000Z",
   "parcelId": 1
@@ -1006,12 +1102,13 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
   "type": "income",
   "category": "Venda de Produtos",
-  "amount": 2000.00,
+  "amount": 2000.0,
   "description": "Venda de milho",
   "date": "2023-01-01T00:00:00.000Z",
   "parcelId": 1,
@@ -1027,16 +1124,18 @@ Authorization: Bearer <token>
 Atualiza um registro financeiro existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "type": "income",
   "category": "Venda de Produtos",
-  "amount": 2500.00,
+  "amount": 2500.0,
   "description": "Venda de milho premium",
   "date": "2023-01-01T00:00:00.000Z",
   "parcelId": 1
@@ -1044,12 +1143,13 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
   "type": "income",
   "category": "Venda de Produtos",
-  "amount": 2500.00,
+  "amount": 2500.0,
   "description": "Venda de milho premium",
   "date": "2023-01-01T00:00:00.000Z",
   "parcelId": 1,
@@ -1065,11 +1165,13 @@ Authorization: Bearer <token>
 Remove um registro financeiro existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Financial record deleted successfully"
@@ -1085,11 +1187,13 @@ Authorization: Bearer <token>
 Obtém todos os registros de alimentação.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -1124,11 +1228,13 @@ Authorization: Bearer <token>
 Obtém todos os registros de alimentação para um animal específico.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -1163,11 +1269,13 @@ Authorization: Bearer <token>
 Obtém um registro de alimentação específico pelo ID.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
@@ -1200,11 +1308,13 @@ Authorization: Bearer <token>
 Cria um novo registro de alimentação.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "livestockId": 1,
@@ -1217,6 +1327,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -1238,11 +1349,13 @@ Authorization: Bearer <token>
 Atualiza um registro de alimentação existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "livestockId": 1,
@@ -1255,6 +1368,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -1276,11 +1390,13 @@ Authorization: Bearer <token>
 Remove um registro de alimentação existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Feeding record deleted successfully"
@@ -1296,11 +1412,13 @@ Authorization: Bearer <token>
 Obtém todos os registros de vacinação.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -1335,11 +1453,13 @@ Authorization: Bearer <token>
 Obtém todos os registros de vacinação para um animal específico.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -1374,11 +1494,13 @@ Authorization: Bearer <token>
 Obtém um registro de vacinação específico pelo ID.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
@@ -1411,11 +1533,13 @@ Authorization: Bearer <token>
 Cria um novo registro de vacinação.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "livestockId": 1,
@@ -1428,6 +1552,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -1449,11 +1574,13 @@ Authorization: Bearer <token>
 Atualiza um registro de vacinação existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "livestockId": 1,
@@ -1466,6 +1593,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -1487,11 +1615,13 @@ Authorization: Bearer <token>
 Remove um registro de vacinação existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Vaccination record deleted successfully"
@@ -1507,11 +1637,13 @@ Authorization: Bearer <token>
 Obtém todos os registros de reprodução.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -1547,11 +1679,13 @@ Authorization: Bearer <token>
 Obtém todos os registros de reprodução para um animal específico.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -1587,11 +1721,13 @@ Authorization: Bearer <token>
 Obtém um registro de reprodução específico pelo ID.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
@@ -1625,11 +1761,13 @@ Authorization: Bearer <token>
 Cria um novo registro de reprodução.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "livestockId": 1,
@@ -1641,6 +1779,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -1663,11 +1802,13 @@ Authorization: Bearer <token>
 Atualiza um registro de reprodução existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "livestockId": 1,
@@ -1681,6 +1822,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -1703,11 +1845,13 @@ Authorization: Bearer <token>
 Remove um registro de reprodução existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Reproduction record deleted successfully"
@@ -1723,11 +1867,13 @@ Authorization: Bearer <token>
 Obtém todos os suprimentos veterinários.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -1753,11 +1899,13 @@ Authorization: Bearer <token>
 Obtém um suprimento veterinário específico pelo ID.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
@@ -1781,11 +1929,13 @@ Authorization: Bearer <token>
 Cria um novo suprimento veterinário.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "name": "Antibiótico B",
@@ -1800,6 +1950,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -1823,11 +1974,13 @@ Authorization: Bearer <token>
 Atualiza um suprimento veterinário existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "name": "Antibiótico B",
@@ -1842,6 +1995,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -1865,11 +2019,13 @@ Authorization: Bearer <token>
 Remove um suprimento veterinário existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Veterinary supply deleted successfully"
@@ -1885,11 +2041,13 @@ Authorization: Bearer <token>
 Obtém todos os usos de suprimentos.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -1937,11 +2095,13 @@ Authorization: Bearer <token>
 Obtém todos os usos de suprimentos para um animal específico.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -1989,11 +2149,13 @@ Authorization: Bearer <token>
 Obtém todos os usos de um suprimento específico.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 [
   {
@@ -2041,11 +2203,13 @@ Authorization: Bearer <token>
 Obtém um uso de suprimento específico pelo ID.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 1,
@@ -2091,11 +2255,13 @@ Authorization: Bearer <token>
 Cria um novo uso de suprimento.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "livestockId": 1,
@@ -2108,6 +2274,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -2129,11 +2296,13 @@ Authorization: Bearer <token>
 Atualiza um uso de suprimento existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Corpo da Requisição:**
+
 ```json
 {
   "livestockId": 1,
@@ -2146,6 +2315,7 @@ Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "id": 2,
@@ -2167,11 +2337,13 @@ Authorization: Bearer <token>
 Remove um uso de suprimento existente.
 
 **Cabeçalhos:**
+
 ```
 Authorization: Bearer <token>
 ```
 
 **Resposta de Sucesso:**
+
 ```json
 {
   "message": "Supply usage record deleted successfully"

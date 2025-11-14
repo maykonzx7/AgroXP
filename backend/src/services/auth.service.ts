@@ -1,50 +1,46 @@
-import prisma from './database.service.js';
-import { v4 as uuidv4 } from 'uuid';
+import prisma from "./database.service.js";
+import { v4 as uuidv4 } from "uuid";
 
-// Create a user session
-export const createSession = async (userId: number) => {
-  // Generate a unique token
+// Create a user session (uses RefreshToken model in Prisma schema)
+export const createSession = async (userId: string) => {
   const token = uuidv4();
-  
+
   // Set expiration to 7 days from now
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 7);
-  
-  // Create the session in the database
-  const session = await prisma.session.create({
+
+  // Create the refresh token record
+  const session = await prisma.refreshToken.create({
     data: {
-      userId,
       token,
+      userId,
       expiresAt,
     },
+    include: { user: true },
   });
-  
+
   return session;
 };
 
-// Validate a session token
+// Validate a session token and return the associated user (without password)
 export const validateSession = async (token: string) => {
-  // Find the session by token
-  const session = await prisma.session.findUnique({
+  // Find the refresh token by token string
+  const session = await prisma.refreshToken.findFirst({
     where: { token },
     include: { user: true },
   });
-  
-  // If session doesn't exist or is expired, return null
+
   if (!session || session.expiresAt < new Date()) {
     return null;
   }
-  
-  // Return the user
+
   const { password: _, ...userWithoutPassword } = session.user;
   return userWithoutPassword;
 };
 
-// Delete a session
+// Delete a session by token
 export const deleteSession = async (token: string) => {
-  await prisma.session.delete({
-    where: { token },
-  });
+  await prisma.refreshToken.deleteMany({ where: { token } });
 };
 
 export default {

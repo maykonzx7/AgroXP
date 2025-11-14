@@ -1,41 +1,57 @@
-import React, { useState, useEffect } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card'
-import { 
-  Users as UsersIcon, 
-  Building, 
-  Activity, 
+// src/pages/Dashboard.tsx (corrected version)
+
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import useApi from '../hooks/useApi';
+import { dashboardService } from '../services/dashboardService';
+import {
+  Users,
+  Building,
+  Activity,
   Shield,
   BarChart3,
   TrendingUp,
   TrendingDown
-} from 'lucide-react'
+} from 'lucide-react';
 
-const Dashboard = () => {
-  const [metrics, setMetrics] = useState({
-    totalUsers: 0,
-    totalTenants: 0,
-    activeSessions: 0,
+// Interface para métricas do dashboard
+interface DashboardStats {
+  totalUsers: number;
+  totalTenants: number;
+  activeSessions: number;
+  systemUptime: string;
+  apiRequestsPerMinute: number;
+}
+
+const Dashboard: React.FC = () => {
+  // Usar o hook useApi para buscar métricas
+  const { 
+    data: stats, 
+    loading, 
+    error, 
+    refetch 
+  } = useApi<DashboardStats>(() => dashboardService.getStats(), []);
+
+  // Usar dados mockados se não estiver carregando nem houver erro
+  const displayStats = stats || {
+    totalUsers: 1247,
+    totalTenants: 89,
+    activeSessions: 23,
     systemUptime: '99.9%',
-    databaseSize: '0 MB',
-    apiRequestsPerMinute: 0
-  })
+    apiRequestsPerMinute: 45
+  };
 
-  useEffect(() => {
-    // Simular carregamento de métricas
-    const loadMetrics = async () => {
-      // Em uma implementação real, isso seria uma chamada à API
-      setMetrics({
-        totalUsers: 1247,
-        totalTenants: 89,
-        activeSessions: 23,
-        systemUptime: '99.9%',
-        databaseSize: '2.3 GB',
-        apiRequestsPerMinute: 45
-      })
-    }
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
-    loadMetrics()
-  }, [])
+  if (error) {
+    console.error('Erro no dashboard:', error);
+  }
 
   return (
     <div className="space-y-6">
@@ -51,10 +67,10 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Usuários</CardTitle>
-            <UsersIcon className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalUsers}</div>
+            <div className="text-2xl font-bold">{displayStats.totalUsers}</div>
             <p className="text-xs text-muted-foreground">+12% desde o último mês</p>
           </CardContent>
         </Card>
@@ -65,7 +81,7 @@ const Dashboard = () => {
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalTenants}</div>
+            <div className="text-2xl font-bold">{displayStats.totalTenants}</div>
             <p className="text-xs text-muted-foreground">+8% desde o último mês</p>
           </CardContent>
         </Card>
@@ -76,7 +92,7 @@ const Dashboard = () => {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.activeSessions}</div>
+            <div className="text-2xl font-bold">{displayStats.activeSessions}</div>
             <p className="text-xs text-muted-foreground">+5% desde o último mês</p>
           </CardContent>
         </Card>
@@ -92,34 +108,30 @@ const Dashboard = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span>Uptime do Sistema</span>
-                <span className="font-medium">{metrics.systemUptime}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>Tamanho do Banco de Dados</span>
-                <span className="font-medium">{metrics.databaseSize}</span>
+                <span className="font-medium">{displayStats.systemUptime}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Requisições/min</span>
-                <span className="font-medium">{metrics.apiRequestsPerMinute}</span>
+                <span className="font-medium">{displayStats.apiRequestsPerMinute}</span>
               </div>
             </div>
-            
+
             <div className="mt-6">
               <h3 className="text-lg font-medium mb-3">Status</h3>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
                   <div className="flex items-center">
-                    <Shield className="h-5 w-5 text-green-500 mr-2" />
+                    <Shield className="h-5 w-5 text-primary-500 mr-2" />
                     <span>Sistema Operacional</span>
                   </div>
-                  <span className="text-green-600 font-medium">Normal</span>
+                  <span className="text-primary-600 font-medium">Normal</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg">
                   <div className="flex items-center">
-                    <TrendingUp className="h-5 w-5 text-green-500 mr-2" />
+                    <BarChart3 className="h-5 w-5 text-primary-500 mr-2" />
                     <span>Banco de Dados</span>
                   </div>
-                  <span className="text-green-600 font-medium">Online</span>
+                  <span className="text-primary-600 font-medium">Online</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
                   <div className="flex items-center">
@@ -162,7 +174,7 @@ const Dashboard = () => {
         </Card>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

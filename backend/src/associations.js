@@ -6,6 +6,7 @@ import Crop from './modules/crops/Crop.model.js';
 import Livestock from './modules/livestock/Livestock.model.js';
 import Inventory from './modules/inventory/Inventory.model.js';
 import Finance from './modules/finance/Finance.model.js';
+import Harvest from './modules/harvest/Harvest.model.js';
 import Feeding from './modules/livestock/feeding.model.js';
 import Vaccination from './modules/livestock/vaccination.model.js';
 import Reproduction from './modules/livestock/reproduction.model.js';
@@ -18,6 +19,10 @@ Crop.belongsTo(Parcel, { foreignKey: 'parcelId', as: 'parcel' });
 // Parcel - Livestock (1:N)
 Parcel.hasMany(Livestock, { foreignKey: 'parcelId', as: 'livestocks' });
 Livestock.belongsTo(Parcel, { foreignKey: 'parcelId', as: 'parcel' });
+// Farm - Parcel (1:N) - Adding the relationship that represents multi-tenant structure
+import Farm from './modules/farms/Farm.model.js';
+Parcel.belongsTo(Farm, { foreignKey: 'farmId', as: 'farm' });
+Farm.hasMany(Parcel, { foreignKey: 'farmId', as: 'parcels' });
 // Livestock - Feeding (1:N)
 Livestock.hasMany(Feeding, { foreignKey: 'livestockId', as: 'feedings' });
 Feeding.belongsTo(Livestock, { foreignKey: 'livestockId', as: 'feedingLivestock' });
@@ -34,4 +39,4 @@ LivestockSupplyUsage.belongsTo(VeterinarySupply, { foreignKey: 'supplyId', as: '
 Livestock.hasMany(LivestockSupplyUsage, { foreignKey: 'livestockId', as: 'supplyUsages' });
 LivestockSupplyUsage.belongsTo(Livestock, { foreignKey: 'livestockId', as: 'usageLivestock' });
 // Exportar modelos
-export { sequelize, Parcel, Crop, Livestock, Inventory, Finance, Feeding, Vaccination, Reproduction, VeterinarySupply, LivestockSupplyUsage };
+export { sequelize, Parcel, Crop, Livestock, Inventory, Finance, Harvest, Feeding, Vaccination, Reproduction, VeterinarySupply, LivestockSupplyUsage };

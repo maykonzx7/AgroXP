@@ -5,6 +5,7 @@ import {
   Filter, 
   Search, 
   Calendar, 
+  Edit,
   BarChart3, 
   Leaf, 
   TreePine, 
@@ -49,7 +50,6 @@ import {
 import { EditableField } from '@/components/ui/editable-field';
 import { useCRM } from '../../contexts/CRMContext';
 import ParcelTable from './parcels/ParcelTable';
-import ParcelStats from './parcels/ParcelStats';
 import ParcelMap from './ParcelMap';
 import ParcelPhotoUpload from './parcels/ParcelPhotoUpload';
 import { toast } from 'sonner';
@@ -85,17 +85,19 @@ interface ParcelManagementProps {
 const ParcelCard = ({ 
   parcel, 
   onSelect, 
-  onEdit 
+  onEdit,
+  onDelete
 }: { 
   parcel: ParcelData, 
   onSelect: (parcel: ParcelData) => void,
-  onEdit: (parcel: ParcelData) => void
+  onEdit: (parcel: ParcelData) => void,
+  onDelete: (id: string) => void
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-agri-success';
-      case 'inactive': return 'bg-destructive';
-      case 'planned': return 'bg-warning';
+      case 'inactive': return 'bg-agri-danger';
+      case 'planned': return 'bg-agri-warning';
       default: return 'bg-muted';
     }
   };
@@ -161,7 +163,13 @@ const ParcelCard = ({
         <button className="p-1.5 hover:bg-muted rounded">
           <MapPin className="h-4 w-4 text-muted-foreground" />
         </button>
-        <button className="p-1.5 hover:bg-muted rounded text-destructive">
+        <button 
+          className="p-1.5 hover:bg-muted rounded text-destructive"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(parcel.id);
+          }}
+        >
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
@@ -377,6 +385,7 @@ const ParcelManagementOrganism = ({ searchTerm = '', filterStatus = 'all' }: Par
                   parcel={parcel} 
                   onSelect={handleSelectParcel}
                   onEdit={handleEditStart}
+                  onDelete={deleteParcelMutation.mutate}
                 />
               ))
             ) : (

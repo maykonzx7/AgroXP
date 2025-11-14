@@ -28,7 +28,7 @@ const SpecificCrops = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const { exportModuleData, importModuleData, getModuleData, syncDataAcrossCRM, isRefreshing } = useCRM();
+  const { exportModuleData, importModuleData, getModuleData, syncDataAcrossCRM, addData, isRefreshing } = useCRM();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   
@@ -37,6 +37,23 @@ const SpecificCrops = () => {
 
   const handleAddCulture = () => {
     setShowAddForm(true);
+  };
+
+  const handleAddCultureToDB = async (cultureData: any) => {
+    try {
+      await addData('cultures', cultureData);
+      syncDataAcrossCRM(); // Atualizar todos os dados
+      toast({
+        title: "Cultura adicionada",
+        description: `${cultureData.name} foi adicionada com sucesso`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao adicionar cultura",
+        description: "Não foi possível adicionar a cultura ao banco de dados",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleExportData = async (format: 'csv' | 'pdf' = 'csv') => {

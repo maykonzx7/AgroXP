@@ -10,7 +10,7 @@ export const fetchParcels = async () => {
     }
     return await response.json();
   } catch (error) {
-    console.error("Error fetching parcels:", error);
+    // Tratar erro ao buscar parcelas se necessário
     throw error;
   }
 };
@@ -23,7 +23,7 @@ export const fetchCrops = async () => {
     }
     return await response.json();
   } catch (error) {
-    console.error("Error fetching crops:", error);
+    // Tratar erro ao buscar culturas se necessário
     throw error;
   }
 };
@@ -36,7 +36,7 @@ export const fetchInventory = async () => {
     }
     return await response.json();
   } catch (error) {
-    console.error("Error fetching inventory:", error);
+    // Tratar erro ao buscar inventário se necessário
     throw error;
   }
 };
@@ -49,7 +49,7 @@ export const fetchFinanceRecords = async () => {
     }
     return await response.json();
   } catch (error) {
-    console.error("Error fetching finance records:", error);
+    // Tratar erro ao buscar registros financeiros se necessário
     throw error;
   }
 };

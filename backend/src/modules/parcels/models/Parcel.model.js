@@ -42,6 +42,14 @@ const Parcel = sequelize.define('Parcel', {
             }
         }
     },
+    farmId: {
+        type: DataTypes.STRING, // Using STRING to match cuid() format in schema
+        allowNull: false,
+        references: {
+            model: 'Farms',
+            key: 'id'
+        }
+    },
     createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW

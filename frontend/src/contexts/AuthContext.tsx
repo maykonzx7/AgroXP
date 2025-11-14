@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 // Types for authentication
 interface User {
@@ -14,7 +20,13 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, phone: string, farmName: string, password: string) => Promise<boolean>;
+  register: (
+    name: string,
+    email: string,
+    phone: string,
+    farmName: string,
+    password: string
+  ) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
 }
@@ -34,14 +46,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check if user is authenticated on app load
   useEffect(() => {
-    const storedToken = localStorage.getItem('authToken');
-    const storedUser = localStorage.getItem('authUser');
-    
+    const storedToken = localStorage.getItem("authToken");
+    const storedUser = localStorage.getItem("authUser");
+
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
     }
-    
+
     setLoading(false);
   }, []);
 
@@ -49,33 +61,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true);
-      
-      // Make API call to backend
+
+      // Make API call to backend - using direct URL to bypass proxy issues
       const response = await fetch('http://localhost:3001/api/auth/login', {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
         setToken(data.token);
-        
+
         // Store in localStorage
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('authUser', JSON.stringify(data.user));
-        
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("authUser", JSON.stringify(data.user));
+
         return true;
       } else {
-        const errorData = await response.json();
-        console.error('Login error:', errorData.error);
+        // Handle different error statuses
+        if (response.status === 401) {
+          // Invalid credentials
+          // Tratar erro de login: credenciais inválidas
+        } else if (response.status === 422) {
+          // Validation error
+          // Tratar erro de login: erro de validação
+        } else {
+          // Other errors
+          // Tratar erro de login: servidor respondeu com status
+        }
+        
+        // Attempt to parse error response, but handle if it's not JSON
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (jsonError) {
+          // Tratar erro: não foi possível fazer parse da resposta de erro como JSON
+          errorData = { error: "Server response could not be processed" };
+        }
+        
+        // Tratar erro de login
         return false;
       }
     } catch (error) {
-      console.error('Network error during login:', error);
+      // Tratar erro de rede durante login
       return false;
     } finally {
       setLoading(false);
@@ -92,27 +124,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<boolean> => {
     try {
       setLoading(true);
-      
-      // Make API call to backend
+
+      // Make API call to backend - using direct URL to bypass proxy issues
       const response = await fetch('http://localhost:3001/api/auth/register', {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ name, email, phone, farmName, password }),
       });
-      
+
       if (response.ok) {
         // Registration successful, but don't automatically log in
         // User will be redirected to login page to enter credentials
         return true;
       } else {
-        const errorData = await response.json();
-        console.error('Registration error:', errorData.error);
+        // Handle different error statuses
+        if (response.status === 409) {
+          // Conflict - email already exists
+          // Tratar erro de registro: e-mail já existe
+        } else if (response.status === 422) {
+          // Validation error
+          // Tratar erro de registro: erro de validação
+        } else {
+          // Other errors
+          // Tratar erro de registro: servidor respondeu com status
+        }
+        
+        // Attempt to parse error response, but handle if it's not JSON
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (jsonError) {
+          // Tratar erro: não foi possível fazer parse da resposta de erro como JSON
+          errorData = { error: "Server response could not be processed" };
+        }
+        
+        // Tratar erro de registro
         return false;
       }
     } catch (error) {
-      console.error('Network error during registration:', error);
+      // Tratar erro de rede durante registro
       return false;
     } finally {
       setLoading(false);
@@ -123,10 +175,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = (): void => {
     setUser(null);
     setToken(null);
-    
+
     // Remove from localStorage
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authUser');
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("authUser");
+    
+    // Clear any cached CRM data to prevent cross-user data leakage
+    // This helps ensure that when a new user logs in, they don't see previous user's data
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('crm-') || key.startsWith('module-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Dispatch event to notify other parts of the app (like CRM context) of logout
+    window.dispatchEvent(new CustomEvent('userLoggedOut'));
   };
 
   const value = {
@@ -139,20 +202,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 // Custom hook to use the auth context
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  
+
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
-  
+
   return context;
 };

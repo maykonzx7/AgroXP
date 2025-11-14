@@ -75,7 +75,7 @@ const VaccinationManagement = () => {
                   required
                 >
                   <option value="">Selecione um animal</option>
-                  {livestockData.map((animal: any) => (
+                   {(Array.isArray(livestockData) ? livestockData : []).map((animal: any) => (
                     <option key={animal.id} value={animal.id}>
                       {animal.nom} - {animal.categorie}
                     </option>

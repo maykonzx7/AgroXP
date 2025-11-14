@@ -199,7 +199,7 @@ export const enhancedExport = async (
     
     return success;
   } catch (error) {
-    console.error(`Error exporting data:`, error);
+    // Tratar erro ao exportar dados
     toast.error(`Erro ao exportar no formato ${format.toUpperCase()}`);
     return false;
   }
@@ -258,7 +258,7 @@ export const enhancedImport = async (
     toast.success(`${validData.length} registro(s) importado(s) com sucesso`);
     return true;
   } catch (error) {
-    console.error("Import error:", error);
+    // Tratar erro ao importar
     toast.error("Erro ao importar os dados");
     return false;
   }

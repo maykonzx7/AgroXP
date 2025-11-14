@@ -30,7 +30,7 @@ const loadEvents = (): AnalyticsEvent[] => {
     const storedEvents = localStorage.getItem(ANALYTICS_STORAGE_KEY);
     return storedEvents ? JSON.parse(storedEvents) : [];
   } catch (error) {
-    console.error('Failed to load analytics events:', error);
+    // Tratar erro de carregamento de eventos de analytics se necessário
     return [];
   }
 };
@@ -42,7 +42,7 @@ const saveEvents = (events: AnalyticsEvent[]): void => {
     const eventsToStore = events.slice(-MAX_STORED_EVENTS);
     localStorage.setItem(ANALYTICS_STORAGE_KEY, JSON.stringify(eventsToStore));
   } catch (error) {
-    console.error('Failed to save analytics events:', error);
+    // Tratar erro de salvamento de eventos de analytics se necessário
   }
 };
 
@@ -73,7 +73,7 @@ export const trackEvent = (
   
   // For development, log event to console
   if (import.meta.env.DEV) {
-    console.log('Analytics event:', event);
+
   }
   
   // In a real app, we would send this to a server
@@ -86,7 +86,7 @@ const sendEvents = async (): Promise<void> => {
   
   // In a real application, this would send data to a server
   // For now, we'll just simulate it
-  console.log(`Would send ${eventQueue.length} events to analytics server`);
+
   
   // After successful send, we could clear the queue
   // eventQueue = [];

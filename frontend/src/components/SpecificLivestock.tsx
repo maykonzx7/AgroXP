@@ -25,7 +25,7 @@ const SpecificLivestock = () => {
   } | null>(null);
 
   // Filtrar dados com base no termo de busca
-  const filteredData = livestockData.filter((item: any) =>
+  const filteredData = (Array.isArray(livestockData) ? livestockData : []).filter((item: any) =>
     item.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.race.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -37,7 +37,7 @@ const SpecificLivestock = () => {
       // For now, we'll just update the local state
       
       // Find the animal group in the livestock data and update its quantity
-      const updatedLivestockData = livestockData.map((animalGroup: any) => {
+      const updatedLivestockData = (Array.isArray(livestockData) ? livestockData : []).map((animalGroup: any) => {
         if (animalGroup.id === deathData.animalId) {
           // Calculate the new quantity after deaths
           const newQuantity = (animalGroup.quantite || 0) - deathData.numberOfDeaths;

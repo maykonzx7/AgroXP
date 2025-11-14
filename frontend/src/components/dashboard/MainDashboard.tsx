@@ -1,22 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Leaf, 
-  Wheat, 
-  ShoppingCart, 
-  DollarSign, 
-  Calendar, 
-  AlertTriangle, 
-  BarChart3, 
-  PieChart, 
-  LineChart, 
-  MapPin, 
-  Users, 
-  Clock, 
-  Filter, 
-  Wallet, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Leaf,
+  Wheat,
+  ShoppingCart,
+  DollarSign,
+  Calendar,
+  AlertTriangle,
+  BarChart3,
+  PieChart,
+  LineChart,
+  MapPin,
+  Users,
+  Clock,
+  Filter,
+  Wallet,
   Plus,
   CloudRain,
   Wind,
@@ -44,29 +44,29 @@ import {
 import { EditableField } from '@/components/ui/editable-field';
 import { Button } from '@/components/ui/button';
 import { useCRM } from '../../contexts/CRMContext';
-import { 
-  Input 
+import {
+  Input
 } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
-  ResponsiveContainer, 
-  AreaChart, 
-  CartesianGrid, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  Area, 
-  BarChart, 
-  Bar, 
-  Line, 
-  Legend 
+import {
+  ResponsiveContainer,
+  AreaChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Area,
+  BarChart,
+  Bar,
+  Line,
+  Legend
 } from 'recharts';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { toast } from 'sonner';
@@ -74,23 +74,23 @@ import { Link } from 'react-router-dom';
 import PreviewPrintButton from '@/components/common/PreviewPrintButton';
 
 const Dashboard = () => {
-  const { getModuleData, syncDataAcrossCRM, exportModuleData, importModuleData, isRefreshing } = useCRM();
+  const { getModuleData, syncDataAcrossCRM, exportModuleData, importModuleData, addData, updateModuleData, isRefreshing } = useCRM();
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  
+
   // Get data from CRM modules
   const financeData = getModuleData('finances')?.items || [];
   const parcelData = getModuleData('parcelles')?.items || [];
   const cropData = getModuleData('cultures')?.items || [];
   const livestockData = getModuleData('livestock')?.items || [];
   const inventoryData = getModuleData('inventaire')?.items || [];
-  
+
   // Generate revenue data based on actual financial data
   const generateRevenueData = (finances) => {
     // Create an array with the last 12 months
     const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     const revenueData = [];
-    
+
     // Initialize with zero values for all months
     for (let i = 0; i < 12; i++) {
       revenueData.push({
@@ -98,57 +98,57 @@ const Dashboard = () => {
         revenue: 0
       });
     }
-    
+
     // Process financial data to populate monthly revenue
     finances.forEach(transaction => {
       if (transaction.type === 'income' || transaction.type === 'revenue') {
         const date = new Date(transaction.date);
         const monthIndex = date.getMonth(); // 0-11
-        
+
         if (monthIndex < 12) {
           revenueData[monthIndex].revenue += transaction.amount || 0;
         }
       }
     });
-    
+
     return revenueData;
   };
-  
+
   // Generate production data based on actual crop and livestock data
   const generateProductionData = (crops, livestock) => {
     const productionData = [];
-    
+
     // Process crop data
     const cropTypes = {};
-    crops.forEach(crop => {
+    (Array.isArray(crops) ? crops : []).forEach(crop => {
       const type = crop.name || 'Outros';
       cropTypes[type] = (cropTypes[type] || 0) + (crop.quantity || 0);
     });
-    
+
     // Process livestock data
     const livestockTypes = {};
-    livestock.forEach(animal => {
+    (Array.isArray(livestock) ? livestock : []).forEach(animal => {
       const type = animal.name || 'Outros';
       livestockTypes[type] = (livestockTypes[type] || 0) + (animal.quantity || 0);
     });
-    
+
     // Combine and format data
     Object.entries(cropTypes).forEach(([name, value]) => {
       productionData.push({ name, value });
     });
-    
+
     Object.entries(livestockTypes).forEach(([name, value]) => {
       productionData.push({ name, value });
     });
-    
+
     return productionData;
   };
-  
+
   // State for editable content
   const [title, setTitle] = useState('Olá, Agricultor Brasileiro');
   const [description, setDescription] = useState('Este é um resumo da sua fazenda');
   const [currentMonth, setCurrentMonth] = useState(new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }));
-  
+
   // Stats cards
   const [monthlyRevenue, setMonthlyRevenue] = useState(0);
   const [revenueGrowth, setRevenueGrowth] = useState(0);
@@ -157,11 +157,11 @@ const Dashboard = () => {
   const [averageYield, setAverageYield] = useState(0);
   const [yieldGrowth, setYieldGrowth] = useState(0);
   const [alertsCount, setAlertsCount] = useState(0);
-  
+
   // Charts data
   const [revenueData, setRevenueData] = useState([]);
   const [productionData, setProductionData] = useState([]);
-  
+
   // Tasks and alerts (these can remain as initial data since they're not from CRM)
   const [upcomingTasks, setUpcomingTasks] = useState([
     { id: 1, title: 'Colheita da soja', due: 'Hoje', priority: 'high', status: 'pending' },
@@ -169,41 +169,41 @@ const Dashboard = () => {
     { id: 3, title: 'Manutenção do trator', due: '28/08', priority: 'low', status: 'pending' },
     { id: 4, title: 'Irrigação da lavoura de café', due: '30/08', priority: 'medium', status: 'pending' },
   ]);
-  
+
   const [alerts, setAlerts] = useState([
     { id: 1, message: 'Nível baixo de sementes de milho', type: 'warning' },
     { id: 2, message: 'Risco de geada para a próxima semana', type: 'danger' },
     { id: 3, message: 'Prazo de financiamento agrícola se aproximando', type: 'info' },
   ]);
-  
+
   const [weatherAlerts, setWeatherAlerts] = useState([
-    { 
-      id: 1, 
-      type: 'Geada', 
-      region: 'Sul e Sudeste', 
-      startDate: '2024-07-10', 
-      endDate: '2024-07-12', 
-      severity: 'crítica', 
-      description: 'Risco de geada forte em áreas de baixada' 
+    {
+      id: 1,
+      type: 'Geada',
+      region: 'Sul e Sudeste',
+      startDate: '2024-07-10',
+      endDate: '2024-07-12',
+      severity: 'crítica',
+      description: 'Risco de geada forte em áreas de baixada'
     },
-    { 
-      id: 2, 
-      type: 'Chuva Forte', 
-      region: 'Centro-Oeste', 
-      startDate: '2024-09-20', 
-      endDate: '2024-09-23', 
-      severity: 'moderada', 
-      description: 'Precipitação intensa esperada, com risco de alagamentos' 
+    {
+      id: 2,
+      type: 'Chuva Forte',
+      region: 'Centro-Oeste',
+      startDate: '2024-09-20',
+      endDate: '2024-09-23',
+      severity: 'moderada',
+      description: 'Precipitação intensa esperada, com risco de alagamentos'
     }
   ]);
-  
+
   // Harvest tracking
   const [harvestData, setHarvestData] = useState([
     { id: 1, crop: 'Soja', quantity: 1200, unit: 'toneladas', date: '2024-08-15', status: 'completed' },
     { id: 2, crop: 'Milho', quantity: 850, unit: 'toneladas', date: '2024-08-20', status: 'in_progress' },
     { id: 3, crop: 'Café', quantity: 420, unit: 'sacas', date: '2024-09-05', status: 'pending' },
   ]);
-  
+
   // New alert dialog
   const [showAddAlertDialog, setShowAddAlertDialog] = useState(false);
   const [newAlert, setNewAlert] = useState({
@@ -214,67 +214,108 @@ const Dashboard = () => {
     severity: 'moderada',
     description: ''
   });
-  
+
   // Task editing state
   const [editingTask, setEditingTask] = useState(null);
   const [editedTaskTitle, setEditedTaskTitle] = useState('');
-  
+
   // Update data when CRM data changes
   useEffect(() => {
     // Update revenue data
     const newRevenueData = generateRevenueData(financeData);
     setRevenueData(newRevenueData);
-    
+
     // Calculate monthly revenue
     const currentMonthIndex = new Date().getMonth();
     const currentMonthRevenue = newRevenueData[currentMonthIndex]?.revenue || 0;
     setMonthlyRevenue(currentMonthRevenue);
-    
+
     // Calculate revenue growth (simplified)
-    const previousMonthRevenue = currentMonthIndex > 0 ? 
-      newRevenueData[currentMonthIndex - 1]?.revenue || 0 : 
+    const previousMonthRevenue = currentMonthIndex > 0 ?
+      newRevenueData[currentMonthIndex - 1]?.revenue || 0 :
       newRevenueData[11]?.revenue || 0;
-    
+
     if (previousMonthRevenue > 0) {
       const growth = ((currentMonthRevenue - previousMonthRevenue) / previousMonthRevenue) * 100;
       setRevenueGrowth(parseFloat(growth.toFixed(1)));
     } else {
       setRevenueGrowth(0);
     }
-    
+
     // Update production data
     const newProductionData = generateProductionData(cropData, livestockData);
     setProductionData(newProductionData);
-    
+
     // Update parcel stats
     setCultivatedArea(parcelData.reduce((total, parcel) => total + (parcel.size || 0), 0));
     setParcelsCount(parcelData.length);
-    
+
     // Update yield stats (simplified)
     const totalYield = cropData.reduce((total, crop) => total + (crop.yield || 0), 0);
     const average = cropData.length > 0 ? totalYield / cropData.length : 0;
     setAverageYield(parseFloat(average.toFixed(1)));
-    
+
+    // Update harvest data with actual harvest records from crop data
+    // Include both crops with harvest date and explicit harvest records
+    const harvestRecords = cropData
+      .filter(crop => crop.type === 'harvest' || crop.harvestDate) // Harvest records
+      .map((crop, index) => ({
+        id: crop.id || `harvest-${index}`,
+        crop: crop.name || crop.crop || crop.nom || 'Cultura Desconhecida',
+        quantity: crop.quantity || crop.quantite || crop.yield || 0,
+        unit: crop.unit || 'toneladas',
+        date: crop.harvestDate || crop.date || crop.dateRecolte || new Date().toISOString().split('T')[0],
+        status: crop.harvestStatus || crop.status || crop.statutRecolte || 'completed'
+      }));
+
+    setHarvestData(harvestRecords);
+
     // Update alerts count
     setAlertsCount(alerts.length + weatherAlerts.length);
   }, [financeData, parcelData, cropData, livestockData, alerts, weatherAlerts]);
-  
+
+  // Initialize harvest data from CRM when component mounts
+  useEffect(() => {
+    const initializeHarvestData = async () => {
+      try {
+        const moduleData = getModuleData('harvest');
+        if (moduleData && moduleData.items) {
+          const harvestRecords = moduleData.items
+            .map((harvest, index) => ({
+              id: harvest.id || `harvest-${index}`,
+              crop: harvest.crop || harvest.name || 'Cultura Desconhecida',
+              quantity: harvest.yield || harvest.quantity || harvest.quantite || 0,
+              unit: harvest.unit || 'toneladas',
+              date: harvest.date || harvest.harvestDate || new Date().toISOString().split('T')[0],
+              status: harvest.status || 'completed'
+            }));
+          
+          setHarvestData(harvestRecords);
+        }
+      } catch (error) {
+        console.error('Error initializing harvest data:', error);
+      }
+    };
+
+    initializeHarvestData();
+  }, [getModuleData]);
+
   // Handle changes
   const handleTitleChange = (value) => {
     setTitle(String(value));
     toast.success('Título atualizado');
   };
-  
+
   const handleDescriptionChange = (value) => {
     setDescription(String(value));
     toast.success('Descrição atualizada');
   };
-  
+
   const handleMonthChange = (value) => {
     setCurrentMonth(String(value));
     toast.success('Mês atualizado');
   };
-  
+
   // Task management
   const handleEditTask = (taskId) => {
     const task = upcomingTasks.find(t => t.id === taskId);
@@ -283,22 +324,29 @@ const Dashboard = () => {
       setEditedTaskTitle(task.title);
     }
   };
-  
+
   const handleSaveTask = (taskId) => {
     if (editedTaskTitle.trim() === '') return;
-    
-    setUpcomingTasks(upcomingTasks.map(task => 
+
+    setUpcomingTasks(upcomingTasks.map(task =>
       task.id === taskId ? { ...task, title: editedTaskTitle } : task
     ));
     setEditingTask(null);
     toast.success('Tarefa atualizada');
   };
-  
+
   const handleDeleteTask = (taskId) => {
     setUpcomingTasks(upcomingTasks.filter(task => task.id !== taskId));
     toast.success('Tarefa removida');
   };
-  
+
+  const handleCompleteTask = (taskId) => {
+    setUpcomingTasks(upcomingTasks.map(task =>
+      task.id === taskId ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' } : task
+    ));
+    toast.success('Status da tarefa atualizado');
+  };
+
   const handleAddTask = () => {
     const newId = Math.max(0, ...upcomingTasks.map(t => t.id)) + 1;
     const newTask = {
@@ -308,51 +356,44 @@ const Dashboard = () => {
       priority: 'medium',
       status: 'pending'
     };
-    
+
     setUpcomingTasks([...upcomingTasks, newTask]);
     toast.success('Nova tarefa adicionada');
   };
-  
-  const handleCompleteTask = (taskId) => {
-    setUpcomingTasks(upcomingTasks.map(task => 
-      task.id === taskId ? { ...task, status: task.status === 'completed' ? 'pending' : 'completed' } : task
-    ));
-    toast.success('Status da tarefa atualizado');
-  };
-  
+
   // Alert management
   const handleEditAlert = (id, message) => {
-    setAlerts(alerts.map(alert => 
+    setAlerts(alerts.map(alert =>
       alert.id === id ? { ...alert, message } : alert
     ));
     toast.success('Alerta atualizado');
   };
-  
+
   const handleDeleteAlert = (id) => {
     setAlerts(alerts.filter(alert => alert.id !== id));
     setAlertsCount(prev => prev - 1);
     toast.success('Alerta removido');
   };
-  
+
   // Weather alert management
   const handleDeleteWeatherAlert = (id) => {
     setWeatherAlerts(weatherAlerts.filter(alert => alert.id !== id));
     toast.success('Alerta meteorológico removido');
   };
-  
+
   const handleAddWeatherAlert = () => {
     // Validation
     if (!newAlert.region || !newAlert.startDate || !newAlert.endDate || !newAlert.description) {
       toast.error('Por favor, preencha todos os campos obrigatórios');
       return;
     }
-    
+
     const newId = Math.max(...weatherAlerts.map(a => a.id), 0) + 1;
     const alertToAdd = {
       id: newId,
       ...newAlert
     };
-    
+
     setWeatherAlerts([...weatherAlerts, alertToAdd]);
     setShowAddAlertDialog(false);
     setNewAlert({
@@ -363,55 +404,125 @@ const Dashboard = () => {
       severity: 'moderada',
       description: ''
     });
-    
+
     toast.success('Novo alerta meteorológico adicionado');
   };
-  
+
+  // State for harvest form
+  const [showAddHarvestDialog, setShowAddHarvestDialog] = useState(false);
+  const [newHarvest, setNewHarvest] = useState({
+    crop: '',
+    quantity: 0,
+    unit: 'toneladas',
+    date: new Date().toISOString().split('T')[0],
+    status: 'completed'
+  });
+
   // Harvest tracking
-  const handleAddHarvest = () => {
-    const newId = Math.max(...harvestData.map(h => h.id), 0) + 1;
-    const newHarvest = {
-      id: newId,
-      crop: 'Nova colheita',
-      quantity: 0,
-      unit: 'toneladas',
-      date: new Date().toISOString().split('T')[0],
-      status: 'pending'
-    };
-    
-    setHarvestData([...harvestData, newHarvest]);
-    toast.success('Registro de colheita adicionado');
+  const handleAddHarvest = async () => {
+    // Validation
+    if (!newHarvest.crop || newHarvest.quantity <= 0) {
+      toast.error('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    try {
+      // Criar um objeto de colheita com os campos apropriados para o modelo Harvest
+      const harvestRecord = {
+        crop: newHarvest.crop,
+        date: newHarvest.date,
+        yield: newHarvest.quantity,
+        expectedYield: newHarvest.quantity, // Assuming same as actual yield for now
+        harvestArea: 0, // Default to 0 if not specified
+        quality: 'Média', // Default quality
+        unit: newHarvest.unit,
+        status: newHarvest.status
+      };
+
+      // Adicionar ao módulo de colheita
+      await addData('harvest', harvestRecord);
+
+      // Atualizar diretamente o estado local para refletir imediatamente
+      setHarvestData(prev => {
+        const newId = prev.length > 0 ? Math.max(...prev.map(h => parseInt(h.id.toString().replace('harvest-', '')) || 0)) + 1 : 1;
+        return [
+          ...prev,
+          {
+            ...harvestRecord,
+            id: `harvest-${newId}` // The backend will provide the actual ID, but we need a temporary one for immediate UI update
+          }
+        ];
+      });
+      
+      setShowAddHarvestDialog(false);
+      setNewHarvest({
+        crop: '',
+        quantity: 0,
+        unit: 'toneladas',
+        date: new Date().toISOString().split('T')[0],
+        status: 'completed'
+      });
+      toast.success('Registro de colheita adicionado e salvo no banco de dados');
+    } catch (error) {
+      console.error('Erro ao salvar colheita:', error);
+      toast.error('Erro ao salvar o registro de colheita no banco de dados');
+    }
   };
-  
-  const handleUpdateHarvest = (id, field, value) => {
-    setHarvestData(harvestData.map(harvest => 
-      harvest.id === id ? { ...harvest, [field]: value } : harvest
-    ));
+
+  const handleHarvestInputChange = (field, value) => {
+    setNewHarvest(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
-  
-  const handleDeleteHarvest = (id) => {
-    setHarvestData(harvestData.filter(harvest => harvest.id !== id));
-    toast.success('Registro de colheita removido');
+
+  const handleUpdateHarvest = async (id, field, value) => {
+    try {
+      // Update the item in the CRM context
+      await updateData('harvest', id, { [field]: value });
+      
+      // Update the local state
+      setHarvestData(harvestData.map(harvest =>
+        harvest.id === id ? { ...harvest, [field]: value } : harvest
+      ));
+    } catch (error) {
+      console.error('Erro ao atualizar colheita:', error);
+      toast.error('Erro ao atualizar o registro de colheita no banco de dados');
+    }
   };
-  
+
+  const handleDeleteHarvest = async (id) => {
+    try {
+      // Delete the item from the CRM context
+      await deleteData('harvest', id);
+      
+      // Update the local state
+      setHarvestData(harvestData.filter(harvest => harvest.id !== id));
+      toast.success('Registro de colheita removido do banco de dados');
+    } catch (error) {
+      console.error('Erro ao deletar colheita:', error);
+      toast.error('Erro ao remover o registro de colheita do banco de dados');
+    }
+  };
+
   // Add transaction handler (navigate to finances page)
   const handleAddTransaction = () => {
     // Navigate to the finance page
     navigate('/financas');
   };
-  
+
   // Export data handler
   const handleExportData = async () => {
     try {
       // Export all modules
       const modules = ['finances', 'parcelles', 'cultures', 'livestock', 'inventaire'];
       let successCount = 0;
-      
+
       for (const module of modules) {
         const success = await exportModuleData(module, 'csv');
         if (success) successCount++;
       }
-      
+
       if (successCount > 0) {
         toast.success(`Dados exportados com sucesso (${successCount}/${modules.length} módulos)`);
       } else {
@@ -422,7 +533,7 @@ const Dashboard = () => {
       toast.error('Erro ao exportar dados');
     }
   };
-  
+
   // Import data handler
   const handleImportData = async (event) => {
     const file = event.target.files?.[0];
@@ -431,7 +542,7 @@ const Dashboard = () => {
         // For simplicity, we'll import to the finances module
         // In a real app, you might want to detect the module based on file content
         const success = await importModuleData('finances', file);
-        
+
         if (success) {
           toast.success('Dados importados com sucesso');
           // Refresh data
@@ -448,13 +559,13 @@ const Dashboard = () => {
       }
     }
   };
-  
+
   // Sync data handler
   const handleSyncData = () => {
     syncDataAcrossCRM();
     toast.success('Dados sincronizados com sucesso');
   };
-  
+
   // Get priority color for tasks
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -464,7 +575,7 @@ const Dashboard = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-  
+
   // Get status color for harvest
   const getHarvestStatusColor = (status) => {
     switch (status) {
@@ -474,7 +585,51 @@ const Dashboard = () => {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
-  
+
+  // Calculate parcel statistics for dashboard
+  const calculateParcelStats = () => {
+    const activeParcels = parcelData.filter(parcel => parcel.status === 'active').length;
+    const totalArea = parcelData.reduce((total, parcel) => {
+      const size = parcel.size || parcel.area || 0;
+      // Ensure size is a number
+      const numSize = typeof size === 'number' ? size : parseFloat(size) || 0;
+      return total + numSize;
+    }, 0);
+    const totalParcels = parcelData.length;
+
+    // Obter culturas principais
+    const cropCounts = {};
+    parcelData.forEach(parcel => {
+      const cropName = parcel.crop || parcel.culture || 'Não especificado';
+      cropCounts[cropName] = (cropCounts[cropName] || 0) + 1;
+    });
+
+    // Obter as 3 culturas mais comuns
+    const mainCrops = Object.entries(cropCounts)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 3)
+      .map(([crop, count]) => ({ name: crop, count }));
+
+    // Calcular rendimento médio
+    const totalYield = cropData.reduce((total, crop) => {
+      const yieldVal = crop.yield || crop.quantity || 0;
+      // Ensure yield is a number
+      const numYield = typeof yieldVal === 'number' ? yieldVal : parseFloat(yieldVal) || 0;
+      return total + numYield;
+    }, 0);
+    const avgYield = cropData.length > 0 ? totalYield / cropData.length : 0;
+
+    return {
+      totalArea: Number(totalArea).toFixed(2),
+      activeParcels,
+      totalParcels,
+      avgYield: Number(avgYield).toFixed(2),
+      mainCrops
+    };
+  };
+
+  const parcelStats = calculateParcelStats();
+
   return (
     <div className="p-6 space-y-6 animate-enter">
       <header className="flex justify-between items-center mb-6">
@@ -498,8 +653,8 @@ const Dashboard = () => {
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex space-x-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={handleExportData}
               className="flex items-center"
@@ -507,8 +662,8 @@ const Dashboard = () => {
               <Download className="h-4 w-4 mr-1" />
               Exportar
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
               className="flex items-center"
@@ -523,8 +678,8 @@ const Dashboard = () => {
                 className="hidden"
               />
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={handleSyncData}
               disabled={isRefreshing}
@@ -542,7 +697,7 @@ const Dashboard = () => {
               className="inline-block"
             />
           </button>
-          <button 
+          <button
             className="px-4 py-2 text-sm bg-agri-primary text-white rounded-lg hover:bg-agri-primary-dark transition-colors"
             onClick={handleAddTransaction}
           >
@@ -552,7 +707,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Quick Stats Row - Adaptado à agricultura brasileira */}
+      {/* Quick Stats Row - Com estatísticas atualizadas e personalizadas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="stat-card card-hover">
           <p className="stat-label">Receita Mensal</p>
@@ -567,38 +722,37 @@ const Dashboard = () => {
             </span>
           </div>
         </div>
-        
+
         <div className="stat-card card-hover">
-          <p className="stat-label">Área Cultivada</p>
+          <p className="stat-label">Área Total</p>
           <div className="flex items-baseline justify-between mt-2">
             <p className="stat-value flex items-baseline">
-              <span className="inline-block font-bold">{cultivatedArea.toFixed(2)}</span>&nbsp;ha
+              <span className="inline-block font-bold">{parcelStats.totalArea}</span>&nbsp;ha
             </p>
             <span className="text-agri-primary text-sm font-medium flex items-baseline">
-              {parcelsCount}&nbsp;talhões
+              {parcelStats.totalParcels}&nbsp;talhões
             </span>
           </div>
         </div>
-        
+
         <div className="stat-card card-hover">
-          <p className="stat-label">Rendimento Médio</p>
+          <p className="stat-label">Parcelas Ativas</p>
           <div className="flex items-baseline justify-between mt-2">
-            <p className="stat-value flex items-baseline">
-              <span className="inline-block font-bold">{averageYield.toFixed(2)}</span>&nbsp;t/ha
+            <p className="stat-value">{parcelStats.activeParcels}</p>
+            <span className="text-agri-success text-sm font-medium flex items-center">
+              <TrendingUp className="h-4 w-4 mr-1" />&nbsp;12%
+            </span>
+          </div>
+        </div>
+
+        <div className="stat-card card-hover">
+          <p className="stat-label">Cultura Principal</p>
+          <div className="flex items-baseline justify-between mt-2">
+            <p className="stat-value">
+              {parcelStats.mainCrops.length > 0 ? parcelStats.mainCrops[0]?.name : 'Nenhuma'}
             </p>
-            <span className={`text-sm font-medium flex items-center ${yieldGrowth >= 0 ? 'text-agri-success' : 'text-agri-danger'}`}>
-              {yieldGrowth >= 0 ? <TrendingUp className="h-4 w-4 mr-1" /> : <TrendingDown className="h-4 w-4 mr-1" />}
-              {yieldGrowth >= 0 ? '+' : ''}{yieldGrowth.toFixed(1)}%
-            </span>
-          </div>
-        </div>
-        
-        <div className="stat-card card-hover">
-          <p className="stat-label">Alertas</p>
-          <div className="flex items-baseline justify-between mt-2">
-            <p className="stat-value">{alertsCount}</p>
             <span className="text-agri-warning text-sm font-medium flex items-center">
-              <AlertTriangle className="h-4 w-4 mr-1" /> Recentes
+              {parcelStats.mainCrops.length > 0 ? `(${parcelStats.mainCrops[0]?.count} talhões)` : ''}
             </span>
           </div>
         </div>
@@ -608,8 +762,8 @@ const Dashboard = () => {
       <div className="bg-card rounded-xl border p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Acompanhamento de Colheita</h2>
-          <Button 
-            onClick={handleAddHarvest}
+          <Button
+            onClick={() => setShowAddHarvestDialog(true)}
             className="bg-agri-primary hover:bg-agri-primary-dark"
           >
             <Plus size={16} className="mr-2" /> Adicionar Colheita
@@ -618,7 +772,7 @@ const Dashboard = () => {
         <p className="text-muted-foreground mb-6">
           Registre e acompanhe suas colheitas em tempo real
         </p>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted text-xs uppercase">
@@ -680,8 +834,8 @@ const Dashboard = () => {
                     </select>
                   </td>
                   <td className="px-4 py-3">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteHarvest(harvest.id)}
                       className="text-red-500 hover:text-red-700 hover:bg-red-100"
@@ -707,7 +861,7 @@ const Dashboard = () => {
       <div className="bg-card rounded-xl border p-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Alertas Meteorológicos</h2>
-          <Button 
+          <Button
             onClick={() => setShowAddAlertDialog(true)}
             className="bg-agri-primary hover:bg-agri-primary-dark"
           >
@@ -715,9 +869,9 @@ const Dashboard = () => {
           </Button>
         </div>
         <p className="text-muted-foreground mb-6">
-          Acompanhe os alertas meteorológicos que impactam a agricultura no Brasil
+          Acompanhe os alertas meteorológicos e proteja sua produção
         </p>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-muted text-xs uppercase">
@@ -752,7 +906,7 @@ const Dashboard = () => {
                     <EditableField
                       value={alert.region}
                       onSave={(value) => {
-                        setWeatherAlerts(weatherAlerts.map(a => 
+                        setWeatherAlerts(weatherAlerts.map(a =>
                           a.id === alert.id ? { ...a, region: String(value) } : a
                         ));
                         toast.success('Região atualizada');
@@ -767,7 +921,7 @@ const Dashboard = () => {
                           value={alert.startDate}
                           type="date"
                           onSave={(value) => {
-                            setWeatherAlerts(weatherAlerts.map(a => 
+                            setWeatherAlerts(weatherAlerts.map(a =>
                               a.id === alert.id ? { ...a, startDate: String(value) } : a
                             ));
                             toast.success('Data de início atualizada');
@@ -780,7 +934,7 @@ const Dashboard = () => {
                           value={alert.endDate}
                           type="date"
                           onSave={(value) => {
-                            setWeatherAlerts(weatherAlerts.map(a => 
+                            setWeatherAlerts(weatherAlerts.map(a =>
                               a.id === alert.id ? { ...a, endDate: String(value) } : a
                             ));
                             toast.success('Data de fim atualizada');
@@ -791,8 +945,8 @@ const Dashboard = () => {
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${
-                      alert.severity === 'crítica' 
-                        ? 'bg-red-100 text-red-800' 
+                      alert.severity === 'crítica'
+                        ? 'bg-red-100 text-red-800'
                         : alert.severity === 'moderada'
                           ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-green-100 text-green-800'
@@ -800,7 +954,7 @@ const Dashboard = () => {
                       <EditableField
                         value={alert.severity}
                         onSave={(value) => {
-                          setWeatherAlerts(weatherAlerts.map(a => 
+                          setWeatherAlerts(weatherAlerts.map(a =>
                             a.id === alert.id ? { ...a, severity: String(value) } : a
                           ));
                           toast.success('Severidade atualizada');
@@ -812,7 +966,7 @@ const Dashboard = () => {
                     <EditableField
                       value={alert.description}
                       onSave={(value) => {
-                        setWeatherAlerts(weatherAlerts.map(a => 
+                        setWeatherAlerts(weatherAlerts.map(a =>
                           a.id === alert.id ? { ...a, description: String(value) } : a
                         ));
                         toast.success('Descrição atualizada');
@@ -820,8 +974,8 @@ const Dashboard = () => {
                     />
                   </td>
                   <td className="px-4 py-3">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteWeatherAlert(alert.id)}
                       className="text-red-500 hover:text-red-700 hover:bg-red-100"
@@ -870,13 +1024,13 @@ const Dashboard = () => {
                 <XAxis dataKey="month" axisLine={false} tickLine={false} />
                 <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `R$ ${value/1000}k`} />
                 <Tooltip formatter={(value) => [`R$ ${Number(value).toLocaleString('pt-BR')}`, 'Receita']} />
-                <Area 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="#4CAF50" 
-                  fillOpacity={1} 
-                  fill="url(#colorRevenue)" 
-                  activeDot={{ r: 8 }} 
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#4CAF50"
+                  fillOpacity={1}
+                  fill="url(#colorRevenue)"
+                  activeDot={{ r: 8 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -895,18 +1049,18 @@ const Dashboard = () => {
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                 <XAxis type="number" axisLine={false} tickLine={false} />
-                <YAxis 
-                  dataKey="name" 
-                  type="category" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  width={80} 
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  axisLine={false}
+                  tickLine={false}
+                  width={80}
                 />
                 <Tooltip formatter={(value) => [`${value}%`, 'Percentual']} />
-                <Bar 
-                  dataKey="value" 
-                  fill="#8D6E63" 
-                  radius={[0, 4, 4, 0]} 
+                <Bar
+                  dataKey="value"
+                  fill="#8D6E63"
+                  radius={[0, 4, 4, 0]}
                   barSize={20}
                 />
               </BarChart>
@@ -922,7 +1076,7 @@ const Dashboard = () => {
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Próximas Tarefas</h3>
             <div className="flex space-x-2">
-              <button 
+              <button
                 onClick={handleAddTask}
                 className="text-xs text-agri-primary hover:underline flex items-center"
               >
@@ -931,19 +1085,19 @@ const Dashboard = () => {
               <button className="text-xs text-agri-primary hover:underline">Ver todas</button>
             </div>
           </div>
-          
+
           <div className="space-y-3">
             {upcomingTasks.map((task) => (
-              <div 
-                key={task.id} 
+              <div
+                key={task.id}
                 className={`flex items-center p-2 rounded-lg hover:bg-muted ${task.status === 'completed' ? 'opacity-70' : ''}`}
               >
-                <div 
+                <div
                   className={`w-2 h-2 rounded-full mr-3 ${
-                    task.priority === 'high' 
-                      ? 'bg-agri-danger' 
-                      : task.priority === 'medium' 
-                        ? 'bg-agri-warning' 
+                    task.priority === 'high'
+                      ? 'bg-agri-danger'
+                      : task.priority === 'medium'
+                        ? 'bg-agri-warning'
                         : 'bg-agri-success'
                   }`}
                 />
@@ -957,13 +1111,13 @@ const Dashboard = () => {
                         className="border rounded px-2 py-1 text-sm w-full"
                         autoFocus
                       />
-                      <button 
+                      <button
                         onClick={() => handleSaveTask(task.id)}
                         className="ml-2 p-1 text-green-600 hover:bg-green-50 rounded"
                       >
                         <Check className="h-4 w-4" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => setEditingTask(null)}
                         className="ml-1 p-1 text-red-600 hover:bg-red-50 rounded"
                       >
@@ -992,20 +1146,20 @@ const Dashboard = () => {
                 <div className="flex">
                   {editingTask !== task.id && (
                     <>
-                      <button 
-                        className="p-1.5 hover:bg-muted rounded" 
+                      <button
+                        className="p-1.5 hover:bg-muted rounded"
                         onClick={() => handleCompleteTask(task.id)}
                       >
                         <Check className={`h-4 w-4 ${task.status === 'completed' ? 'text-green-600' : 'text-muted-foreground'}`} />
                       </button>
-                      <button 
-                        className="p-1.5 hover:bg-muted rounded" 
+                      <button
+                        className="p-1.5 hover:bg-muted rounded"
                         onClick={() => handleEditTask(task.id)}
                       >
                         <Edit className="h-4 w-4 text-muted-foreground" />
                       </button>
-                      <button 
-                        className="p-1.5 hover:bg-muted rounded text-red-500" 
+                      <button
+                        className="p-1.5 hover:bg-muted rounded text-red-500"
                         onClick={() => handleDeleteTask(task.id)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -1020,42 +1174,42 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-        
+
         {/* Alerts - Adaptado à agricultura no Brasil */}
         <div className="dashboard-card card-hover">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Alertas</h3>
             <button className="text-xs text-agri-primary hover:underline">Gerenciar Alertas</button>
           </div>
-          
+
           <div className="space-y-3">
             {alerts.map((alert) => (
-              <div 
-                key={alert.id} 
+              <div
+                key={alert.id}
                 className={`p-3 rounded-lg ${
-                  alert.type === 'danger' 
-                    ? 'bg-agri-danger/10 border-l-4 border-agri-danger dark:bg-agri-danger/20 dark:border-agri-danger' 
-                    : alert.type === 'warning' 
-                      ? 'bg-agri-warning/10 border-l-4 border-agri-warning dark:bg-agri-warning/20 dark:border-agri-warning' 
+                  alert.type === 'danger'
+                    ? 'bg-agri-danger/10 border-l-4 border-agri-danger dark:bg-agri-danger/20 dark:border-agri-danger'
+                    : alert.type === 'warning'
+                      ? 'bg-agri-warning/10 border-l-4 border-agri-warning dark:bg-agri-warning/20 dark:border-agri-warning'
                       : 'bg-agri-info/10 border-l-4 border-agri-info dark:bg-agri-info/20 dark:border-agri-info'
                 }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start flex-1">
                     <AlertTriangle className={`h-5 w-5 mr-2 ${
-                      alert.type === 'danger' 
-                        ? 'text-agri-danger' 
-                        : alert.type === 'warning' 
-                          ? 'text-agri-warning' 
+                      alert.type === 'danger'
+                        ? 'text-agri-danger'
+                        : alert.type === 'warning'
+                          ? 'text-agri-warning'
                           : 'text-agri-info'
                     }`} />
-                    <EditableField 
-                      value={alert.message} 
+                    <EditableField
+                      value={alert.message}
                       onSave={(value) => handleEditAlert(alert.id, String(value))}
                       className="text-sm"
                     />
                   </div>
-                  <button 
+                  <button
                     onClick={() => handleDeleteAlert(alert.id)}
                     className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50"
                   >
@@ -1070,6 +1224,89 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Add Harvest Dialog */}
+      <Dialog open={showAddHarvestDialog} onOpenChange={setShowAddHarvestDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Registro de Colheita</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="crop" className="text-right">
+                Cultura
+              </Label>
+              <Input
+                id="crop"
+                value={newHarvest.crop}
+                onChange={(e) => handleHarvestInputChange('crop', e.target.value)}
+                className="col-span-3"
+                placeholder="Nome da cultura"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="quantity" className="text-right">
+                Quantidade
+              </Label>
+              <Input
+                id="quantity"
+                type="number"
+                step="0.01"
+                value={newHarvest.quantity}
+                onChange={(e) => handleHarvestInputChange('quantity', parseFloat(e.target.value) || 0)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="unit" className="text-right">
+                Unidade
+              </Label>
+              <select
+                id="unit"
+                value={newHarvest.unit}
+                onChange={(e) => handleHarvestInputChange('unit', e.target.value)}
+                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="toneladas">toneladas</option>
+                <option value="sacas">sacas</option>
+                <option value="quilos">quilos</option>
+                <option value="gramas">gramas</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="date" className="text-right">
+                Data
+              </Label>
+              <Input
+                id="date"
+                type="date"
+                value={newHarvest.date}
+                onChange={(e) => handleHarvestInputChange('date', e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="status" className="text-right">
+                Status
+              </Label>
+              <select
+                id="status"
+                value={newHarvest.status}
+                onChange={(e) => handleHarvestInputChange('status', e.target.value)}
+                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="completed">Concluído</option>
+                <option value="in_progress">Em andamento</option>
+                <option value="pending">Pendente</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddHarvestDialog(false)}>Cancelar</Button>
+            <Button onClick={handleAddHarvest}>Adicionar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add Weather Alert Dialog */}
       <Dialog open={showAddAlertDialog} onOpenChange={setShowAddAlertDialog}>

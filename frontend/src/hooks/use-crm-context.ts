@@ -6,17 +6,18 @@ import {
   importFromCSV,
   printData,
 } from "../utils/crm-data-operations";
-import { 
-  parcelsApi, 
-  cropsApi, 
-  livestockApi, 
-  feedingApi, 
-  vaccinationApi, 
-  reproductionApi, 
-  veterinarySupplyApi, 
-  supplyUsageApi, 
-  inventoryApi, 
-  financeApi 
+import {
+  parcelsApi,
+  cropsApi,
+  livestockApi,
+  feedingApi,
+  vaccinationApi,
+  reproductionApi,
+  veterinarySupplyApi,
+  supplyUsageApi,
+  inventoryApi,
+  financeApi,
+  harvestApi
 } from "../services/apiService";
 import { CRMContextType } from "../contexts/CRMContext";
 
@@ -32,6 +33,7 @@ export const useCRMContext = (): CRMContextType => {
     "finances",
     "statistiques",
     "inventaire",
+    "harvest",
   ]);
 
   // Nome da empresa
@@ -40,21 +42,10 @@ export const useCRMContext = (): CRMContextType => {
   // Fetch data from backend
   const fetchData = useCallback(async () => {
     setIsRefreshing(true);
-    
+
     try {
-      // Fetch all module data
-      const [
-        parcels, 
-        crops, 
-        livestock, 
-        feeding, 
-        vaccination, 
-        reproduction, 
-        veterinarySupplies, 
-        supplyUsage, 
-        inventory, 
-        finances
-      ] = await Promise.all([
+      // Fetch all module data with Promise.allSettled to handle potential errors
+      const results = await Promise.allSettled([
         parcelsApi.getAll(),
         cropsApi.getAll(),
         livestockApi.getAll(),
@@ -65,8 +56,28 @@ export const useCRMContext = (): CRMContextType => {
         supplyUsageApi.getAll(),
         inventoryApi.getAll(),
         financeApi.getAll(),
+        harvestApi.getAll(),
       ]);
-      
+
+      // Process results individually to handle possible errors
+      const [
+        parcelsResult, cropsResult, livestockResult, feedingResult, vaccinationResult,
+        reproductionResult, veterinarySuppliesResult, supplyUsageResult, inventoryResult, financesResult, harvestResult
+      ] = results;
+
+      // Extract values or defaults if promises were rejected
+      const parcels = parcelsResult.status === 'fulfilled' ? parcelsResult.value : [];
+      const crops = cropsResult.status === 'fulfilled' ? cropsResult.value : [];
+      const livestock = livestockResult.status === 'fulfilled' ? livestockResult.value : [];
+      const feeding = feedingResult.status === 'fulfilled' ? feedingResult.value : [];
+      const vaccination = vaccinationResult.status === 'fulfilled' ? vaccinationResult.value : [];
+      const reproduction = reproductionResult.status === 'fulfilled' ? reproductionResult.value : [];
+      const veterinarySupplies = veterinarySuppliesResult.status === 'fulfilled' ? veterinarySuppliesResult.value : [];
+      const supplyUsage = supplyUsageResult.status === 'fulfilled' ? supplyUsageResult.value : [];
+      const inventory = inventoryResult.status === 'fulfilled' ? inventoryResult.value : [];
+      const finances = financesResult.status === 'fulfilled' ? financesResult.value : [];
+      const harvest = harvestResult.status === 'fulfilled' ? harvestResult.value : [];
+
       // Update state with real data
       setModuleData({
         parcelles: {
@@ -118,6 +129,18 @@ export const useCRMContext = (): CRMContextType => {
             { key: "quantity", header: "Quantité" },
             { key: "unit", header: "Unité" },
             { key: "cost", header: "Prix unitaire (R$)" },
+          ],
+        },
+        harvest: {
+          items: harvest,
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "crop", header: "Cultura" },
+            { key: "date", header: "Data da Colheita" },
+            { key: "yield", header: "Rendimento (t/ha)" },
+            { key: "expectedYield", header: "Esperado (t/ha)" },
+            { key: "harvestArea", header: "Área Colhida (ha)" },
+            { key: "quality", header: "Qualidade" },
           ],
         },
       });
@@ -174,6 +197,18 @@ export const useCRMContext = (): CRMContextType => {
             { key: "quantity", header: "Quantité" },
             { key: "unit", header: "Unité" },
             { key: "cost", header: "Prix unitaire (R$)" },
+          ],
+        },
+        harvest: {
+          items: [],
+          columns: [
+            { key: "id", header: "ID" },
+            { key: "crop", header: "Cultura" },
+            { key: "date", header: "Data da Colheita" },
+            { key: "yield", header: "Rendimento (t/ha)" },
+            { key: "expectedYield", header: "Esperado (t/ha)" },
+            { key: "harvestArea", header: "Área Colhida (ha)" },
+            { key: "quality", header: "Qualidade" },
           ],
         },
       });
@@ -329,18 +364,65 @@ export const useCRMContext = (): CRMContextType => {
 
   // Métodos genéricos para operações CRUD
   const addData = useCallback(async <T,>(moduleName: string, item: T) => {
+    let newItem: T & { id: string };
+    let apiCallSuccess = false;
+
+    // Try to save to backend first
+    try {
+      switch(moduleName) {
+        case 'harvest':
+          const harvestResponse = await harvestApi.create(item);
+          newItem = harvestResponse;
+          apiCallSuccess = true;
+          break;
+        case 'parcelles':
+          const parcelResponse = await parcelsApi.create(item);
+          newItem = parcelResponse;
+          apiCallSuccess = true;
+          break;
+        case 'cultures':
+          const cropResponse = await cropsApi.create(item);
+          newItem = cropResponse;
+          apiCallSuccess = true;
+          break;
+        case 'livestock':
+          const livestockResponse = await livestockApi.create(item);
+          newItem = livestockResponse;
+          apiCallSuccess = true;
+          break;
+        case 'finances':
+          const financeResponse = await financeApi.create(item);
+          newItem = financeResponse;
+          apiCallSuccess = true;
+          break;
+        case 'inventaire':
+          const inventoryResponse = await inventoryApi.create(item);
+          newItem = inventoryResponse;
+          apiCallSuccess = true;
+          break;
+        default:
+          // Fallback: add to local state with generated ID
+          newItem = {
+            ...item,
+            id: Date.now().toString(),
+          } as T & { id: string };
+      }
+    } catch (error) {
+      console.error(`Error creating ${moduleName} item:`, error);
+      // Fallback: add to local state with generated ID
+      newItem = {
+        ...item,
+        id: Date.now().toString(),
+      } as T & { id: string };
+    }
+
+    // Update local state
     setModuleData(prev => {
       const module = prev[moduleName];
       if (!module || !module.items) {
         return prev;
       }
-      
-      // Adiciona o novo item com ID único
-      const newItem = {
-        ...item,
-        id: Date.now().toString(), // Gerar ID único
-      } as T & { id: string };
-      
+
       return {
         ...prev,
         [moduleName]: {
@@ -355,18 +437,65 @@ export const useCRMContext = (): CRMContextType => {
   }, []);
 
   const updateData = useCallback(async <T,>(moduleName: string, id: string | number, updates: Partial<T>) => {
+    let updatedItem: T;
+    let apiCallSuccess = false;
+
+    // Try to update in backend first
+    try {
+      switch(moduleName) {
+        case 'harvest':
+          const harvestResponse = await harvestApi.update(id.toString(), updates);
+          updatedItem = harvestResponse;
+          apiCallSuccess = true;
+          break;
+        case 'parcelles':
+          const parcelResponse = await parcelsApi.update(id.toString(), updates);
+          updatedItem = parcelResponse;
+          apiCallSuccess = true;
+          break;
+        case 'cultures':
+          const cropResponse = await cropsApi.update(id.toString(), updates);
+          updatedItem = cropResponse;
+          apiCallSuccess = true;
+          break;
+        case 'livestock':
+          const livestockResponse = await livestockApi.update(id.toString(), updates);
+          updatedItem = livestockResponse;
+          apiCallSuccess = true;
+          break;
+        case 'finances':
+          const financeResponse = await financeApi.update(id.toString(), updates);
+          updatedItem = financeResponse;
+          apiCallSuccess = true;
+          break;
+        case 'inventaire':
+          const inventoryResponse = await inventoryApi.update(id.toString(), updates);
+          updatedItem = inventoryResponse;
+          apiCallSuccess = true;
+          break;
+        default:
+          // Fallback: return updates
+          updatedItem = { ...updates } as T;
+      }
+    } catch (error) {
+      console.error(`Error updating ${moduleName} item:`, error);
+      // Fallback: return updates
+      updatedItem = { ...updates } as T;
+    }
+
+    // Update local state
     setModuleData(prev => {
       const module = prev[moduleName];
       if (!module || !module.items) {
         return prev;
       }
-      
+
       return {
         ...prev,
         [moduleName]: {
           ...module,
-          items: module.items.map((item: any) => 
-            item.id === id || item._id === id ? { ...item, ...updates } : item
+          items: module.items.map((item: any) =>
+            item.id === id || item._id === id ? { ...item, ...updatedItem } : item
           )
         }
       };
@@ -377,17 +506,56 @@ export const useCRMContext = (): CRMContextType => {
   }, []);
 
   const deleteData = useCallback(async (moduleName: string, id: string | number) => {
+    let apiCallSuccess = false;
+
+    // Try to delete from backend first
+    try {
+      switch(moduleName) {
+        case 'harvest':
+          await harvestApi.delete(id.toString());
+          apiCallSuccess = true;
+          break;
+        case 'parcelles':
+          await parcelsApi.delete(id.toString());
+          apiCallSuccess = true;
+          break;
+        case 'cultures':
+          await cropsApi.delete(id.toString());
+          apiCallSuccess = true;
+          break;
+        case 'livestock':
+          await livestockApi.delete(id.toString());
+          apiCallSuccess = true;
+          break;
+        case 'finances':
+          await financeApi.delete(id.toString());
+          apiCallSuccess = true;
+          break;
+        case 'inventaire':
+          await inventoryApi.delete(id.toString());
+          apiCallSuccess = true;
+          break;
+        default:
+          // Continue with local deletion
+          apiCallSuccess = true;
+      }
+    } catch (error) {
+      console.error(`Error deleting ${moduleName} item:`, error);
+      // Continue with local deletion even if API fails
+    }
+
+    // Update local state
     setModuleData(prev => {
       const module = prev[moduleName];
       if (!module || !module.items) {
         return prev;
       }
-      
+
       return {
         ...prev,
         [moduleName]: {
           ...module,
-          items: module.items.filter((item: any) => 
+          items: module.items.filter((item: any) =>
             item.id !== id && item._id !== id
           )
         }
@@ -403,8 +571,8 @@ export const useCRMContext = (): CRMContextType => {
     if (!module || !module.items) {
       return undefined;
     }
-    
-    return module.items.find((item: any) => 
+
+    return module.items.find((item: any) =>
       item.id === id || item._id === id
     );
   }, [moduleData]);
@@ -414,9 +582,31 @@ export const useCRMContext = (): CRMContextType => {
     if (!module || !module.items) {
       return [];
     }
-    
+
     return module.items.filter(predicate);
   }, [moduleData]);
+
+  // Function to clear all module data
+  const clearModuleData = useCallback(() => {
+    setModuleData({});
+    setLastSync(new Date());
+  }, []);
+
+  // Listen for logout events to clear data
+  useEffect(() => {
+    const handleLogout = () => {
+      // Clear all module data when user logs out
+      setModuleData({});
+      setLastSync(new Date());
+    };
+
+    window.addEventListener('userLoggedOut', handleLogout);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('userLoggedOut', handleLogout);
+    };
+  }, []);
 
   // Synchronisation initiale au chargement
   useEffect(() => {
@@ -440,6 +630,8 @@ export const useCRMContext = (): CRMContextType => {
     deleteData,
     findData,
     filterData,
+    // Multi-tenant support
+    clearModuleData,
   };
 };
 

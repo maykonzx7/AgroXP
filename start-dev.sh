@@ -19,14 +19,23 @@ fi
 cd /home/maycolaz/AgroXP
 
 # Verificar se o banco de dados já está em execução
-if docker-compose ps | grep -q "postgres.*Up"; then
+if docker-compose -f docker-compose.dev.yml ps | grep -q "postgres.*Up"; then
     echo "⚠️  Banco de dados já está em execução"
 else
     echo "🚀 Iniciando banco de dados e serviços..."
-    docker-compose up -d postgres redis
+    docker-compose -f docker-compose.dev.yml up -d postgres
     echo "⏳ Aguardando inicialização do banco de dados..."
     sleep 15
 fi
+
+# Iniciar api-gateway
+if docker-compose -f docker-compose.dev.yml ps | grep -q "api-gateway.*Up"; then
+    echo "⚠️  API Gateway já está em execução"
+else
+    echo "🚀 Iniciando API Gateway..."
+    docker-compose -f docker-compose.dev.yml up -d api-gateway
+fi
+
 
 # Iniciar todos os serviços em segundo plano
 echo "🚀 Iniciando serviços..."

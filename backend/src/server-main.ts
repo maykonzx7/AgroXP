@@ -15,12 +15,20 @@ import reproductionRouter from "./modules/livestock/routes/reproduction.routes.j
 import veterinarySupplyRouter from "./modules/livestock/routes/veterinarySupply.routes.js";
 import livestockSupplyUsageRouter from "./modules/livestock/routes/livestockSupplyUsage.routes.js";
 import authRouter from "./routes/auth.routes.js";
+import devRouter from "./routes/dev.routes.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Increase timeout and configure body parser
+app.use((req, res, next) => {
+  req.setTimeout(60000); // 60 seconds timeout
+  res.setTimeout(60000); // 60 seconds timeout
+  next();
+});
 
 // Middleware
 app.use(
@@ -32,15 +40,25 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
   })
 );
-app.use(express.json());
+// Increase body size limit
+app.use(express.json({ limit: '10mb' }));
 
-// Health check endpoint
+// Health check endpoints
 app.get("/api/health", (req, res) => {
+  res.json({ status: "OK", message: "Backend is running" });
+});
+
+// Root health check for Docker health check
+app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Backend is running" });
 });
 
 // Routes
 app.use("/api/auth", authRouter);
+// Dev-only routes
+if (process.env.NODE_ENV !== "production") {
+  app.use("/api/dev", devRouter);
+}
 app.use("/api/parcels", parcelsRouter);
 app.use("/api/crops", cropsRouter);
 app.use("/api/inventory", inventoryRouter);
@@ -60,8 +78,13 @@ const initializeDatabase = async () => {
 
     // Sync models with force: false to avoid dropping data, but handle enums properly
     try {
-      await sequelize.sync({ alter: true }); // This will handle alter operations carefully
-      console.log("Database synchronized successfully.");
+      // Allow skipping DB sync in development to avoid blocking startup when schemas mismatch
+      if (process.env.SKIP_DB_SYNC === "true") {
+        console.log("SKIP_DB_SYNC=true -> skipping sequelize.sync()");
+      } else {
+        await sequelize.sync({ alter: true }); // This will handle alter operations carefully
+        console.log("Database synchronized successfully.");
+      }
     } catch (syncErr) {
       console.error("Database sync failed (continuing in dev):", syncErr);
       // continue without throwing to keep the server running in development

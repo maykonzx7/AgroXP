@@ -61,7 +61,7 @@ export const CultureDetailTable = ({
   filterType = "all",
 }: CultureDetailTableProps) => {
   const { toast: shadowToast } = useToast();
-  const { getModuleData, syncDataAcrossCRM, isRefreshing } = useCRM();
+  const { getModuleData, syncDataAcrossCRM, addData, updateData, deleteData, isRefreshing } = useCRM();
   const [cultureData, setCultureData] = useState<CultureData[]>([]);
   const [isAddFormVisible, setIsAddFormVisible] = useState(false);
   const [selectedCulture, setSelectedCulture] = useState<null | CultureData>(null);
@@ -88,27 +88,34 @@ export const CultureDetailTable = ({
   
   // Converter dados do backend para o formato esperado
   useEffect(() => {
-    const convertedCultures = culturesModuleData.map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      variety: item.variety,
-      scientificName: item.scientificName || '', // TODO: Adicionar campo no backend
-      family: item.family || '', // TODO: Adicionar campo no backend
-      origin: item.origin || '', // TODO: Adicionar campo no backend
-      growingSeason: item.growingSeason || '', // TODO: Adicionar campo no backend
-      soilType: item.soilType || '', // TODO: Adicionar campo no backend
-      waterNeeds: item.waterNeeds || '', // TODO: Adicionar campo no backend
-      fertilization: item.fertilization || '', // TODO: Adicionar campo no backend
-      pests: item.pests || '', // TODO: Adicionar campo no backend
-      diseases: item.diseases || '', // TODO: Adicionar campo no backend
-      notes: item.notes || '', // TODO: Adicionar campo no backend
-      type: item.type || 'vegetables', // TODO: Adicionar campo no backend
-      harvestPeriod: item.harvestPeriod || '', // TODO: Adicionar campo no backend
-      yieldPerHectare: item.yieldPerHectare || '', // TODO: Adicionar campo no backend
-      plantingDate: item.plantingDate ? new Date(item.plantingDate).toISOString().split('T')[0] : '',
-      harvestDate: item.harvestDate ? new Date(item.harvestDate).toISOString().split('T')[0] : '',
-    }));
-    
+    const convertedCultures = culturesModuleData
+      .filter(item => item !== null && item !== undefined) // Filtrar itens nulos
+      .map((item: any) => {
+        if (!item) return null; // Mais proteção contra itens nulos
+        
+        return {
+          id: item?.id,
+          name: item?.name || '',
+          variety: item?.variety || '',
+          scientificName: item?.scientificName || '', // TODO: Adicionar campo no backend
+          family: item?.family || '', // TODO: Adicionar campo no backend
+          origin: item?.origin || '', // TODO: Adicionar campo no backend
+          growingSeason: item?.growingSeason || '', // TODO: Adicionar campo no backend
+          soilType: item?.soilType || '', // TODO: Adicionar campo no backend
+          waterNeeds: item?.waterNeeds || '', // TODO: Adicionar campo no backend
+          fertilization: item?.fertilization || '', // TODO: Adicionar campo no backend
+          pests: item?.pests || '', // TODO: Adicionar campo no backend
+          diseases: item?.diseases || '', // TODO: Adicionar campo no backend
+          notes: item?.notes || '', // TODO: Adicionar campo no backend
+          type: item?.type || 'vegetables', // TODO: Adicionar campo no backend
+          harvestPeriod: item?.harvestPeriod || '', // TODO: Adicionar campo no backend
+          yieldPerHectare: item?.yieldPerHectare || '', // TODO: Adicionar campo no backend
+          plantingDate: item?.plantingDate ? new Date(item.plantingDate).toISOString().split('T')[0] : '',
+          harvestDate: item?.harvestDate ? new Date(item.harvestDate).toISOString().split('T')[0] : '',
+        };
+      })
+      .filter(item => item !== null); // Remover itens nulos após mapeamento
+
     setCultureData(convertedCultures);
   }, [culturesModuleData]);
   
@@ -131,30 +138,32 @@ export const CultureDetailTable = ({
     return matchesSearch && culture.type === filterType;
   });
 
-  const handleUpdateCulture = (
+  const handleUpdateCulture = async (
     rowIndex: number,
     columnId: string,
     value: any
   ) => {
-    const updatedData = [...cultureData];
-    const targetIndex = cultureData.findIndex(
-      (c) => c.id === filteredCultures[rowIndex].id
-    );
+    const updatedCulture = filteredCultures[rowIndex];
+    const cultureId = updatedCulture.id;
 
-    if (targetIndex !== -1) {
-      updatedData[targetIndex] = {
-        ...updatedData[targetIndex],
-        [columnId]: value,
-      };
-      setCultureData(updatedData);
+    try {
+      // Atualizar no banco de dados
+      await updateData('cultures', cultureId, { [columnId]: value });
+
+      // Atualizar a interface
+      syncDataAcrossCRM();
 
       shadowToast({
-        description: `Informações atualizadas para ${updatedData[targetIndex].name}`,
+        description: `Informações atualizadas para ${updatedCulture.name}`,
+      });
+    } catch (error) {
+      shadowToast({
+        description: `Erro ao atualizar informações para ${updatedCulture.name}`,
       });
     }
   };
 
-  const handleAddCulture = () => {
+  const handleAddCulture = async () => {
     if (!newCulture.name) {
       toast.error("Erro", {
         description: "O nome da cultura é obrigatório",
@@ -162,42 +171,63 @@ export const CultureDetailTable = ({
       return;
     }
 
-    const newId = Math.max(...cultureData.map((c) => c.id), 0) + 1;
-    setCultureData([...cultureData, { ...newCulture, id: newId }]);
-    localSetShowAddForm(false);
+    try {
+      // Adicionar ao banco de dados
+      await addData('cultures', {
+        ...newCulture,
+        id: Date.now() // Gerar ID temporário, o backend pode gerar um definitivo
+      });
 
-    setNewCulture({
-      name: "",
-      scientificName: "",
-      family: "",
-      origin: "",
-      growingSeason: "",
-      soilType: "",
-      waterNeeds: "",
-      fertilization: "",
-      pests: "",
-      diseases: "",
-      notes: "",
-      type: "vegetables",
-      harvestPeriod: "",
-      yieldPerHectare: "",
-    });
+      // Atualizar a interface
+      syncDataAcrossCRM();
+      
+      localSetShowAddForm(false);
 
-    toast.success("Cultura adicionada", {
-      description: `${newCulture.name} foi adicionada à lista de culturas`,
-    });
+      setNewCulture({
+        name: "",
+        scientificName: "",
+        family: "",
+        origin: "",
+        growingSeason: "",
+        soilType: "",
+        waterNeeds: "",
+        fertilization: "",
+        pests: "",
+        diseases: "",
+        notes: "",
+        type: "vegetables",
+        harvestPeriod: "",
+        yieldPerHectare: "",
+      });
+
+      toast.success("Cultura adicionada", {
+        description: `${newCulture.name} foi adicionada ao banco de dados`,
+      });
+    } catch (error) {
+      toast.error("Erro ao adicionar cultura", {
+        description: "Não foi possível adicionar a cultura ao banco de dados",
+      });
+    }
   };
 
-  const handleDeleteCulture = (rowIndex: number) => {
+  const handleDeleteCulture = async (rowIndex: number) => {
     const cultureToDelete = filteredCultures[rowIndex];
-    const updatedData = cultureData.filter(
-      (culture) => culture.id !== cultureToDelete.id
-    );
-    setCultureData(updatedData);
 
-    toast.success("Cultura removida", {
-      description: `${cultureToDelete.name} foi removida da lista`,
-    });
+    try {
+      // Excluir do banco de dados
+      await deleteData('cultures', cultureToDelete.id);
+
+      // Atualizar a interface
+      syncDataAcrossCRM();
+
+      toast.success("Cultura removida", {
+        description: `${cultureToDelete.name} foi removida do banco de dados`,
+      });
+    } catch (error) {
+      toast.error("Erro ao remover cultura", {
+        description: `Não foi possível remover ${cultureToDelete.name} do banco de dados`,
+      });
+    }
   };
 
   const handleViewDetails = (rowIndex: number) => {

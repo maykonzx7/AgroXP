@@ -1,27 +1,28 @@
-import React from 'react'
-import { Outlet, Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
-import { Button } from '../components/ui/button'
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building, 
-  BarChart3, 
+// src/layouts/AdminLayout.tsx
+import React, { useState } from 'react';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from '../components/ui/Button';
+import {
+  LayoutDashboard,
+  Users,
+  Building,
+  BarChart3,
   Settings,
   LogOut,
   Menu,
   X
-} from 'lucide-react'
+} from 'lucide-react';
 
 const AdminLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = React.useState(false)
-  const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+    logout();
+    navigate('/login');
+  };
 
   const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -29,14 +30,14 @@ const AdminLayout = () => {
     { name: 'Fazendas', href: '/tenants', icon: Building },
     { name: 'Relatórios', href: '/reports', icon: BarChart3 },
     { name: 'Configurações', href: '/settings', icon: Settings },
-  ]
+  ];
 
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar móvel */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 flex md:hidden">
-          <div 
+          <div
             className="fixed inset-0 bg-gray-600 bg-opacity-75"
             onClick={() => setSidebarOpen(false)}
           />
@@ -56,7 +57,7 @@ const AdminLayout = () => {
               </div>
               <nav className="mt-5 px-2 space-y-1">
                 {navigation.map((item) => {
-                  const Icon = item.icon
+                  const Icon = item.icon;
                   return (
                     <Link
                       key={item.name}
@@ -67,7 +68,7 @@ const AdminLayout = () => {
                       <Icon className="mr-4 h-6 w-6 text-gray-400 group-hover:text-gray-500" />
                       {item.name}
                     </Link>
-                  )
+                  );
                 })}
               </nav>
             </div>
@@ -84,17 +85,23 @@ const AdminLayout = () => {
             </div>
             <nav className="mt-5 flex-1 px-2 bg-white space-y-1">
               {navigation.map((item) => {
-                const Icon = item.icon
+                const Icon = item.icon;
                 return (
-                  <Link
+                  <NavLink
                     key={item.name}
                     to={item.href}
-                    className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    className={({ isActive }) =>
+                      `group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
+                        isActive
+                          ? 'bg-primary/10 text-primary-700 dark:text-primary-300'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`
+                    }
                   >
                     <Icon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
                     {item.name}
-                  </Link>
-                )
+                  </NavLink>
+                );
               })}
             </nav>
           </div>
@@ -104,9 +111,9 @@ const AdminLayout = () => {
                 <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
                   {user?.name || 'Administrador'}
                 </p>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="text-xs p-0 h-auto text-gray-500 hover:text-gray-700"
                   onClick={handleLogout}
                 >
@@ -139,7 +146,7 @@ const AdminLayout = () => {
         </main>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default AdminLayout
+export default AdminLayout;

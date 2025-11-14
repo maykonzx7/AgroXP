@@ -1,6 +1,7 @@
 #!/bin/bash
 # stop-dev.sh
 
+
 echo "⏹️  Parando ambiente de desenvolvimento AgroXP..."
 
 # Navegar para o diretório raiz

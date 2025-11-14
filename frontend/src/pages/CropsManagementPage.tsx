@@ -48,12 +48,12 @@ const CropsManagementPage = () => {
     try {
       const success = await exportModuleData('cultures', 'excel');
       if (success) {
-        console.log("Dados exportados com sucesso");
+
       } else {
-        console.log("Erro ao exportar dados");
+
       }
     } catch (error) {
-      console.error("Erro na exportação:", error);
+      // Tratar erro na exportação se necessário
     }
   };
 
@@ -67,7 +67,7 @@ const CropsManagementPage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    console.log(`Importando o arquivo ${file.name}`);
+
     
     // Redefinir o input de arquivo
     if (fileInputRef.current) {
@@ -80,7 +80,7 @@ const CropsManagementPage = () => {
                       activeTab === 'planning' ? 'planejamento' : 
                       'tarefa';
                       
-    console.log(`Funcionalidade de adicionar ${actionText} ativada`);
+
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,7 +208,7 @@ const CropsManagementPage = () => {
       tasks: 'a Lista de Tarefas'
     };
     
-    console.log(`Você está agora visualizando ${tabLabels[value as keyof typeof tabLabels] || value}`);
+
   };
 
   return (

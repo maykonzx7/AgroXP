@@ -87,7 +87,7 @@ const FeedingManagement = () => {
 
   // Handle editing a feeding record
   const handleEdit = (feeding: any) => {
-    const animal = livestockData.find((item: any) => item.id === feeding.livestockId);
+    const animal = (Array.isArray(livestockData) ? livestockData : []).find((item: any) => item.id === feeding.livestockId);
     setFormData({
       livestockId: feeding.livestockId,
       feedType: feeding.feedType,
@@ -121,8 +121,8 @@ const FeedingManagement = () => {
   };
 
   // Populate animal names for records
-  const feedingRecordsWithNames = feedingRecords.map(record => {
-    const animal = livestockData.find((item: any) => item.id === record.livestockId);
+  const feedingRecordsWithNames =  (Array.isArray(feedingRecords) ? feedingRecords : []).map(record => {
+    const animal = (Array.isArray(livestockData) ? livestockData : []).find((item: any) => item.id === record.livestockId);
     return {
       ...record,
       animalName: animal ? animal.name || animal.nom || animal.animalName : 'Animal Desconhecido'
@@ -164,7 +164,7 @@ const FeedingManagement = () => {
                   required
                 >
                   <option value="">Selecione um animal</option>
-                  {livestockData.map((animal: any) => (
+                   {(Array.isArray(livestockData) ? livestockData : []).map((animal: any) => (
                     <option key={animal.id} value={animal.id}>
                       {animal.name || animal.nom || animal.animalName} - {animal.breed || animal.race || animal.categorie}
                     </option>

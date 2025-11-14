@@ -93,19 +93,19 @@ const LivestockPage = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white border shadow-lg">
                 <DropdownMenuItem 
-                  onClick={() => console.log("Exportar CSV dos dados de pecuária")}
+                  onClick={() => {}}
                   className="cursor-pointer"
                 >
                   Exportar CSV
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => console.log("Exportar Excel dos dados de pecuária")}
+                  onClick={() => {}}
                   className="cursor-pointer"
                 >
                   Exportar Excel
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => console.log("Exportar PDF dos dados de pecuária")}
+                  onClick={() => {}}
                   className="cursor-pointer"
                 >
                   Exportar PDF
@@ -117,7 +117,7 @@ const LivestockPage = () => {
               variant="outline" 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Sincronizando dados de pecuária");
+
               }}
             >
               <RefreshCw className="h-4 w-4" />
@@ -127,7 +127,7 @@ const LivestockPage = () => {
               variant="outline" 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Filtros aplicados aos dados de pecuária");
+
               }}
             >
               <Filter className="h-4 w-4" />
@@ -149,7 +149,7 @@ const LivestockPage = () => {
             <Button 
               className="flex items-center gap-2 bg-agri-primary hover:bg-agri-primary-dark transition-colors"
               onClick={() => {
-                console.log("Adicionando novo animal");
+
               }}
             >
               <Plus className="h-4 w-4" />
@@ -159,7 +159,7 @@ const LivestockPage = () => {
               variant="outline" 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Exportando dados de pecuária específica");
+
               }}
             >
               <Download className="h-4 w-4" />
@@ -182,7 +182,7 @@ const LivestockPage = () => {
               variant="outline" 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Planejando o calendário de pecuária");
+
               }}
             >
               <CalendarRange className="h-4 w-4" />
@@ -191,7 +191,7 @@ const LivestockPage = () => {
             <Button 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Adicionando nova tarefa de pecuária");
+
               }}
             >
               <Plus className="h-4 w-4" />
@@ -206,7 +206,7 @@ const LivestockPage = () => {
               variant="outline" 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Exportando dados de alimentação");
+
               }}
             >
               <Download className="h-4 w-4" />
@@ -215,7 +215,7 @@ const LivestockPage = () => {
             <Button 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Adicionando novo registro de alimentação");
+
               }}
             >
               <Plus className="h-4 w-4" />
@@ -230,7 +230,7 @@ const LivestockPage = () => {
               variant="outline" 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Exportando dados de vacinação");
+
               }}
             >
               <Download className="h-4 w-4" />
@@ -239,7 +239,7 @@ const LivestockPage = () => {
             <Button 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Adicionando nova vacinação");
+
               }}
             >
               <Plus className="h-4 w-4" />
@@ -254,7 +254,7 @@ const LivestockPage = () => {
               variant="outline" 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Exportando dados de reprodução");
+
               }}
             >
               <Download className="h-4 w-4" />
@@ -263,7 +263,7 @@ const LivestockPage = () => {
             <Button 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Adicionando novo registro de reprodução");
+
               }}
             >
               <Plus className="h-4 w-4" />
@@ -278,7 +278,7 @@ const LivestockPage = () => {
               variant="outline" 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Exportando dados veterinários");
+
               }}
             >
               <Download className="h-4 w-4" />
@@ -287,7 +287,7 @@ const LivestockPage = () => {
             <Button 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Adicionando novo produto veterinário");
+
               }}
             >
               <Plus className="h-4 w-4" />
@@ -302,7 +302,7 @@ const LivestockPage = () => {
               variant="outline" 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Exportando dados de insumos");
+
               }}
             >
               <Download className="h-4 w-4" />
@@ -311,7 +311,7 @@ const LivestockPage = () => {
             <Button 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Adicionando novo uso de insumo");
+
               }}
             >
               <Plus className="h-4 w-4" />
@@ -326,7 +326,7 @@ const LivestockPage = () => {
               variant="outline" 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Exportando dados de cadastro em lote");
+
               }}
             >
               <Download className="h-4 w-4" />
@@ -335,7 +335,7 @@ const LivestockPage = () => {
             <Button 
               className="flex items-center gap-2 transition-colors"
               onClick={() => {
-                console.log("Importando dados de cadastro em lote");
+
               }}
             >
               <Upload className="h-4 w-4" />
@@ -364,7 +364,7 @@ const LivestockPage = () => {
     };
     
     const label = tabLabels[value as keyof typeof tabLabels] || value;
-    console.log(`${label} ativado - Exibindo dados correspondentes`);
+
   };
 
   const tabs: TabItem[] = [

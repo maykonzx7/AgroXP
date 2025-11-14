@@ -18,9 +18,11 @@ import {
   Calendar,
   SlidersHorizontal
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import DashboardLayoutTemplate from '../components/templates/DashboardLayoutTemplate';
 import ParcelManagement from '../components/ParcelManagement';
+import ParcelStats from '../components/organisms/parcels/ParcelStats';
 import PageHeader from '../components/layout/PageHeader';
 import {
   Select,
@@ -32,6 +34,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import {
   Popover,
   PopoverContent,
@@ -86,13 +95,10 @@ const ParcelsPage = () => {
   // Simular a sincronização de dados com outros módulos
   useEffect(() => {
     const syncWithOtherModules = () => {
-      console.log("Sincronizando dados com os módulos de culturas e estatísticas");
-      
       // Simula um atraso na sincronização
       const timer = setTimeout(() => {
         setLastSyncDate(new Date());
         syncDataAcrossCRM();
-        console.log("Os dados das parcelas estão agora sincronizados com todos os módulos");
       }, 1500);
       
       return () => clearTimeout(timer);
@@ -104,13 +110,11 @@ const ParcelsPage = () => {
   const handleExportData = async () => {
     try {
       const success = await exportModuleData('parcelles', 'excel');
-      if (success) {
-        console.log("Dados exportados com sucesso");
-      } else {
-        console.log("Erro ao exportar dados");
+      if (!success) {
+        // Tratar caso de falha na exportação se necessário
       }
     } catch (error) {
-      console.error("Erro na exportação:", error);
+      // Tratar erro na exportação se necessário
     }
   };
 
@@ -120,15 +124,12 @@ const ParcelsPage = () => {
   
   const handleImportConfirm = (importType: string) => {
     setImportDialogOpen(false);
-    console.log(`Os dados de ${importType} foram importados com sucesso`);
-    console.log("Os módulos de Culturas e Estatísticas foram atualizados com os novos dados");
+    // Atualizar módulos de Culturas e Estatísticas com novos dados se necessário
   };
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchTerm) {
-      console.log(`Pesquisa realizada por "${searchTerm}"`);
-    }
+    // Pesquisa realizada com o termo searchTerm
   };
   
   const getSeverityColor = (severity: string) => {
@@ -148,16 +149,62 @@ const ParcelsPage = () => {
 
   const handleGenerateStatistics = () => {
     setStatsDialogOpen(true);
-    console.log("As estatísticas de suas parcelas foram geradas");
   };
 
   const handleOpenLayerManager = () => {
     setLayersDialogOpen(true);
-    console.log("Gerenciador de camadas aberto");
   };
 
-  const handleAddParcel = () => {
-    console.log("Formulário de criação de parcela aberto");
+  const [showAddParcelDialog, setShowAddParcelDialog] = useState(false);
+  const [newParcelData, setNewParcelData] = useState({
+    name: '',
+    size: 1,
+    location: '',
+    soilType: '',
+    status: 'active'
+  });
+
+  const handleAddParcel = async () => {
+    setShowAddParcelDialog(true);
+  };
+
+  const { addData } = useCRM(); // Use the CRM context for data operations
+
+  const handleSaveParcel = async () => {
+    if (!newParcelData.name.trim()) {
+      toast.error('Por favor, preencha o nome da parcela');
+      return;
+    }
+    
+    try {
+      // Create a new parcel object with user-provided values
+      const newParcel = {
+        name: newParcelData.name,
+        size: parseFloat(newParcelData.size) || 1,
+        location: newParcelData.location || 'Localização não informada',
+        soilType: newParcelData.soilType || 'Não especificado',
+        status: newParcelData.status
+      };
+      
+      // Add the new parcel via CRM context (which will call the backend API)
+      await addData('parcelles', newParcel);
+      
+      // Reset form and close dialog
+      setNewParcelData({
+        name: '',
+        size: 1,
+        location: '',
+        soilType: '',
+        status: 'active'
+      });
+      setShowAddParcelDialog(false);
+      
+      // Show success message
+      toast.success('Parcela adicionada com sucesso');
+    } catch (error) {
+      console.error('Error adding parcel:', error);
+      toast.error('Erro ao adicionar parcela');
+    }
   };
 
   const handleAreaRangeChange = (newValues: number[]) => {
@@ -174,7 +221,7 @@ const ParcelsPage = () => {
     <div className="flex flex-wrap items-center gap-2">
       {/* Main action button */}
       <Button 
-        className="bg-green-600 hover:bg-green-700 text-white" 
+        className="bg-agri-primary hover:bg-agri-primary-dark text-white" 
         onClick={handleAddParcel}
       >
         <Plus className="mr-2 h-4 w-4" />
@@ -435,24 +482,7 @@ const ParcelsPage = () => {
             <FileSpreadsheet className="h-5 w-5 mr-2 text-agri-primary" />
             <h2 className="text-lg font-medium">Visão geral das estatísticas de parcelas</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 bg-card rounded-lg border hover:shadow-sm transition-shadow">
-              <p className="text-sm text-muted-foreground">Área total</p>
-              <p className="text-2xl font-semibold">128.5 ha</p>
-            </div>
-            <div className="p-4 bg-card rounded-lg border hover:shadow-sm transition-shadow">
-              <p className="text-sm text-muted-foreground">Parcelas ativas</p>
-              <p className="text-2xl font-semibold">42</p>
-            </div>
-            <div className="p-4 bg-card rounded-lg border hover:shadow-sm transition-shadow">
-              <p className="text-sm text-muted-foreground">Rendimento médio</p>
-              <p className="text-2xl font-semibold">7.2 t/ha</p>
-            </div>
-            <div className="p-4 bg-card rounded-lg border hover:shadow-sm transition-shadow">
-              <p className="text-sm text-muted-foreground">Culturas principais</p>
-              <p className="text-xl font-semibold">Milho, Trigo, Colza</p>
-            </div>
-          </div>
+          <ParcelStats searchTerm={searchTerm} />
         </motion.div>
         
         {/* Main parcel management content */}
@@ -466,6 +496,89 @@ const ParcelsPage = () => {
           Última sincronização com outros módulos: {lastSyncDate.toLocaleString()}
         </div>
       </div>
+
+      {/* Modal for adding new parcel */}
+      <Dialog open={showAddParcelDialog} onOpenChange={setShowAddParcelDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adicionar Nova Parcela</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="name" className="text-right text-sm font-medium">
+                Nome
+              </label>
+              <Input
+                id="name"
+                value={newParcelData.name}
+                onChange={(e) => setNewParcelData({...newParcelData, name: e.target.value})}
+                className="col-span-3"
+                placeholder="Nome da parcela"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="size" className="text-right text-sm font-medium">
+                Área (ha)
+              </label>
+              <Input
+                id="size"
+                type="number"
+                value={newParcelData.size}
+                onChange={(e) => setNewParcelData({...newParcelData, size: parseFloat(e.target.value) || 0})}
+                className="col-span-3"
+                placeholder="Área em hectares"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="location" className="text-right text-sm font-medium">
+                Localização
+              </label>
+              <Input
+                id="location"
+                value={newParcelData.location}
+                onChange={(e) => setNewParcelData({...newParcelData, location: e.target.value})}
+                className="col-span-3"
+                placeholder="Localização da parcela"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="soilType" className="text-right text-sm font-medium">
+                Tipo de Solo
+              </label>
+              <Input
+                id="soilType"
+                value={newParcelData.soilType}
+                onChange={(e) => setNewParcelData({...newParcelData, soilType: e.target.value})}
+                className="col-span-3"
+                placeholder="Tipo de solo"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="status" className="text-right text-sm font-medium">
+                Status
+              </label>
+              <select
+                id="status"
+                value={newParcelData.status}
+                onChange={(e) => setNewParcelData({...newParcelData, status: e.target.value})}
+                className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="active">Ativa</option>
+                <option value="inactive">Inativa</option>
+                <option value="planned">Planejada</option>
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setShowAddParcelDialog(false)}>
+              Cancelar
+            </Button>
+            <Button type="button" onClick={handleSaveParcel}>
+              Adicionar Parcela
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayoutTemplate>
   );
 };

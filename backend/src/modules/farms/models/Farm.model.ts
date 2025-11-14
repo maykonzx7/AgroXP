@@ -3,9 +3,8 @@ import sequelize from '../../../config/database.config.js';
 
 const Farm = sequelize.define('Farm', {
   id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING, // Using STRING to match cuid() in schema
     primaryKey: true,
-    autoIncrement: true
   },
   name: {
     type: DataTypes.STRING,
@@ -56,7 +55,7 @@ const Farm = sequelize.define('Farm', {
     }
   },
   ownerId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING, // Using STRING to match cuid() in schema
     allowNull: false,
     references: {
       model: 'Users',
