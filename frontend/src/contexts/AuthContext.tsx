@@ -28,6 +28,7 @@ interface AuthContextType {
     password: string
   ) => Promise<boolean>;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
   loading: boolean;
 }
 
@@ -204,6 +205,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     window.dispatchEvent(new CustomEvent('userLoggedOut'));
   };
 
+  // Update user function
+  const updateUser = (userData: Partial<User>): void => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      localStorage.setItem("authUser", JSON.stringify(updatedUser));
+    }
+  };
+
   const value = {
     user,
     token,
@@ -211,6 +221,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
+    updateUser,
     loading,
   };
 

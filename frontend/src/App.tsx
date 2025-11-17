@@ -9,6 +9,7 @@ import CropsPage from "./pages/CropsManagementPage";
 import LivestockPage from "./pages/LivestockManagementPage";
 import InventoryPage from "./pages/InventoryManagementPage";
 import FinancePage from "./pages/FinancialManagementPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -164,6 +165,14 @@ const App = () => {
                     element={
                       <ProtectedRoute>
                         <FinancePage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/configuracoes" 
+                    element={
+                      <ProtectedRoute>
+                        <SettingsPage />
                       </ProtectedRoute>
                     } 
                   />

@@ -138,29 +138,47 @@ router.post('/', async (req, res) => {
 
     const { name, variety, plantingDate, harvestDate, expectedYield, actualYield, status, fieldId } = req.body;
     
-    if (!name || !fieldId) {
-      return res.status(400).json({ message: 'Missing required fields: name, fieldId' });
+    if (!name) {
+      return res.status(400).json({ message: 'Missing required field: name' });
     }
     
-    // Verify field belongs to user's farm
-    const field = await prisma.field.findUnique({
-      where: { id: fieldId },
-      include: {
-        farm: {
-          select: {
-            id: true,
-            ownerId: true,
+    // Se fieldId foi fornecido, verificar que pertence ao usuário
+    let finalFieldId = fieldId || null;
+    if (fieldId) {
+      const field = await prisma.field.findUnique({
+        where: { id: fieldId },
+        include: {
+          farm: {
+            select: {
+              id: true,
+              ownerId: true,
+            },
           },
         },
-      },
-    });
-    
-    if (!field) {
-      return res.status(404).json({ message: 'Field not found' });
-    }
-    
-    if (field.farm.ownerId !== userId) {
-      return res.status(403).json({ message: 'Access denied: Field does not belong to your farms' });
+      });
+      
+      if (!field) {
+        return res.status(404).json({ message: 'Field not found' });
+      }
+      
+      if (field.farm.ownerId !== userId) {
+        return res.status(403).json({ message: 'Access denied: Field does not belong to your farms' });
+      }
+    } else {
+      // Se não forneceu fieldId, usar a primeira parcela do usuário como padrão
+      const userFarm = await prisma.farm.findFirst({
+        where: { ownerId: userId },
+        include: {
+          fields: {
+            take: 1,
+          },
+        },
+      });
+      
+      if (userFarm && userFarm.fields.length > 0) {
+        finalFieldId = userFarm.fields[0].id;
+      }
+      // Se não houver parcela, a cultura será criada sem fieldId (template)
     }
     
     const crop = await prisma.crop.create({
@@ -172,7 +190,7 @@ router.post('/', async (req, res) => {
         expectedYield: expectedYield ? parseFloat(expectedYield) : null,
         actualYield: actualYield ? parseFloat(actualYield) : null,
         status: status || 'PLANNED',
-        fieldId,
+        fieldId: finalFieldId,
       },
       include: {
         field: {

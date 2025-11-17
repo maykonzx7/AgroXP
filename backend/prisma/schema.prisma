@@ -1,7 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
-  engineType = "binary"
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  engineType    = "binary"
   binaryTargets = ["native", "rhel-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
@@ -11,7 +11,6 @@ datasource db {
 }
 
 model User {
-
   id           String         @id @default(cuid())
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
@@ -24,6 +23,7 @@ model User {
   isActive     Boolean        @default(true)
   farms        Farm[]
   RefreshToken RefreshToken[]
+  harvests     Harvest[]
 }
 
 model RefreshToken {
@@ -36,23 +36,23 @@ model RefreshToken {
 }
 
 model Farm {
-  id          String      @id @default(cuid())
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  name        String
-  description String?
-  location    String
-  size        Float?
-  ownerId     String
-  address     Address?
-  employees   Employee[]
-  equipment   Equipment[]
-  inventory   Inventory[]
-  tasks       Task[]
+  id            String         @id @default(cuid())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  name          String
+  description   String?
+  location      String
+  size          Float?
+  ownerId       String
+  address       Address?
+  employees     Employee[]
+  equipment     Equipment[]
+  inventory     Inventory[]
+  tasks         Task[]
   weatherAlerts WeatherAlert[]
-  alerts      Alert[]
-  owner       User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  fields      Field[]
+  alerts        Alert[]
+  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  fields        Field[]
 }
 
 model Address {
@@ -71,23 +71,23 @@ model Address {
 }
 
 model Field {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  name        String
-  description String?
-  size        Float
-  location    String?
-  farmId      String
-  soilType    String?
-  phLevel     Float?
-  crops       Crop[]
-  livestock   Livestock[]
-  finances    Finance[]
-  tasks       Task[]
+  id            String         @id @default(cuid())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  name          String
+  description   String?
+  size          Float
+  location      String?
+  farmId        String
+  soilType      String?
+  phLevel       Float?
+  crops         Crop[]
+  livestock     Livestock[]
+  finances      Finance[]
+  tasks         Task[]
   weatherAlerts WeatherAlert[]
-  alerts      Alert[]
-  farm        Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  alerts        Alert[]
+  farm          Farm           @relation(fields: [farmId], references: [id], onDelete: Cascade)
 }
 
 model Crop {
@@ -101,8 +101,8 @@ model Crop {
   expectedYield Float?
   actualYield   Float?
   status        CropStatus  @default(PLANNED)
-  fieldId       String
-  field         Field       @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  fieldId       String?
+  field         Field?      @relation(fields: [fieldId], references: [id], onDelete: Cascade)
   treatments    Treatment[]
   harvests      Harvest[]
   tasks         Task[]
@@ -167,58 +167,58 @@ model Employee {
 }
 
 model Inventory {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  itemName    String
-  category    String
-  quantity    Int      @default(0)
-  unit        String
-  cost        Float
-  supplier    String?
-  purchaseDate DateTime @default(now())
-  expiryDate  DateTime?
-  farmId      String?
-  farm        Farm?    @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  itemName     String
+  category     String
+  quantity     Int       @default(0)
+  unit         String
+  cost         Float
+  supplier     String?
+  purchaseDate DateTime  @default(now())
+  expiryDate   DateTime?
+  farmId       String?
+  farm         Farm?     @relation(fields: [farmId], references: [id], onDelete: Cascade)
 }
 
 model Finance {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String      @id @default(cuid())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   type        FinanceType
   category    String
   amount      Float
   description String
-  date        DateTime @default(now())
+  date        DateTime    @default(now())
   fieldId     String?
-  field       Field?   @relation(fields: [fieldId], references: [id], onDelete: SetNull)
+  field       Field?      @relation(fields: [fieldId], references: [id], onDelete: SetNull)
 }
 
 model Livestock {
-  id          String      @id @default(cuid())
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  name        String
-  breed       String
-  quantity    Int
-  age         Int?
-  weight      Float?
-  category    LivestockCategory
-  status      LivestockStatus @default(ACTIVE)
-  fieldId     String
-  field       Field      @relation(fields: [fieldId], references: [id], onDelete: Cascade)
-  feedings    Feeding[]
-  vaccinations Vaccination[]
+  id            String                 @id @default(cuid())
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  name          String
+  breed         String
+  quantity      Int
+  age           Int?
+  weight        Float?
+  category      LivestockCategory
+  status        LivestockStatus        @default(ACTIVE)
+  fieldId       String
+  field         Field                  @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+  feedings      Feeding[]
+  vaccinations  Vaccination[]
   reproductions Reproduction[]
-  supplyUsages LivestockSupplyUsage[]
-  alerts      Alert[]
+  supplyUsages  LivestockSupplyUsage[]
+  alerts        Alert[]
 }
 
 model Feeding {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String    @id @default(cuid())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   livestockId String
   livestock   Livestock @relation(fields: [livestockId], references: [id], onDelete: Cascade)
   feedType    String
@@ -229,65 +229,65 @@ model Feeding {
 }
 
 model Vaccination {
-  id                String   @id @default(cuid())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  livestockId       String
-  livestock         Livestock @relation(fields: [livestockId], references: [id], onDelete: Cascade)
-  vaccineName       String
-  vaccinationDate   DateTime
+  id                  String    @id @default(cuid())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  livestockId         String
+  livestock           Livestock @relation(fields: [livestockId], references: [id], onDelete: Cascade)
+  vaccineName         String
+  vaccinationDate     DateTime
   nextVaccinationDate DateTime?
-  veterinarian      String?
-  notes             String?
+  veterinarian        String?
+  notes               String?
 }
 
 model Reproduction {
-  id                String   @id @default(cuid())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  livestockId       String
-  livestock         Livestock @relation(fields: [livestockId], references: [id], onDelete: Cascade)
-  matingDate        DateTime?
+  id                   String             @id @default(cuid())
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  livestockId          String
+  livestock            Livestock          @relation(fields: [livestockId], references: [id], onDelete: Cascade)
+  matingDate           DateTime?
   expectedDeliveryDate DateTime?
-  actualDeliveryDate DateTime?
-  offspringCount    Int?
-  notes             String?
-  status            ReproductionStatus @default(PLANNED)
+  actualDeliveryDate   DateTime?
+  offspringCount       Int?
+  notes                String?
+  status               ReproductionStatus @default(PLANNED)
 }
 
 model VeterinarySupply {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  name          String
-  description   String?
-  quantity      Float
-  unit          String
-  supplier      String?
+  id             String                   @id @default(cuid())
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  name           String
+  description    String?
+  quantity       Float
+  unit           String
+  supplier       String?
   expirationDate DateTime?
-  batchNumber   String?
-  category      VeterinarySupplyCategory
-  supplyUsages  LivestockSupplyUsage[]
+  batchNumber    String?
+  category       VeterinarySupplyCategory
+  supplyUsages   LivestockSupplyUsage[]
 }
 
 model LivestockSupplyUsage {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  livestockId String
-  livestock   Livestock @relation(fields: [livestockId], references: [id], onDelete: Cascade)
-  supplyId    String
-  supply      VeterinarySupply @relation(fields: [supplyId], references: [id], onDelete: Cascade)
+  id           String           @id @default(cuid())
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  livestockId  String
+  livestock    Livestock        @relation(fields: [livestockId], references: [id], onDelete: Cascade)
+  supplyId     String
+  supply       VeterinarySupply @relation(fields: [supplyId], references: [id], onDelete: Cascade)
   quantityUsed Float
-  unit        String
-  usageDate   DateTime
-  notes       String?
+  unit         String
+  usageDate    DateTime
+  notes        String?
 }
 
 model Harvest {
-  id            String   @id @default(cuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id            String         @id @default(cuid())
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   crop          String
   date          DateTime
   yield         Float
@@ -295,7 +295,9 @@ model Harvest {
   harvestArea   Float
   quality       HarvestQuality
   cropId        String?
-  cropRecord    Crop?   @relation(fields: [cropId], references: [id], onDelete: SetNull)
+  cropRecord    Crop?          @relation(fields: [cropId], references: [id], onDelete: SetNull)
+  ownerId       String?
+  owner         User?          @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 }
 
 enum UserRole {
@@ -367,9 +369,9 @@ enum HarvestQuality {
 }
 
 model Task {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String       @id @default(cuid())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   title       String
   description String?
   dueDate     DateTime?
@@ -379,18 +381,18 @@ model Task {
   fieldId     String?
   cropId      String?
   farmId      String?
-  field       Field?   @relation(fields: [fieldId], references: [id], onDelete: SetNull)
-  crop        Crop?    @relation(fields: [cropId], references: [id], onDelete: SetNull)
-  farm        Farm?    @relation(fields: [farmId], references: [id], onDelete: SetNull)
+  field       Field?       @relation(fields: [fieldId], references: [id], onDelete: SetNull)
+  crop        Crop?        @relation(fields: [cropId], references: [id], onDelete: SetNull)
+  farm        Farm?        @relation(fields: [farmId], references: [id], onDelete: SetNull)
   completedAt DateTime?
 }
 
 model WeatherAlert {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String           @id @default(cuid())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   type        WeatherAlertType
-  severity    AlertSeverity @default(MEDIUM)
+  severity    AlertSeverity    @default(MEDIUM)
   title       String
   description String
   startDate   DateTime
@@ -398,29 +400,29 @@ model WeatherAlert {
   region      String?
   farmId      String?
   fieldId     String?
-  isActive    Boolean  @default(true)
-  farm        Farm?    @relation(fields: [farmId], references: [id], onDelete: Cascade)
-  field       Field?   @relation(fields: [fieldId], references: [id], onDelete: SetNull)
+  isActive    Boolean          @default(true)
+  farm        Farm?            @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  field       Field?           @relation(fields: [fieldId], references: [id], onDelete: SetNull)
 }
 
 model Alert {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String        @id @default(cuid())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   type        AlertType
   severity    AlertSeverity @default(MEDIUM)
   title       String
   message     String
-  isRead      Boolean  @default(false)
-  isActive    Boolean  @default(true)
+  isRead      Boolean       @default(false)
+  isActive    Boolean       @default(true)
   farmId      String?
   fieldId     String?
   cropId      String?
   livestockId String?
-  farm        Farm?      @relation(fields: [farmId], references: [id], onDelete: Cascade)
-  field       Field?     @relation(fields: [fieldId], references: [id], onDelete: SetNull)
-  crop        Crop?      @relation(fields: [cropId], references: [id], onDelete: SetNull)
-  livestock   Livestock? @relation(fields: [livestockId], references: [id], onDelete: SetNull)
+  farm        Farm?         @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  field       Field?        @relation(fields: [fieldId], references: [id], onDelete: SetNull)
+  crop        Crop?         @relation(fields: [cropId], references: [id], onDelete: SetNull)
+  livestock   Livestock?    @relation(fields: [livestockId], references: [id], onDelete: SetNull)
   readAt      DateTime?
 }
 

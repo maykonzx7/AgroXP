@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
-import PageLayout from "../components/layout/PageLayout";
-import PageHeader from "../components/layout/PageHeader";
+import { PageLayout, PageHeader } from "@/shared/components/layout";
 import usePageMetadata from "../hooks/use-page-metadata";
 import { Button } from "@/components/ui/button";
 import { useCRM } from "../contexts/CRMContext";
-import { financeApi } from "../services/api";
-import AddTransactionDialog from "../components/finance/AddTransactionDialog";
+import { AddTransactionDialog } from "@/features/finance";
 import ImportDialog from "../components/common/ImportDialog";
 import {
   Download,
@@ -1035,7 +1033,7 @@ const FinancialManagementPage = () => {
             </div>
 
             <div className="flex items-end">
-              <Button className="w-full bg-agri-primary hover:bg-agri-primary-dark" size="sm" onClick={handleRunSimulation}>
+              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium" size="sm" onClick={handleRunSimulation}>
                 <Calculator className="h-4 w-4 mr-2" />
                 Simular
               </Button>
@@ -1223,7 +1221,7 @@ const FinancialManagementPage = () => {
                 Importar
               </Button>
               <Button
-                className="bg-agri-primary hover:bg-agri-primary-dark text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                 size="sm"
                 onClick={handleAddTransaction}
               >

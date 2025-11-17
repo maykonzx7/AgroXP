@@ -72,13 +72,13 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-amber-50 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="absolute top-4 right-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-muted/30 to-background dark:from-background dark:via-muted/20 dark:to-background p-4">
+      <div className="absolute top-4 right-4 z-10">
         <Button 
           variant="outline" 
           size="sm" 
           onClick={toggleDarkMode}
-          className="bg-white dark:bg-gray-800"
+          className="bg-card hover:bg-muted border-border"
         >
           {settings.darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </Button>
@@ -86,19 +86,19 @@ const RegisterPage = () => {
       
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4">
-            <Leaf className="h-8 w-8 text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-xl mb-4 shadow-lg">
+            <Leaf className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">AgroXP</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">
+          <h1 className="text-3xl font-bold text-foreground">AgroXP</h1>
+          <p className="text-muted-foreground mt-2">
             Sistema de Gestão Agropecuária
           </p>
         </div>
         
-        <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Crie sua conta</CardTitle>
-            <CardDescription className="text-center">
+        <Card className="shadow-xl border border-border bg-card">
+          <CardHeader className="space-y-2 pb-4">
+            <CardTitle className="text-2xl font-bold text-center text-foreground">Crie sua conta</CardTitle>
+            <CardDescription className="text-center text-muted-foreground">
               Registre-se para acessar o sistema de gestão
             </CardDescription>
           </CardHeader>
@@ -106,101 +106,102 @@ const RegisterPage = () => {
           <form onSubmit={handleRegister}>
             <CardContent className="space-y-4">
               {error && (
-                <div className="bg-red-50 text-red-700 p-3 rounded-md text-sm">
+                <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm border border-destructive/20">
                   {error}
                 </div>
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="name">Nome completo</Label>
+                <Label htmlFor="name" className="text-sm font-medium">Nome completo</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="name"
                     type="text"
                     placeholder="Seu nome"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-11"
                     required
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email" className="text-sm font-medium">E-mail</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="seu@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-11"
                     required
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone">Telefone</Label>
+                <Label htmlFor="phone" className="text-sm font-medium">Telefone</Label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="phone"
                     type="tel"
                     placeholder="(00) 00000-0000"
                     value={phone}
                     onChange={(e) => setPhone(phoneMask(e.target.value))}
-                    className="pl-10"
+                    className="pl-10 h-11"
                     required
-                    maxLength={15} // Máximo de caracteres após a máscara (ex: "(11) 99999-9999" tem 15 caracteres)
+                    maxLength={15}
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="farmName">Nome da propriedade *</Label>
+                <Label htmlFor="farmName" className="text-sm font-medium">Nome da propriedade *</Label>
                 <div className="relative">
-                  <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Building className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="farmName"
                     type="text"
                     placeholder="Nome da sua fazenda ou propriedade"
                     value={farmName}
                     onChange={(e) => setFarmName(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-11"
                     required
                   />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="farmLocation">Localização da propriedade</Label>
+                <Label htmlFor="farmLocation" className="text-sm font-medium">Localização da propriedade</Label>
                 <Input
                   id="farmLocation"
                   type="text"
                   placeholder="Cidade, Estado"
                   value={farmLocation}
                   onChange={(e) => setFarmLocation(e.target.value)}
+                  className="h-11"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="farmDescription">Descrição da propriedade</Label>
+                <Label htmlFor="farmDescription" className="text-sm font-medium">Descrição da propriedade</Label>
                 <textarea
                   id="farmDescription"
                   placeholder="Breve descrição sobre sua propriedade (opcional)"
                   value={farmDescription}
                   onChange={(e) => setFarmDescription(e.target.value)}
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex min-h-[80px] w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   rows={3}
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="farmSize">Tamanho da propriedade (hectares)</Label>
+                <Label htmlFor="farmSize" className="text-sm font-medium">Tamanho da propriedade (hectares)</Label>
                 <Input
                   id="farmSize"
                   type="number"
@@ -209,11 +210,12 @@ const RegisterPage = () => {
                   placeholder="Ex: 10.5"
                   value={farmSize}
                   onChange={(e) => setFarmSize(e.target.value)}
+                  className="h-11"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password" className="text-sm font-medium">Senha</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -221,25 +223,25 @@ const RegisterPage = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pr-10"
+                    className="pr-10 h-11"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
+                      <EyeOff className="h-4 w-4" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
+                      <Eye className="h-4 w-4" />
                     )}
                   </button>
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar senha</Label>
+                <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirmar senha</Label>
                 <div className="relative">
                   <Input
                     id="confirmPassword"
@@ -247,33 +249,33 @@ const RegisterPage = () => {
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="pr-10"
+                    className="pr-10 h-11"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
+                      <EyeOff className="h-4 w-4" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
+                      <Eye className="h-4 w-4" />
                     )}
                   </button>
                 </div>
               </div>
             </CardContent>
             
-            <CardFooter className="flex flex-col">
+            <CardFooter className="flex flex-col gap-4 pt-4">
               <Button 
                 type="submit" 
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <span className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
@@ -284,13 +286,13 @@ const RegisterPage = () => {
                 )}
               </Button>
               
-              <div className="mt-4 text-center text-sm">
-                <span className="text-gray-600 dark:text-gray-400">
+              <div className="text-center text-sm">
+                <span className="text-muted-foreground">
                   Já tem uma conta?{' '}
                 </span>
                 <Link 
                   to="/login" 
-                  className="font-medium text-green-600 hover:text-green-500 dark:text-green-400 dark:hover:text-green-300"
+                  className="font-medium text-primary hover:text-primary/80 transition-colors"
                 >
                   Faça login
                 </Link>
@@ -299,8 +301,8 @@ const RegisterPage = () => {
           </form>
         </Card>
         
-        <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
-          <p>© 2023 AgroXP. Todos os direitos reservados.</p>
+        <div className="mt-8 text-center text-sm text-muted-foreground">
+          <p>© 2024 AgroXP. Todos os direitos reservados.</p>
         </div>
       </div>
     </div>

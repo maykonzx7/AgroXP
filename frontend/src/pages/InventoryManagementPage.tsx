@@ -1,9 +1,7 @@
 import React, { useState, useRef } from 'react';
-import PageLayout from '../components/layout/PageLayout';
-import PageHeader from '../components/layout/PageHeader';
-import TabContainer, { TabItem } from '../components/layout/TabContainer';
-import Inventory from '../components/Inventory';
-import SpecificCrops from '../components/SpecificCrops';
+import { PageLayout, PageHeader, TabContainer, type TabItem } from '@/shared/components/layout';
+import { Inventory } from '@/features/inventory';
+import { SpecificCrops } from '@/features/crops';
 import HarvestTracking from '../components/HarvestTracking';
 import WeatherAlerts from '../components/WeatherAlerts';
 import { Button } from '../components/ui/button';
@@ -12,7 +10,7 @@ import { CalendarDateRangePicker } from '../components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { useToast } from "@/hooks/use-toast";
 import usePageMetadata from '../hooks/use-page-metadata';
-import { downloadInventoryTemplate } from '../components/inventory/ImportExportFunctions';
+import { downloadInventoryTemplate } from '@/features/inventory/components/inventory/ImportExportFunctions';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +29,7 @@ const InventoryPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddItemForm, setShowAddItemForm] = useState(false);
   
   const { 
     title, 
@@ -73,11 +72,10 @@ const InventoryPage = () => {
   };
 
   const handleAddItem = () => {
-    const actionText = activeTab === 'inventory' ? 'estoque' : 
-                      activeTab === 'crops' ? 'cultura' : 
-                      activeTab === 'weather' ? 'alerta' : 'item';
-                      
-
+    if (activeTab === 'inventory') {
+      setShowAddItemForm(true);
+    }
+    // Outras abas terão suas próprias lógicas
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,7 +140,7 @@ const InventoryPage = () => {
         
         <Button 
           onClick={handleAddItem} 
-          className="whitespace-nowrap transition-colors hover:bg-green-700"
+          className="whitespace-nowrap bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
         >
           <Plus className="mr-2 h-4 w-4" />
           {activeTab === 'inventory' ? 'Adicionar estoque' : 
@@ -192,7 +190,12 @@ const InventoryPage = () => {
     {
       value: 'inventory',
       label: 'Inventário',
-      content: <Inventory dateRange={dateRange} searchTerm={searchTerm} />
+      content: <Inventory 
+        dateRange={dateRange} 
+        searchTerm={searchTerm}
+        showAddForm={showAddItemForm}
+        setShowAddForm={setShowAddItemForm}
+      />
     },
     {
       value: 'crops',

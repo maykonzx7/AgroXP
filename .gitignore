@@ -70,3 +70,5 @@ pnpm-lock.yaml
 
 # Ignore output
 out/
+
+*.md

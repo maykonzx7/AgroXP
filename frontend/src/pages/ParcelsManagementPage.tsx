@@ -21,9 +21,9 @@ import {
 import { toast } from 'sonner';
 
 import DashboardLayoutTemplate from '../components/templates/DashboardLayoutTemplate';
-import ParcelManagement from '../components/ParcelManagement';
+import { ParcelManagement } from '@/features/parcels';
 import ParcelStats from '../components/organisms/parcels/ParcelStats';
-import PageHeader from '../components/layout/PageHeader';
+import { PageHeader } from '@/shared/components/layout';
 import {
   Select,
   SelectContent,
@@ -221,7 +221,7 @@ const ParcelsPage = () => {
     <div className="flex flex-wrap items-center gap-2">
       {/* Main action button */}
       <Button 
-        className="bg-agri-primary hover:bg-agri-primary-dark text-white" 
+        className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium" 
         onClick={handleAddParcel}
       >
         <Plus className="mr-2 h-4 w-4" />
@@ -335,7 +335,7 @@ const ParcelsPage = () => {
 
   // Filter bar component
   const FilterBar = () => (
-    <div className="flex flex-wrap gap-3 items-center bg-background p-4 rounded-lg border mb-6">
+    <div className="flex flex-wrap gap-3 items-center bg-card p-4 rounded-lg border border-border shadow-sm mb-6">
       {/* Search input */}
       <form onSubmit={handleSearch} className="flex">
         <div className="relative">
@@ -443,7 +443,7 @@ const ParcelsPage = () => {
               <Button 
                 type="button" 
                 onClick={applyAdvancedFilters}
-                className="bg-agri-primary hover:bg-agri-primary-dark text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
               >
                 Aplicar filtros
               </Button>

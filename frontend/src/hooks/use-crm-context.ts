@@ -20,6 +20,7 @@ import {
   harvestApi
 } from "../services/apiService";
 import { CRMContextType } from "../contexts/CRMContext";
+import { mapParcelToBackend, mapCropToBackend, mapParcelFromBackend, mapCropFromBackend } from "../shared/utils/data-mappers";
 
 // Hook personalizado para gerenciar o contexto global do CRM
 export const useCRMContext = (): CRMContextType => {
@@ -376,13 +377,15 @@ export const useCRMContext = (): CRMContextType => {
           apiCallSuccess = true;
           break;
         case 'parcelles':
-          const parcelResponse = await parcelsApi.create(item);
-          newItem = parcelResponse;
+          const mappedParcel = mapParcelToBackend(item as any);
+          const parcelResponse = await parcelsApi.create(mappedParcel);
+          newItem = mapParcelFromBackend(parcelResponse) as any;
           apiCallSuccess = true;
           break;
         case 'cultures':
-          const cropResponse = await cropsApi.create(item);
-          newItem = cropResponse;
+          const mappedCrop = mapCropToBackend(item as any);
+          const cropResponse = await cropsApi.create(mappedCrop);
+          newItem = mapCropFromBackend(cropResponse) as any;
           apiCallSuccess = true;
           break;
         case 'livestock':
@@ -434,7 +437,15 @@ export const useCRMContext = (): CRMContextType => {
 
     // Atualizar a data de última sincronização
     setLastSync(new Date());
-  }, []);
+
+    // Sincronizar automaticamente com o banco de dados após adicionar
+    if (apiCallSuccess) {
+      // Sincronizar de forma assíncrona sem bloquear a UI
+      setTimeout(() => {
+        syncDataAcrossCRM();
+      }, 100);
+    }
+  }, [syncDataAcrossCRM]);
 
   const updateData = useCallback(async <T,>(moduleName: string, id: string | number, updates: Partial<T>) => {
     let updatedItem: T;
@@ -503,7 +514,15 @@ export const useCRMContext = (): CRMContextType => {
 
     // Atualizar a data de última sincronização
     setLastSync(new Date());
-  }, []);
+
+    // Sincronizar automaticamente com o banco de dados após atualizar
+    if (apiCallSuccess) {
+      // Sincronizar de forma assíncrona sem bloquear a UI
+      setTimeout(() => {
+        syncDataAcrossCRM();
+      }, 100);
+    }
+  }, [syncDataAcrossCRM]);
 
   const deleteData = useCallback(async (moduleName: string, id: string | number) => {
     let apiCallSuccess = false;
@@ -564,7 +583,15 @@ export const useCRMContext = (): CRMContextType => {
 
     // Atualizar a data de última sincronização
     setLastSync(new Date());
-  }, []);
+
+    // Sincronizar automaticamente com o banco de dados após deletar
+    if (apiCallSuccess) {
+      // Sincronizar de forma assíncrona sem bloquear a UI
+      setTimeout(() => {
+        syncDataAcrossCRM();
+      }, 100);
+    }
+  }, [syncDataAcrossCRM]);
 
   const findData = useCallback(<T,>(moduleName: string, id: string | number): T | undefined => {
     const module = moduleData[moduleName];

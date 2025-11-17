@@ -10,9 +10,7 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import PageLayout from '../components/layout/PageLayout';
-import PageHeader from '../components/layout/PageHeader';
-import TabContainer, { TabItem } from '../components/layout/TabContainer';
+import { PageLayout, PageHeader, TabContainer, type TabItem } from '@/shared/components/layout';
 import LivestockTracking from '../components/LivestockTracking';
 import SpecificLivestock from '../components/SpecificLivestock';
 import LivestockPlanning from '../components/LivestockPlanning';
@@ -147,7 +145,7 @@ const LivestockPage = () => {
             />
             
             <Button 
-              className="flex items-center gap-2 bg-agri-primary hover:bg-agri-primary-dark transition-colors"
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-colors"
               onClick={() => {
 
               }}

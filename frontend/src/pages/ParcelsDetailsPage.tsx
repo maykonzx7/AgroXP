@@ -1,8 +1,7 @@
 
 import React from 'react';
 
-import PageLayout from '../components/layout/PageLayout';
-import PageHeader from '../components/layout/PageHeader';
+import { PageLayout, PageHeader } from '@/shared/components/layout';
 import ParcelDetail from '../components/ParcelDetail';
 
 import usePageMetadata from '../hooks/use-page-metadata';

@@ -53,8 +53,6 @@ import ParcelTable from './parcels/ParcelTable';
 import ParcelMap from './ParcelMap';
 import ParcelPhotoUpload from './parcels/ParcelPhotoUpload';
 import { toast } from 'sonner';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
-import { parcelApi } from '../../services/api';
 import ParcelDetailsOrganism from './ParcelDetailsOrganism';
 
 // Tipos para as parcelas
@@ -178,77 +176,81 @@ const ParcelCard = ({
 };
 
 const ParcelManagementOrganism = ({ searchTerm = '', filterStatus = 'all' }: ParcelManagementProps) => {
-  const queryClient = useQueryClient();
-  const { syncDataAcrossCRM, isRefreshing } = useCRM();
+  const { getModuleData, syncDataAcrossCRM, isRefreshing, addData, updateData, deleteData } = useCRM();
   
-  // Fetch parcel data from backend using React Query
-  const { data: parcels = [], isLoading, isError, refetch } = useQuery({
-    queryKey: ['parcels'],
-    queryFn: parcelApi.getAll,
-    select: (data) => {
-      // Converter dados do backend para o formato esperado
-      return data.map((parcel: any) => ({
-        id: parcel.id,
-        name: parcel.name,
-        area: parcel.size,
-        crop: parcel.crop || parcel.crops?.[0]?.name || 'Não especificado',
-        status: parcel.status || 'planned', // Use actual status from backend
-        lastActivity: parcel.updatedAt ? new Date(parcel.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-        soilType: parcel.soilType || 'Não especificado',
-        coordinates: parcel.coordinates || { lat: 16.265, lng: -61.551 },
-        irrigation: parcel.irrigation || 'Não especificado',
-        plantingDate: parcel.plantingDate || parcel.crops?.[0]?.plantingDate ? new Date(parcel.crops[0].plantingDate).toISOString().split('T')[0] : undefined,
-        harvestDate: parcel.harvestDate || parcel.crops?.[0]?.harvestDate ? new Date(parcel.crops[0].harvestDate).toISOString().split('T')[0] : undefined,
-        rainfall: parcel.rainfall,
-        notes: parcel.notes || parcel.description || '',
-        photos: parcel.photos || []
-      }));
-    }
-  });
+  // Buscar dados de parcelas do contexto CRM
+  const parcelsData = getModuleData('parcelles')?.items || [];
+  const isLoading = isRefreshing;
+  const isError = false;
+  
+  // Converter dados do backend para o formato esperado
+  const parcels = parcelsData.map((parcel: any) => ({
+    id: parcel.id,
+    name: parcel.name,
+    area: parcel.size || parcel.area,
+    crop: parcel.crop || parcel.crops?.[0]?.name || 'Não especificado',
+    status: parcel.status || 'planned',
+    lastActivity: parcel.updatedAt ? new Date(parcel.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    soilType: parcel.soilType || 'Não especificado',
+    coordinates: parcel.coordinates || { lat: 16.265, lng: -61.551 },
+    irrigation: parcel.irrigation || 'Não especificado',
+    plantingDate: parcel.plantingDate || parcel.crops?.[0]?.plantingDate ? new Date(parcel.crops[0].plantingDate).toISOString().split('T')[0] : undefined,
+    harvestDate: parcel.harvestDate || parcel.crops?.[0]?.harvestDate ? new Date(parcel.crops[0].harvestDate).toISOString().split('T')[0] : undefined,
+    rainfall: parcel.rainfall,
+    notes: parcel.notes || parcel.description || '',
+    photos: parcel.photos || []
+  }));
+  
+  // Função para refetch (sincronizar)
+  const refetch = () => {
+    syncDataAcrossCRM();
+  };
   
   const [selectedParcel, setSelectedParcel] = useState<ParcelData | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedParcel, setEditedParcel] = useState<ParcelData | null>(null);
 
-  // Create parcel mutation
-  const createParcelMutation = useMutation({
-    mutationFn: (newParcel: Omit<ParcelData, 'id'>) => parcelApi.create(newParcel),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parcels'] });
-      toast.success('Parcela criada com sucesso');
-    },
-    onError: (error) => {
-      toast.error('Erro ao criar parcela: ' + (error as Error).message);
-    }
-  });
-
-  // Update parcel mutation
-  const updateParcelMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<ParcelData> }) => 
-      parcelApi.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parcels'] });
-      toast.success('Parcela atualizada com sucesso');
-    },
-    onError: (error) => {
-      toast.error('Erro ao atualizar parcela: ' + (error as Error).message);
-    }
-  });
-
-  // Delete parcel mutation
-  const deleteParcelMutation = useMutation({
-    mutationFn: (id: string) => parcelApi.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parcels'] });
-      toast.success('Parcela excluída com sucesso');
-      if (selectedParcel?.id === id) {
-        setSelectedParcel(null);
+  // Create parcel - usando contexto CRM (sincronização automática)
+  const createParcelMutation = {
+    mutate: async (newParcel: Omit<ParcelData, 'id'>) => {
+      try {
+        await addData('parcelles', newParcel);
+        toast.success('Parcela criada com sucesso');
+      } catch (error) {
+        toast.error('Erro ao criar parcela: ' + (error as Error).message);
+        throw error;
       }
-    },
-    onError: (error) => {
-      toast.error('Erro ao excluir parcela: ' + (error as Error).message);
     }
-  });
+  };
+
+  // Update parcel - usando contexto CRM (sincronização automática)
+  const updateParcelMutation = {
+    mutate: async ({ id, data }: { id: string; data: Partial<ParcelData> }) => {
+      try {
+        await updateData('parcelles', id, data);
+        toast.success('Parcela atualizada com sucesso');
+      } catch (error) {
+        toast.error('Erro ao atualizar parcela: ' + (error as Error).message);
+        throw error;
+      }
+    }
+  };
+
+  // Delete parcel - usando contexto CRM (sincronização automática)
+  const deleteParcelMutation = {
+    mutate: async (id: string) => {
+      try {
+        await deleteData('parcelles', id);
+        toast.success('Parcela excluída com sucesso');
+        if (selectedParcel?.id === id) {
+          setSelectedParcel(null);
+        }
+      } catch (error) {
+        toast.error('Erro ao excluir parcela: ' + (error as Error).message);
+        throw error;
+      }
+    }
+  };
 
   // Filtrar as parcelas com base nos critérios de pesquisa e no filtro
   const filteredParcels = parcels.filter(parcel => {

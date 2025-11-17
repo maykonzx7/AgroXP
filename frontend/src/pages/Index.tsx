@@ -48,9 +48,9 @@ import {
 } from "lucide-react";
 
 import DashboardLayoutTemplate from "../components/templates/DashboardLayoutTemplate";
-import PageHeader from "../components/layout/PageHeader";
+import { PageHeader } from "@/shared/components/layout";
 import Dashboard from "../components/dashboard/MainDashboard";
-import TabContainer, { TabItem } from "../components/layout/TabContainer";
+import { TabContainer, type TabItem } from "@/shared/components/layout";
 import HarvestTracking from "../components/HarvestTracking";
 import WeatherAlerts from "../components/WeatherAlerts";
 import TaskList from "../components/cultures/TaskList";

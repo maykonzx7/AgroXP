@@ -136,9 +136,38 @@ export const getCurrentUser = async (req: Request, res: Response) => {
   }
 };
 
+// Update current user profile
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ error: "No token provided" });
+
+    const currentUser = await authService.validateSession(token);
+    if (!currentUser)
+      return res.status(401).json({ error: "Invalid or expired session" });
+
+    const { name, phone } = req.body;
+
+    // Update user
+    const updatedUser = await userService.updateUser(currentUser.id, {
+      name,
+      phone,
+    });
+
+    res.json(updatedUser);
+  } catch (error: any) {
+    console.error("Update profile error:", error);
+    res.status(500).json({ 
+      error: "Internal server error",
+      ...(process.env.NODE_ENV === 'development' && { details: error.message })
+    });
+  }
+};
+
 export default {
   register,
   login,
   logout,
   getCurrentUser,
+  updateProfile,
 };

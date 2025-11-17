@@ -1,8 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import PageLayout from '../components/layout/PageLayout';
-import PageHeader from '../components/layout/PageHeader';
-import TabContainer, { TabItem } from '../components/layout/TabContainer';
+import { PageLayout, PageHeader, TabContainer, type TabItem } from '@/shared/components/layout';
 import { Button } from '../components/ui/button';
 import { Download, Plus, Upload, FileUp, FileDown, BarChart2, Calendar, Package, Leaf } from 'lucide-react';
 import { CalendarDateRangePicker } from '../components/ui/date-range-picker';
@@ -19,9 +17,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import useSpacing from '@/hooks/use-spacing';
-import SpecificCrops from '@/components/SpecificCrops';
-import CropPlanning from '@/components/cultures/CropPlanningForm';
-import TaskList from '@/components/cultures/TaskList';
+import { SpecificCrops } from '@/features/crops';
+import CropPlanning from '@/features/crops/components/CropPlanningForm';
+import TaskList from '@/features/crops/components/TaskList';
 import { useCRM } from '../contexts/CRMContext';
 
 const CropsManagementPage = () => {
@@ -30,6 +28,7 @@ const CropsManagementPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddCultureForm, setShowAddCultureForm] = useState(false);
   const { 
     title, 
     description, 
@@ -76,11 +75,13 @@ const CropsManagementPage = () => {
   };
 
   const handleAddItem = () => {
-    const actionText = activeTab === 'specific' ? 'cultura' : 
-                      activeTab === 'planning' ? 'planejamento' : 
-                      'tarefa';
-                      
-
+    if (activeTab === 'specific') {
+      setShowAddCultureForm(true);
+    } else if (activeTab === 'planning') {
+      // Lógica para adicionar planejamento será implementada no componente CropPlanning
+    } else {
+      // Lógica para adicionar tarefa será implementada no componente TaskList
+    }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -135,7 +136,7 @@ const CropsManagementPage = () => {
         
         <Button 
           onClick={handleAddItem} 
-          className="whitespace-nowrap transition-colors hover:bg-green-700"
+          className="whitespace-nowrap bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
         >
           <Plus className="mr-2 h-4 w-4" />
           {activeTab === 'specific' ? 'Adicionar Cultura' : 
@@ -185,7 +186,12 @@ const CropsManagementPage = () => {
     {
       value: 'specific',
       label: 'Culturas Específicas',
-      content: <SpecificCrops searchTerm={searchTerm} dateRange={dateRange} />
+      content: <SpecificCrops 
+        searchTerm={searchTerm} 
+        dateRange={dateRange}
+        showAddForm={showAddCultureForm}
+        setShowAddForm={setShowAddCultureForm}
+      />
     },
     {
       value: 'planning',

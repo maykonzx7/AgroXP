@@ -7,36 +7,36 @@
 
 @layer base {
   :root {
-    /* Cores padrão (modo claro) - formato HSL */
+    /* Design System Moderno - Modo Claro */
     --background: 0 0% 100%; /* #ffffff */
-    --foreground: 222.2 84% 4.9%; /* #020817 */
+    --foreground: 222.2 47% 11.2%; /* #1e293b */
     
     --card: 0 0% 100%; /* #ffffff */
-    --card-foreground: 222.2 84% 4.9%; /* #020817 */
+    --card-foreground: 222.2 47% 11.2%; /* #1e293b */
     
     --popover: 0 0% 100%; /* #ffffff */
-    --popover-foreground: 222.2 84% 4.9%; /* #020817 */
+    --popover-foreground: 222.2 47% 11.2%; /* #1e293b */
     
-    --primary: 122 39% 39%; /* #4CAF50 */
+    --primary: 142 76% 36%; /* #16a34a - Verde profissional */
     --primary-foreground: 0 0% 100%; /* #ffffff */
     
-    --secondary: 16 23% 38%; /* #8D6E63 */
+    --secondary: 215 16% 47%; /* #64748b */
     --secondary-foreground: 0 0% 100%; /* #ffffff */
     
-    --muted: 210 16% 95%; /* #f1f5f9 */
-    --muted-foreground: 215 14% 40%; /* #64748b */
+    --muted: 210 40% 96.1%; /* #f1f5f9 */
+    --muted-foreground: 215.4 16.3% 46.9%; /* #64748b */
     
-    --accent: 36 95% 65%; /* #FFB74D */
-    --accent-foreground: 222.2 84% 4.9%; /* #020817 */
+    --accent: 142 76% 36%; /* #16a34a */
+    --accent-foreground: 0 0% 100%; /* #ffffff */
     
-    --destructive: 0 72% 53%; /* #EF5350 */
+    --destructive: 0 84.2% 60.2%; /* #ef4444 */
     --destructive-foreground: 0 0% 100%; /* #ffffff */
     
     --border: 214.3 31.8% 91.4%; /* #e2e8f0 */
     --input: 214.3 31.8% 91.4%; /* #e2e8f0 */
-    --ring: 122 39% 39%; /* #4CAF50 */
+    --ring: 142 76% 36%; /* #16a34a */
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
     --sidebar-background: 0 0% 100%; /* #ffffff */
     --sidebar-foreground: 222.2 84% 4.9%; /* #020817 */
@@ -49,34 +49,34 @@
   }
 
   .dark {
-    /* Paleta de cores fixa para o tema escuro - formato HSL */
-    --background: 220 20% 10%; /* #0c0c14 - Azul muito escuro, similar à barra de navegação */
-    --foreground: 0 0% 98%; /* #f8fafc - Branco acinzentado para textos */
+    /* Design System Moderno - Modo Escuro */
+    --background: 222.2 47% 11.2%; /* #1e293b */
+    --foreground: 210 40% 98%; /* #f8fafc */
     
-    --card: 0 0% 7%; /* #121212 - Preto suave para cartões */
-    --card-foreground: 0 0% 98%; /* #f8fafc */
+    --card: 222.2 47% 11.2%; /* #1e293b */
+    --card-foreground: 210 40% 98%; /* #f8fafc */
     
-    --popover: 0 0% 7%; /* #121212 */
-    --popover-foreground: 0 0% 98%; /* #f8fafc */
+    --popover: 222.2 47% 11.2%; /* #1e293b */
+    --popover-foreground: 210 40% 98%; /* #f8fafc */
     
-    --primary: 142 43% 42%; /* #4ade80 - Verde primário mantido */
+    --primary: 142 70% 45%; /* #22c55e - Verde mais vibrante no escuro */
     --primary-foreground: 0 0% 100%; /* #ffffff */
     
-    --secondary: 215 16% 47%; /* #64748b - Cinza azulado para elementos secundários */
+    --secondary: 215 16% 47%; /* #64748b */
     --secondary-foreground: 0 0% 100%; /* #ffffff */
     
-    --muted: 215 25% 18%; /* #1e293b - Azul-acinzentado escuro para elementos muted */
-    --muted-foreground: 217.2 32.6% 65%; /* #94a3b8 */
+    --muted: 217.2 32.6% 17.5%; /* #1e293b */
+    --muted-foreground: 215 20.2% 65.1%; /* #94a3b8 */
     
-    --accent: 28 90% 65%; /* #f97316 - Laranja para elementos de destaque */
-    --accent-foreground: 0 0% 7%; /* #121212 */
+    --accent: 142 70% 45%; /* #22c55e */
+    --accent-foreground: 0 0% 100%; /* #ffffff */
     
-    --destructive: 0 72% 53%; /* #ef4444 - Vermelho para ações destrutivas */
-    --destructive-foreground: 0 0% 98%; /* #f8fafc */
+    --destructive: 0 62.8% 30.6%; /* #dc2626 */
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
     
-    --border: 215 25% 18%; /* #334155 - Azul-acinzentado para bordas */
-    --input: 215 25% 18%; /* #334155 */
-    --ring: 142 43% 42%; /* #4ade80 - Verde para anéis de foco */
+    --border: 217.2 32.6% 17.5%; /* #1e293b */
+    --input: 217.2 32.6% 17.5%; /* #1e293b */
+    --ring: 142 70% 45%; /* #22c55e */
 
     --sidebar-background: 220 20% 10%; /* #0c0c14 - Mesma cor do background principal */
     --sidebar-foreground: 0 0% 98%; /* #f8fafc */
@@ -116,64 +116,130 @@
 }
 
 @layer components {
-  /* Glass UI components */
-  .glass {
-    @apply bg-background/80 backdrop-blur-md border border-border shadow-glass;
+  /* Design System Padronizado */
+  
+  /* Cards modernos e profissionais */
+  .card-modern {
+    @apply bg-card rounded-lg border border-border shadow-sm transition-all duration-200;
   }
   
-  .glass-hover {
-    @apply hover:shadow-glass-hover transition-shadow duration-300;
+  .card-modern-hover {
+    @apply card-modern hover:shadow-md hover:border-primary/20;
   }
   
-  .card-hover {
-    @apply hover:shadow-card-hover transition-all duration-300 ease-in-out transform hover:-translate-y-1;
-  }
-  
-  /* Dashboard cards */
+  /* Dashboard cards padronizados */
   .dashboard-card {
-    @apply bg-card rounded-xl shadow-card p-5 border border-border;
+    @apply bg-card rounded-lg border border-border shadow-sm p-6 transition-all duration-200;
   }
   
-  /* Stat cards */
+  .dashboard-card-hover {
+    @apply dashboard-card hover:shadow-md hover:-translate-y-0.5;
+  }
+  
+  /* Stat cards profissionais */
   .stat-card {
-    @apply dashboard-card flex flex-col justify-between;
+    @apply dashboard-card flex flex-col gap-2;
   }
   
   .stat-value {
-    @apply text-2xl font-semibold text-foreground;
+    @apply text-3xl font-bold text-foreground tracking-tight;
   }
   
   .stat-label {
-    @apply text-sm font-medium text-muted-foreground;
+    @apply text-sm font-medium text-muted-foreground uppercase tracking-wide;
   }
   
-  /* Smooth transitions */
+  /* Transições suaves */
   .page-transition {
     @apply transition-all duration-300 ease-in-out;
   }
   
-  /* Interactive elements */
+  /* Elementos interativos */
   .interactive {
-    @apply transition-all duration-200 hover:brightness-105 active:brightness-95;
+    @apply transition-all duration-200 cursor-pointer;
   }
   
-  /* Navigation links */
+  .interactive:hover {
+    @apply brightness-105;
+  }
+  
+  .interactive:active {
+    @apply brightness-95 scale-[0.98];
+  }
+  
+  /* Links de navegação padronizados */
   .nav-link {
-    @apply relative px-3 py-2 text-foreground/80 rounded-md transition-colors hover:text-foreground hover:bg-muted;
+    @apply relative px-3 py-2.5 text-sm font-medium text-foreground/70 rounded-lg transition-all duration-200;
+  }
+  
+  .nav-link:hover {
+    @apply text-foreground bg-muted;
   }
   
   .nav-link.active {
-    @apply text-primary font-medium bg-primary/10;
+    @apply text-primary bg-primary/10 font-semibold;
   }
   
-  /* Drag and drop zone */
+  /* Zona de drag and drop */
   .drop-zone {
-    @apply border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer transition-colors hover:border-primary/50 hover:bg-primary/5;
+    @apply border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer transition-all duration-200;
   }
   
-  /* Form inputs with consistent styling */
+  .drop-zone:hover {
+    @apply border-primary/50 bg-primary/5;
+  }
+  
+  /* Inputs de formulário padronizados */
   .form-input {
-    @apply rounded-md border border-input px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+    @apply w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm ring-offset-background;
+    @apply text-foreground placeholder:text-muted-foreground;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  /* Garantir contraste em inputs dentro de cards */
+  .card input,
+  .card select,
+  .card textarea {
+    @apply text-foreground bg-background;
+  }
+  
+  /* Botões padronizados */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply font-medium rounded-lg px-4 py-2.5 transition-all duration-200;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/90;
+    @apply font-medium rounded-lg px-4 py-2.5 transition-all duration-200;
+  }
+  
+  /* Container de página padronizado */
+  .page-container {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6;
+  }
+  
+  /* Header de página padronizado */
+  .page-header {
+    @apply flex flex-col gap-4 md:flex-row md:items-start md:justify-between;
+    @apply pb-6 border-b border-border;
+  }
+  
+  .page-title {
+    @apply text-3xl font-bold tracking-tight text-foreground break-words;
+    @apply leading-tight;
+  }
+  
+  .page-description {
+    @apply text-muted-foreground mt-1.5 break-words;
+    @apply leading-relaxed;
+  }
+  
+  /* Grid responsivo padronizado */
+  .grid-responsive {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
   }
 }
 
@@ -244,4 +310,86 @@
 
 .hover-lift {
   @apply transition-transform duration-300 ease-out hover:-translate-y-1;
+}
+
+/* Animações personalizadas para login */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
+.delay-400 {
+  animation-delay: 400ms;
+}
+
+.delay-500 {
+  animation-delay: 500ms;
+}
+
+.delay-1000 {
+  animation-delay: 1000ms;
 }

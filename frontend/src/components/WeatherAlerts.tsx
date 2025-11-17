@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { EditableField } from '@/components/ui/editable-field';
 import { EditableTable, Column } from '@/components/ui/editable-table';
-import { CloudRain, Sun, Wind, Thermometer, Droplets, Eye, AlertTriangle, Calendar, Filter, CloudLightning, PlusCircle, ArrowUp, ArrowDown } from 'lucide-react';
+import { CloudRain, Sun, Wind, Thermometer, Droplets, Eye, AlertTriangle, Calendar, Filter, CloudLightning, PlusCircle, ArrowUp, ArrowDown, Loader2 } from 'lucide-react';
 import { useCRM } from '../contexts/CRMContext';
 import { 
   Button 
@@ -31,17 +31,19 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/hooks/use-toast";
 import PreviewPrintButton from '@/components/common/PreviewPrintButton';
+import { weatherApi } from '@/services/api';
 
 interface WeatherAlert {
-  id: number;
+  id: string;
   date: string;
-  type: 'Chuva intensa' | 'Tempestade tropical' | 'Seca' | 'Calor excessivo' | 'Inundação';
-  region: string;
-  severity: 'Baixa' | 'Média' | 'Alta' | 'Extrema';
-  impactCrops: 'Baixo' | 'Moderado' | 'Severo';
+  type: string;
+  region?: string;
+  severity: string;
   description: string;
-  recommendation: string;
-  status: 'Ativo' | 'Concluído' | 'Previsto';
+  title: string;
+  startDate: string;
+  endDate?: string;
+  isActive: boolean;
 }
 
 const alertFormSchema = z.object({
@@ -63,7 +65,9 @@ const WeatherAlerts = () => {
   const [filterSeverity, setFilterSeverity] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [expandedAlertId, setExpandedAlertId] = useState<number | null>(null);
+  const [expandedAlertId, setExpandedAlertId] = useState<string | null>(null);
+  const [weatherAlerts, setWeatherAlerts] = useState<WeatherAlert[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const form = useForm<z.infer<typeof alertFormSchema>>({
     resolver: zodResolver(alertFormSchema),
@@ -78,64 +82,41 @@ const WeatherAlerts = () => {
       status: 'Ativo',
     },
   });
-  
-  const [weatherAlerts, setWeatherAlerts] = useState<WeatherAlert[]>([
-    {
-      id: 1,
-      date: '2025-06-15',
-      type: 'Chuva forte',
-      region: 'Região Sul',
-      severity: 'Alta',
-      impactCrops: 'Moderado',
-      description: 'Fortes chuvas esperadas por 48 horas com risco de inundação em áreas de baixa altitude.',
-      recommendation: 'Verificar a drenagem das parcelas e proteger as mudas jovens. Suspender temporariamente a irrigação.',
-      status: 'Ativo'
-    },
-    {
-      id: 2,
-      date: '2025-06-20',
-      type: 'Tempestade tropical',
-      region: 'Região Norte',
-      severity: 'Extrema',
-      impactCrops: 'Severo',
-      description: 'Tempestade tropical Emily se aproximando com ventos que podem exceder 120 km/h e fortes chuvas.',
-      recommendation: 'Colher preventivamente as culturas maduras. Reforçar os tutores dos bananeirais. Proteger os equipamentos agrícolas.',
-      status: 'Previsto'
-    },
-    {
-      id: 3,
-      date: '2025-05-25',
-      type: 'Seca',
-      region: 'Região Norte',
-      severity: 'Média',
-      impactCrops: 'Moderado',
-      description: 'Período prolongado sem chuvas significativas causando estresse hídrico para algumas culturas.',
-      recommendation: 'Priorizar a irrigação de culturas sensíveis. Usar cobertura morta para conservar a umidade do solo.',
-      status: 'Concluído'
-    },
-    {
-      id: 4,
-      date: '2025-07-05',
-      type: 'Calor excessivo',
-      region: 'Arquipélago',
-      severity: 'Média',
-      impactCrops: 'Moderado',
-      description: 'Onda de calor com temperaturas acima de 35°C por vários dias consecutivos.',
-      recommendation: 'Sombrear culturas sensíveis. Aumentar a frequência da irrigação, preferencialmente de manhã cedo ou no final da tarde.',
-      status: 'Previsto'
-    },
-    {
-      id: 5,
-      date: '2025-06-10',
-      type: 'Inundação',
-      region: 'Região Sul',
-      severity: 'Alta',
-      impactCrops: 'Severo',
-      description: 'Transbordamento de rios após chuvas intensas nos últimos dias, afetando parcelas em áreas baixas.',
-      recommendation: 'Evacuar as culturas que podem ser colhidas. Preparar os pedidos de indenização. Monitorar doenças fúngicas.',
-      status: 'Concluído'
+
+  // Carregar alertas da API
+  useEffect(() => {
+    loadWeatherAlerts();
+  }, []);
+
+  const loadWeatherAlerts = async () => {
+    try {
+      setIsLoading(true);
+      const alerts = await weatherApi.getAll();
+      // Mapear dados da API para o formato do componente
+      const mappedAlerts: WeatherAlert[] = alerts.map((alert: any) => ({
+        id: alert.id,
+        date: alert.startDate ? new Date(alert.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+        type: alert.type || 'OTHER',
+        region: alert.region || alert.field?.name || 'N/A',
+        severity: alert.severity || 'MEDIUM',
+        description: alert.description || '',
+        title: alert.title || '',
+        startDate: alert.startDate || new Date().toISOString(),
+        endDate: alert.endDate,
+        isActive: alert.isActive !== undefined ? alert.isActive : true,
+      }));
+      setWeatherAlerts(mappedAlerts);
+    } catch (error) {
+      console.error('Erro ao carregar alertas meteorológicos:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os alertas meteorológicos",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
-  ]);
+  };
   
   const columns: Column[] = [
     { id: 'date', header: 'Data', accessorKey: 'date', isEditable: true },
@@ -161,15 +142,28 @@ const WeatherAlerts = () => {
     });
   };
   
+  const formatSeverity = (severity: string) => {
+    const map: Record<string, string> = {
+      'LOW': 'Baixa',
+      'MEDIUM': 'Média',
+      'HIGH': 'Alta',
+      'CRITICAL': 'Extrema',
+    };
+    return map[severity.toUpperCase()] || severity;
+  };
+  
   const filteredAlerts = weatherAlerts.filter(alert => {
     const matchesSearch = 
       alert.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      alert.region.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (alert.region && alert.region.toLowerCase().includes(searchTerm.toLowerCase())) ||
       alert.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      alert.recommendation.toLowerCase().includes(searchTerm.toLowerCase());
+      (alert.title && alert.title.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesSeverity = filterSeverity === 'all' || alert.severity === filterSeverity;
-    const matchesStatus = filterStatus === 'all' || alert.status === filterStatus;
+    const matchesSeverity = filterSeverity === 'all' || 
+      formatSeverity(alert.severity).toLowerCase() === filterSeverity.toLowerCase();
+    const matchesStatus = filterStatus === 'all' || 
+      (filterStatus === 'Ativo' && alert.isActive) ||
+      (filterStatus === 'Concluído' && !alert.isActive);
     
     return matchesSearch && matchesSeverity && matchesStatus;
   });
@@ -202,78 +196,92 @@ const WeatherAlerts = () => {
     });
   };
   
-  const onSubmit = (data: z.infer<typeof alertFormSchema>) => {
-    const newId = Math.max(0, ...weatherAlerts.map(item => item.id)) + 1;
-    
-    const newAlert: WeatherAlert = {
-      id: newId,
-      date: data.date,
-      type: data.type,
-      region: data.region,
-      severity: data.severity,
-      impactCrops: data.impactCrops,
-      description: data.description,
-      recommendation: data.recommendation,
-      status: data.status
-    };
-    
-    setWeatherAlerts([...weatherAlerts, newAlert]);
-    setDialogOpen(false);
-    form.reset();
-    
-    toast({
-      title: "Alerta adicionado",
-      description: `Novo alerta meteorológico adicionado para ${data.region}`
-    });
+  const onSubmit = async (data: z.infer<typeof alertFormSchema>) => {
+    try {
+      // Mapear tipo do formulário para o enum do backend
+      const typeMap: Record<string, string> = {
+        'Chuva intensa': 'HEAVY_RAIN',
+        'Tempestade tropical': 'STORM',
+        'Seca': 'DROUGHT',
+        'Calor excessivo': 'HEAT_WAVE',
+        'Inundação': 'HEAVY_RAIN',
+      };
+      
+      // Mapear severidade
+      const severityMap: Record<string, string> = {
+        'Baixa': 'LOW',
+        'Média': 'MEDIUM',
+        'Alta': 'HIGH',
+        'Extrema': 'CRITICAL',
+      };
+
+      const alertData = {
+        type: typeMap[data.type] || 'OTHER',
+        severity: severityMap[data.severity] || 'MEDIUM',
+        title: `${data.type} - ${data.region}`,
+        description: data.description,
+        startDate: new Date(data.date).toISOString(),
+        region: data.region,
+        isActive: data.status === 'Ativo',
+      };
+
+      await weatherApi.create(alertData);
+      await loadWeatherAlerts();
+      setDialogOpen(false);
+      form.reset();
+      
+      toast({
+        title: "Alerta adicionado",
+        description: `Novo alerta meteorológico adicionado para ${data.region}`
+      });
+    } catch (error: any) {
+      console.error('Erro ao criar alerta:', error);
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível criar o alerta",
+        variant: "destructive"
+      });
+    }
   };
   
-  const handleExpandAlert = (id: number) => {
+  const handleExpandAlert = (id: string) => {
     setExpandedAlertId(expandedAlertId === id ? null : id);
   };
   
   const getAlertIcon = (type: string) => {
-    switch (type) {
-      case 'Chuva intensa':
-        return <CloudRain className="h-6 w-6 text-blue-500" />;
-      case 'Tempestade tropical':
-        return <Wind className="h-6 w-6 text-purple-500" />;
-      case 'Seca':
-        return <Sun className="h-6 w-6 text-orange-500" />;
-      case 'Calor excessivo':
-        return <Thermometer className="h-6 w-6 text-red-500" />;
-      case 'Inundação':
-        return <CloudLightning className="h-6 w-6 text-indigo-500" />;
-      default:
-        return <AlertTriangle className="h-6 w-6 text-gray-500" />;
+    const upperType = type.toUpperCase();
+    if (upperType.includes('RAIN') || upperType.includes('HEAVY_RAIN')) {
+      return <CloudRain className="h-6 w-6 text-blue-500" />;
+    } else if (upperType.includes('STORM') || upperType.includes('WIND')) {
+      return <Wind className="h-6 w-6 text-purple-500" />;
+    } else if (upperType.includes('DROUGHT') || upperType.includes('SECA')) {
+      return <Sun className="h-6 w-6 text-orange-500" />;
+    } else if (upperType.includes('HEAT') || upperType.includes('HEAT_WAVE')) {
+      return <Thermometer className="h-6 w-6 text-red-500" />;
+    } else if (upperType.includes('FROST') || upperType.includes('HAIL')) {
+      return <CloudLightning className="h-6 w-6 text-indigo-500" />;
     }
+    return <AlertTriangle className="h-6 w-6 text-gray-500" />;
   };
   
   const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'Baixa':
-        return 'bg-green-100 text-green-800';
-      case 'Média':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'Alta':
-        return 'bg-orange-100 text-orange-800';
-      case 'Extrema':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+    const upperSeverity = severity.toUpperCase();
+    if (upperSeverity === 'LOW' || upperSeverity === 'BAIXA') {
+      return 'bg-green-100 text-green-800';
+    } else if (upperSeverity === 'MEDIUM' || upperSeverity === 'MÉDIA') {
+      return 'bg-yellow-100 text-yellow-800';
+    } else if (upperSeverity === 'HIGH' || upperSeverity === 'ALTA') {
+      return 'bg-orange-100 text-orange-800';
+    } else if (upperSeverity === 'CRITICAL' || upperSeverity === 'EXTREMA') {
+      return 'bg-red-100 text-red-800';
     }
+    return 'bg-gray-100 text-gray-800';
   };
   
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Ativo':
-        return 'bg-blue-100 text-blue-800';
-      case 'Concluído':
-        return 'bg-gray-100 text-gray-800';
-      case 'Previsto':
-        return 'bg-purple-100 text-purple-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const getStatusColor = (isActive: boolean) => {
+    return isActive 
+      ? 'bg-blue-100 text-blue-800' 
+      : 'bg-gray-100 text-gray-800';
   };
   
   return (
@@ -533,7 +541,12 @@ const WeatherAlerts = () => {
         </div>
         
         <div className="space-y-4 mb-6">
-          {filteredAlerts.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-8 border rounded-lg bg-muted/30">
+              <Loader2 className="h-10 w-10 mx-auto text-muted-foreground mb-2 animate-spin" />
+              <p className="text-muted-foreground">Carregando alertas meteorológicos...</p>
+            </div>
+          ) : filteredAlerts.length === 0 ? (
             <div className="text-center py-8 border rounded-lg bg-muted/30">
               <AlertTriangle className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
               <p className="text-muted-foreground">Nenhum alerta corresponde aos critérios de pesquisa</p>
@@ -551,16 +564,16 @@ const WeatherAlerts = () => {
                   <div className="flex items-center space-x-4">
                     {getAlertIcon(alert.type)}
                     <div>
-                      <h3 className="font-semibold">{alert.type} - {alert.region}</h3>
-                      <p className="text-sm text-muted-foreground">{new Date(alert.date).toLocaleDateString()}</p>
+                      <h3 className="font-semibold">{alert.title || alert.type} {alert.region && `- ${alert.region}`}</h3>
+                      <p className="text-sm text-muted-foreground">{new Date(alert.startDate).toLocaleDateString('pt-BR')}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge className={getSeverityColor(alert.severity)}>
-                      {alert.severity}
+                      {formatSeverity(alert.severity)}
                     </Badge>
-                    <Badge className={getStatusColor(alert.status)}>
-                      {alert.status}
+                    <Badge className={getStatusColor(alert.isActive)}>
+                      {alert.isActive ? 'Ativo' : 'Concluído'}
                     </Badge>
                     {expandedAlertId === alert.id ? (
                       <ArrowUp className="h-4 w-4 text-muted-foreground" />
@@ -578,18 +591,19 @@ const WeatherAlerts = () => {
                         <p className="text-sm">{alert.description}</p>
                       </div>
                       <div>
-                        <h4 className="text-sm font-semibold mb-1">Recomendações</h4>
-                        <p className="text-sm">{alert.recommendation}</p>
+                        <h4 className="text-sm font-semibold mb-1">Período</h4>
+                        <p className="text-sm">
+                          {new Date(alert.startDate).toLocaleDateString('pt-BR')}
+                          {alert.endDate && ` até ${new Date(alert.endDate).toLocaleDateString('pt-BR')}`}
+                        </p>
                       </div>
                     </div>
-                    <div className="mt-4">
-                      <h4 className="text-sm font-semibold mb-1">Impacto nas culturas</h4>
-                      <Badge className={alert.impactCrops === 'Severo' ? 'bg-red-100 text-red-800' : 
-                                      alert.impactCrops === 'Moderado' ? 'bg-yellow-100 text-yellow-800' : 
-                                      'bg-green-100 text-green-800'}>
-                        {alert.impactCrops}
-                      </Badge>
-                    </div>
+                    {alert.region && (
+                      <div className="mt-4">
+                        <h4 className="text-sm font-semibold mb-1">Região</h4>
+                        <p className="text-sm">{alert.region}</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

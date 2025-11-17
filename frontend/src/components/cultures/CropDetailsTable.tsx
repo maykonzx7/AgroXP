@@ -6,9 +6,7 @@ import {
   Save,
   Plus,
   ExternalLink,
-  Download,
   FileText,
-  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,11 +59,10 @@ export const CultureDetailTable = ({
   filterType = "all",
 }: CultureDetailTableProps) => {
   const { toast: shadowToast } = useToast();
-  const { getModuleData, syncDataAcrossCRM, addData, updateData, deleteData, isRefreshing } = useCRM();
+  const { getModuleData, syncDataAcrossCRM, addData, updateData, deleteData } = useCRM();
   const [cultureData, setCultureData] = useState<CultureData[]>([]);
   const [isAddFormVisible, setIsAddFormVisible] = useState(false);
   const [selectedCulture, setSelectedCulture] = useState<null | CultureData>(null);
-  const { exportModuleData } = useCRM();
   const [newCulture, setNewCulture] = useState({
     name: "",
     scientificName: "",
@@ -118,11 +115,6 @@ export const CultureDetailTable = ({
 
     setCultureData(convertedCultures);
   }, [culturesModuleData]);
-  
-  const handleRefresh = () => {
-    syncDataAcrossCRM();
-    toast.success('Dados de culturas atualizados');
-  };
 
   const localShowAddForm =
     showAddForm !== undefined ? showAddForm : isAddFormVisible;
@@ -172,14 +164,11 @@ export const CultureDetailTable = ({
     }
 
     try {
-      // Adicionar ao banco de dados
+      // Adicionar ao banco de dados (sincronização automática)
       await addData('cultures', {
         ...newCulture,
         id: Date.now() // Gerar ID temporário, o backend pode gerar um definitivo
       });
-
-      // Atualizar a interface
-      syncDataAcrossCRM();
       
       localSetShowAddForm(false);
 
@@ -214,11 +203,8 @@ export const CultureDetailTable = ({
     const cultureToDelete = filteredCultures[rowIndex];
 
     try {
-      // Excluir do banco de dados
+      // Excluir do banco de dados (sincronização automática)
       await deleteData('cultures', cultureToDelete.id);
-
-      // Atualizar a interface
-      syncDataAcrossCRM();
 
       toast.success("Cultura removida", {
         description: `${cultureToDelete.name} foi removida do banco de dados`,
@@ -663,31 +649,6 @@ export const CultureDetailTable = ({
 
   return (
     <div>
-      <div className="mb-4 flex justify-end space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {isRefreshing ? 'Atualizando...' : 'Atualizar'}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            toast.info("Guia PDF disponível", {
-              description: "Download do guia de culturas tropicais iniciado",
-            });
-            exportModuleData("guide_cultures", "pdf");
-          }}
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Guia de culturas
-        </Button>
-      </div>
-
       <EditableTable
         data={filteredCultures}
         columns={columns}

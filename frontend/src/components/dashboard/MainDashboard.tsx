@@ -504,11 +504,8 @@ const Dashboard = () => {
 
   const handleUpdateHarvest = async (id, field, value) => {
     try {
-      // Update the item in the CRM context
+      // Update the item in the CRM context (sincronização automática)
       await updateData('harvest', id, { [field]: value });
-      
-      // Sincronizar dados do CRM para garantir que os dados atualizados sejam carregados
-      syncDataAcrossCRM();
     } catch (error) {
       console.error('Erro ao atualizar colheita:', error);
       toast.error('Erro ao atualizar o registro de colheita no banco de dados');
@@ -517,11 +514,8 @@ const Dashboard = () => {
 
   const handleDeleteHarvest = async (id) => {
     try {
-      // Delete the item from the CRM context
+      // Delete the item from the CRM context (sincronização automática)
       await deleteData('harvest', id);
-      
-      // Sincronizar dados do CRM para garantir que os dados atualizados sejam carregados
-      syncDataAcrossCRM();
       toast.success('Registro de colheita removido do banco de dados');
     } catch (error) {
       console.error('Erro ao deletar colheita:', error);

@@ -1,12 +1,25 @@
-// api.ts
+// api.ts - DEPRECATED: Este arquivo está sendo descontinuado
+// Por favor, use apiService.ts ou o contexto CRM (useCRM) para novas implementações
+// Mantido apenas para compatibilidade com código legado
+
+// Re-exportar de apiService.ts para manter compatibilidade
+export {
+  parcelsApi,
+  cropsApi as cropApi,
+  livestockApi,
+  inventoryApi,
+  financeApi,
+} from './apiService';
+
+// APIs adicionais que não estão em apiService.ts
+// TODO: Migrar para apiService.ts ou usar contexto CRM
+
 const API_BASE_URL = 'http://localhost:3001/api';
 
-// Helper function to get auth token
 const getAuthToken = (): string | null => {
   return localStorage.getItem('authToken');
 };
 
-// Helper function for API requests
 const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   const token = getAuthToken();
   
@@ -24,101 +37,10 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     const errorMessage = errorData.error || errorData.message || `HTTP error! status: ${response.status}`;
-    console.error('API Error:', {
-      endpoint,
-      status: response.status,
-      errorData,
-      errorMessage
-    });
     throw new Error(errorMessage);
   }
   
   return response.json();
-};
-
-// Parcel API functions
-export const parcelApi = {
-  getAll: () => apiRequest('/parcels'),
-  getById: (id: string) => apiRequest(`/parcels/${id}`),
-  create: (data: any) => apiRequest('/parcels', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  }),
-  update: (id: string, data: any) => apiRequest(`/parcels/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  }),
-  delete: (id: string) => apiRequest(`/parcels/${id}`, {
-    method: 'DELETE',
-  }),
-};
-
-// Crop API functions
-export const cropApi = {
-  getAll: () => apiRequest('/crops'),
-  getById: (id: string) => apiRequest(`/crops/${id}`),
-  create: (data: any) => apiRequest('/crops', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  }),
-  update: (id: string, data: any) => apiRequest(`/crops/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  }),
-  delete: (id: string) => apiRequest(`/crops/${id}`, {
-    method: 'DELETE',
-  }),
-};
-
-// Livestock API functions
-export const livestockApi = {
-  getAll: () => apiRequest('/livestock'),
-  getById: (id: string) => apiRequest(`/livestock/${id}`),
-  create: (data: any) => apiRequest('/livestock', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  }),
-  update: (id: string, data: any) => apiRequest(`/livestock/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  }),
-  delete: (id: string) => apiRequest(`/livestock/${id}`, {
-    method: 'DELETE',
-  }),
-};
-
-// Inventory API functions
-export const inventoryApi = {
-  getAll: () => apiRequest('/inventory'),
-  getById: (id: string) => apiRequest(`/inventory/${id}`),
-  create: (data: any) => apiRequest('/inventory', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  }),
-  update: (id: string, data: any) => apiRequest(`/inventory/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  }),
-  delete: (id: string) => apiRequest(`/inventory/${id}`, {
-    method: 'DELETE',
-  }),
-};
-
-// Finance API functions
-export const financeApi = {
-  getAll: () => apiRequest('/finance'),
-  getById: (id: string) => apiRequest(`/finance/${id}`),
-  create: (data: any) => apiRequest('/finance', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  }),
-  update: (id: string, data: any) => apiRequest(`/finance/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data),
-  }),
-  delete: (id: string) => apiRequest(`/finance/${id}`, {
-    method: 'DELETE',
-  }),
 };
 
 // Tasks API functions
@@ -248,4 +170,21 @@ export const authApi = {
     method: 'POST',
   }),
   getCurrentUser: () => apiRequest('/auth/me'),
+};
+
+// Exportar parcelApi como alias para parcelsApi (compatibilidade)
+export const parcelApi = {
+  getAll: () => apiRequest('/parcels'),
+  getById: (id: string) => apiRequest(`/parcels/${id}`),
+  create: (data: any) => apiRequest('/parcels', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+  update: (id: string, data: any) => apiRequest(`/parcels/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+  delete: (id: string) => apiRequest(`/parcels/${id}`, {
+    method: 'DELETE',
+  }),
 };

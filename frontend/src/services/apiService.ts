@@ -22,7 +22,17 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
 
   if (!response.ok) {
     const json = await response.json().catch(() => ({}));
-    throw new Error(json.error || `HTTP error! status: ${response.status}`);
+    const errorMessage = json.error || json.message || `HTTP error! status: ${response.status}`;
+    
+    // Se for erro de autenticação, limpar token e redirecionar
+    if (response.status === 401) {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("authUser");
+      window.dispatchEvent(new CustomEvent('userLoggedOut'));
+    }
+    
+    console.error(`API Error [${response.status}]:`, errorMessage, json);
+    throw new Error(errorMessage);
   }
 
   return response.json();

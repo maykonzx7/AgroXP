@@ -25,50 +25,62 @@ router.get('/', async (req, res) => {
     
     const userFarmIds = userFarms.map(f => f.id);
     
-    if (userFarmIds.length === 0) {
-      return res.json([]);
-    }
-    
     // Get user's field IDs
-    const userFields = await prisma.field.findMany({
-      where: {
-        farmId: {
-          in: userFarmIds,
-        },
-      },
-      select: { id: true },
-    });
+    const userFields = userFarmIds.length > 0
+      ? await prisma.field.findMany({
+          where: {
+            farmId: {
+              in: userFarmIds,
+            },
+          },
+          select: { id: true },
+        })
+      : [];
     
     const userFieldIds = userFields.map(f => f.id);
     
     // Get user's crop IDs
-    const userCrops = await prisma.crop.findMany({
-      where: {
-        fieldId: {
-          in: userFieldIds,
-        },
-      },
-      select: { id: true },
-    });
+    const userCrops = userFieldIds.length > 0
+      ? await prisma.crop.findMany({
+          where: {
+            fieldId: {
+              in: userFieldIds,
+            },
+          },
+          select: { id: true },
+        })
+      : [];
     
     const userCropIds = userCrops.map(c => c.id);
     
-    if (userCropIds.length === 0) {
-      return res.json([]);
+    const orConditions: any[] = [
+      { ownerId: userId },
+    ];
+    
+    if (userCropIds.length > 0) {
+      orConditions.push({
+        cropId: {
+          in: userCropIds,
+        },
+      });
     }
     
-    const where: any = {
-      cropId: {
-        in: userCropIds,
-      },
-    };
-    
-    if (cropId && userCropIds.includes(cropId as string)) {
-      where.cropId = cropId;
-    }
+    const cropFilter =
+      cropId && userCropIds.includes(cropId as string)
+        ? { cropId: cropId as string }
+        : null;
     
     const harvests = await prisma.harvest.findMany({
-      where,
+      where: cropFilter
+        ? {
+            AND: [
+              cropFilter,
+              { OR: orConditions },
+            ],
+          }
+        : {
+            OR: orConditions,
+          },
       include: {
         cropRecord: {
           include: {
@@ -129,13 +141,15 @@ router.get('/:id', async (req, res) => {
       },
     });
     
-    if (!harvest) {
+    if (
+      !harvest ||
+      (harvest.ownerId !== userId &&
+        (!harvest.cropId ||
+          !harvest.cropRecord ||
+          !harvest.cropRecord.field ||
+          harvest.cropRecord.field.farm.ownerId !== userId))
+    ) {
       return res.status(404).json({ message: 'Harvest not found' });
-    }
-    
-    // Multi-tenant check: verify harvest belongs to user's farm
-    if (harvest.cropId && harvest.cropRecord && harvest.cropRecord.field && harvest.cropRecord.field.farm.ownerId !== userId) {
-      return res.status(403).json({ message: 'Access denied: Harvest does not belong to your farms' });
     }
     
     res.json(harvest);
@@ -201,6 +215,7 @@ router.post('/', async (req, res) => {
         harvestArea: parseFloat(harvestArea),
         quality: quality as any,
         cropId: finalCropId,
+        ownerId: userId,
       },
       include: {
         cropRecord: {
@@ -253,13 +268,15 @@ router.put('/:id', async (req, res) => {
       },
     });
     
-    if (!existingHarvest) {
+    if (
+      !existingHarvest ||
+      (existingHarvest.ownerId !== userId &&
+        (!existingHarvest.cropId ||
+          !existingHarvest.cropRecord ||
+          !existingHarvest.cropRecord.field ||
+          existingHarvest.cropRecord.field.farm.ownerId !== userId))
+    ) {
       return res.status(404).json({ message: 'Harvest not found' });
-    }
-    
-    // Multi-tenant check: verify harvest belongs to user's farm
-    if (existingHarvest.cropId && existingHarvest.cropRecord && existingHarvest.cropRecord.field && existingHarvest.cropRecord.field.farm.ownerId !== userId) {
-      return res.status(403).json({ message: 'Access denied: Harvest does not belong to your farms' });
     }
     
     // If cropId is being changed, verify it belongs to user
@@ -354,13 +371,15 @@ router.delete('/:id', async (req, res) => {
       },
     });
     
-    if (!harvest) {
+    if (
+      !harvest ||
+      (harvest.ownerId !== userId &&
+        (!harvest.cropId ||
+          !harvest.cropRecord ||
+          !harvest.cropRecord.field ||
+          harvest.cropRecord.field.farm.ownerId !== userId))
+    ) {
       return res.status(404).json({ message: 'Harvest not found' });
-    }
-    
-    // Multi-tenant check: verify harvest belongs to user's farm
-    if (harvest.cropId && harvest.cropRecord && harvest.cropRecord.field && harvest.cropRecord.field.farm.ownerId !== userId) {
-      return res.status(403).json({ message: 'Access denied: Harvest does not belong to your farms' });
     }
     
     await prisma.harvest.delete({

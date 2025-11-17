@@ -1,113 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Leaf, Calendar, Filter, Download, Upload, FileUp, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
+import { Leaf } from 'lucide-react';
 import { useCRM } from '../contexts/CRMContext';
 import CultureDetailTable from './cultures/CropDetailsTable';
-import { 
-  Input 
-} from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DateRange } from 'react-day-picker';
 import { motion } from 'framer-motion';
-import PreviewPrintButton from './common/PreviewPrintButton';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from '@/hooks/use-toast';
 
-const SpecificCrops = () => {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+interface SpecificCropsProps {
+  searchTerm?: string;
+  dateRange?: DateRange;
+  showAddForm?: boolean;
+  setShowAddForm?: (show: boolean) => void;
+}
+
+const SpecificCrops: React.FC<SpecificCropsProps> = ({ 
+  searchTerm: externalSearchTerm = '', 
+  dateRange,
+  showAddForm: externalShowAddForm,
+  setShowAddForm: externalSetShowAddForm
+}) => {
+  const [internalShowAddForm, setInternalShowAddForm] = useState(false);
   const [filterType, setFilterType] = useState('all');
-  const { exportModuleData, importModuleData, getModuleData, syncDataAcrossCRM, addData, isRefreshing } = useCRM();
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  const { getModuleData } = useCRM();
   
-  // Obter dados de culturas para visualização/impressão
-  const culturesData = getModuleData('cultures').items || [];
-
-  const handleAddCulture = () => {
-    setShowAddForm(true);
-  };
-
-  const handleAddCultureToDB = async (cultureData: any) => {
-    try {
-      await addData('cultures', cultureData);
-      syncDataAcrossCRM(); // Atualizar todos os dados
-      toast({
-        title: "Cultura adicionada",
-        description: `${cultureData.name} foi adicionada com sucesso`,
-      });
-    } catch (error) {
-      toast({
-        title: "Erro ao adicionar cultura",
-        description: "Não foi possível adicionar a cultura ao banco de dados",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleExportData = async (format: 'csv' | 'pdf' = 'csv') => {
-    const success = await exportModuleData('cultures', format);
-    
-    if (success) {
-      toast({
-        title: "Exportação bem-sucedida",
-        description: `Os dados das culturas foram exportados em ${format.toUpperCase()}`,
-      });
-    }
-  };
-
-  const handleImportClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const success = await importModuleData('cultures', file);
-      
-      if (success) {
-        toast({
-          title: "Importação bem-sucedida",
-          description: "Os dados das culturas foram atualizados",
-        });
-      } else {
-        toast({
-          title: "Erro na importação",
-          description: "Não foi possível importar os dados das culturas",
-          variant: "destructive",
-        });
-      }
-    }
-  };
-
-  const handleRefresh = () => {
-    syncDataAcrossCRM();
-    toast({
-      title: "Dados atualizados",
-      description: "Os dados das culturas foram atualizados com sucesso",
-    });
-  };
-
-  const filterOptions = [
-    { value: 'all', label: 'Todas as culturas' },
-    { value: 'fruits', label: 'Frutas' },
-    { value: 'vegetables', label: 'Legumes' },
-    { value: 'tubers', label: 'Tubérculos' },
-    { value: 'cash', label: 'Culturas de rendimento' }
-  ];
+  // Usar showAddForm externo se fornecido, senão usar interno
+  const showAddForm = externalShowAddForm !== undefined ? externalShowAddForm : internalShowAddForm;
+  const setShowAddForm = externalSetShowAddForm || setInternalShowAddForm;
 
   return (
     <motion.div 
@@ -116,112 +33,6 @@ const SpecificCrops = () => {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h2 className="text-xl font-bold">Culturas Específicas</h2>
-          <p className="text-muted-foreground">Gerencie as informações sobre suas culturas locais</p>
-        </div>
-        <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            className="transition-colors hover:bg-gray-100"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
-            <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Atualizando...' : 'Atualizar'}
-          </Button>
-          
-          <PreviewPrintButton 
-            data={culturesData}
-            moduleName="cultures"
-            title="Culturas Específicas"
-            columns={[
-              { key: "name", header: "Nome" },
-              { key: "variety", header: "Variedade" },
-              { key: "plantingDate", header: "Data de início" },
-              { key: "harvestDate", header: "Data de término" }
-            ]}
-          />
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="transition-colors hover:bg-gray-100">
-                <Download className="mr-2 h-4 w-4" />
-                Exportar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-white border shadow-lg">
-              <DropdownMenuItem onClick={() => handleExportData('csv')} className="cursor-pointer">
-                Exportar CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportData('pdf')} className="cursor-pointer">
-                Exportar PDF
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="transition-colors hover:bg-gray-100">
-                <Upload className="mr-2 h-4 w-4" />
-                Importar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-white border shadow-lg">
-              <DropdownMenuItem onClick={handleImportClick} className="cursor-pointer">
-                <FileUp className="mr-2 h-4 w-4" />
-                Selecionar um arquivo
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <input 
-            type="file" 
-            ref={fileInputRef}
-            className="hidden"
-            accept=".csv,.xlsx"
-            onChange={handleFileChange}
-          />
-          
-          <Button 
-            onClick={handleAddCulture} 
-            className="transition-colors hover:bg-green-700"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Adicionar uma cultura
-          </Button>
-        </div>
-      </div>
-      
-      <div className="flex flex-col md:flex-row gap-3 mb-4">
-        <div className="relative flex-grow">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            type="text" 
-            placeholder="Pesquisar uma cultura..." 
-            className="pl-10 transition-all focus:border-green-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="relative">
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Todas as culturas" />
-            </SelectTrigger>
-            <SelectContent>
-              {filterOptions.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-        </div>
-      </div>
-      
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -231,7 +42,7 @@ const SpecificCrops = () => {
         <CultureDetailTable 
           showAddForm={showAddForm} 
           setShowAddForm={setShowAddForm} 
-          searchTerm={searchTerm}
+          searchTerm={externalSearchTerm}
           filterType={filterType}
         />
       </motion.div>
