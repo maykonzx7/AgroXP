@@ -1,19 +1,22 @@
 const express = require("express");
 const { createProxyMiddleware } = require("http-proxy-middleware");
-const cors = require('cors');
+const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+// Temporarily allow all origins for debugging CORS issues — DO NOT use in production
 app.use(cors());
-app.use(express.json({ limit: '10mb' })); // Increase body size limit
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: "10mb" })); // Increase body size limit
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Logging middleware
 app.use((req, res, next) => {
-  console.log(`[api-gateway] Received request: ${req.method} ${req.originalUrl}`);
+  console.log(
+    `[api-gateway] Received request: ${req.method} ${req.originalUrl}`
+  );
   next();
 });
 
@@ -33,17 +36,19 @@ const apiProxy = createProxyMiddleware("/api", {
     "^/api": "/api",
   },
   onProxyReq: (proxyReq, req, res) => {
-    console.log(`[api-gateway] Proxying request to: ${BACKEND_URL}${proxyReq.path}`);
+    console.log(
+      `[api-gateway] Proxying request to: ${BACKEND_URL}${proxyReq.path}`
+    );
     // Configure proxy request to handle long operations
     proxyReq.setTimeout(600000); // 10 minutes
-    
+
     // Set headers to ensure the request is handled properly
-    proxyReq.setHeader('Connection', 'keep-alive');
-    proxyReq.setHeader('Accept-Encoding', 'identity');
+    proxyReq.setHeader("Connection", "keep-alive");
+    proxyReq.setHeader("Accept-Encoding", "identity");
   },
   onError: (err, req, res) => {
-    console.error('[api-gateway] Proxy error:', err);
-    res.status(500).send('Proxy error');
+    console.error("[api-gateway] Proxy error:", err);
+    res.status(500).send("Proxy error");
   },
   onProxyReqWs: (proxyReq, req, socket) => {
     // Handle WebSocket connections if needed
@@ -51,7 +56,7 @@ const apiProxy = createProxyMiddleware("/api", {
   // Configure to handle long responses
   selfHandleResponse: false,
   // Additional options for handling slow operations
-  buffer: require('stream').PassThrough(),
+  buffer: require("stream").PassThrough(),
 });
 
 app.use("/api", apiProxy);

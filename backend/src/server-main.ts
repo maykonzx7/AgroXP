@@ -31,9 +31,18 @@ app.use((req, res, next) => {
 });
 
 // Middleware
+// Accept localhost origins on ports 3000, 3001 and Vite default 5173 (including 127.0.0.1 and ::1)
+const originRegex = new RegExp('^https?:\\/\\/(localhost|127\\.0\\.0\\.1|\[::1\])(?::(3000|3001|5173))?$');
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      try {
+        if (originRegex.test(origin)) return callback(null, true);
+      } catch (err) {}
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
     optionsSuccessStatus: 200,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -41,7 +50,7 @@ app.use(
   })
 );
 // Increase body size limit
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
 
 // Health check endpoints
 app.get("/api/health", (req, res) => {

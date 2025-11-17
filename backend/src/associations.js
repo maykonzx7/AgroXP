@@ -20,7 +20,8 @@ Crop.belongsTo(Parcel, { foreignKey: 'parcelId', as: 'parcel' });
 Parcel.hasMany(Livestock, { foreignKey: 'parcelId', as: 'livestocks' });
 Livestock.belongsTo(Parcel, { foreignKey: 'parcelId', as: 'parcel' });
 // Farm - Parcel (1:N) - Adding the relationship that represents multi-tenant structure
-import Farm from './modules/farms/Farm.model.js';
+// Farm model is inside the farms/models directory
+import Farm from './modules/farms/models/Farm.model.js';
 Parcel.belongsTo(Farm, { foreignKey: 'farmId', as: 'farm' });
 Farm.hasMany(Parcel, { foreignKey: 'farmId', as: 'parcels' });
 // Livestock - Feeding (1:N)
