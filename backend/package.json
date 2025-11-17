@@ -5,14 +5,16 @@
   "main": "src/server-main.ts",
   "type": "module",
   "scripts": {
-    "start": "node --loader ts-node/esm ./src/server-main.ts",
-    "dev": "nodemon --watch src --exec \"node --loader ts-node/esm ./src/server-main.ts\"",
+    "start": "tsx ./src/server-main.ts",
+    "dev": "nodemon --watch src --exec \"tsx ./src/server-main.ts\"",
     "prisma:dev": "nodemon src/server-prisma.ts",
     "prisma:seed": "npx ts-node prisma/seed.ts",
     "prisma:test-connection": "npx ts-node test-db-connection.ts",
     "prisma:create-db": "npx ts-node create-database.ts",
     "seed:dev": "node ./src/scripts/seed-dev.js",
+    "clean:fake-data": "tsx src/scripts/clean-fake-data.ts",
     "test": "jest",
+    "test:system": "tsx src/scripts/test-system.ts",
     "test-db": "tsx src/test-db.ts"
   },
   "dependencies": {

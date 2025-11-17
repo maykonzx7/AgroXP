@@ -33,7 +33,7 @@ const BudgetPlanning = () => {
   const [newCategory, setNewCategory] = useState('');
   const [newPlanned, setNewPlanned] = useState('');
   const [newActual, setNewActual] = useState('');
-  const [selectedYear, setSelectedYear] = useState('2024');
+  const [selectedYear, setSelectedYear] = useState('2025');
   const [selectedPeriod, setSelectedPeriod] = useState('annual');
   
   // Calculate totals

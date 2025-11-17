@@ -22,20 +22,45 @@ const app = express();
 const PORT = 3001;
 
 // Middleware
-// Accept localhost origins on ports 3000, 3001 and Vite default 5173 (including 127.0.0.1 and ::1)
-const originRegex = new RegExp('^https?:\\/\\/(localhost|127\\.0\\.0\\.1|\[::1\])(?::(3000|3001|5173))?$');
-
+// CORS configuration - allow localhost origins in development
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      try {
-        if (originRegex.test(origin)) return callback(null, true);
-      } catch (err) {
-        // fallback: deny
+      
+      // In development, allow all localhost variations
+      if (process.env.NODE_ENV !== "production") {
+        // Match localhost, 127.0.0.1, [::1], or any IPv6 localhost with any port
+        const localhostPatterns = [
+          /^https?:\/\/localhost(:\d+)?$/,
+          /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
+          /^https?:\/\/\[::1\](:\d+)?$/,
+          /^https?:\/\/::1(:\d+)?$/,
+        ];
+        
+        if (localhostPatterns.some(pattern => pattern.test(origin))) {
+          return callback(null, true);
+        }
       }
-      return callback(new Error('Not allowed by CORS'));
+      
+      // In production, use specific allowed origins
+      const allowedOrigins = process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
+        : [];
+      
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      console.warn(`[CORS] Origin not allowed: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
     },
+    credentials: true,
+    optionsSuccessStatus: 200,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+    exposedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.json());
@@ -53,12 +78,14 @@ app.use("/api/parcels", parcelRouter);
 app.use("/api/crops", cropsRouter);
 app.use("/api/inventory", inventoryRouter);
 app.use("/api/finance", financeRouter);
-app.use("/api/livestock", livestockRouter);
+// Register specific livestock routes BEFORE the generic /api/livestock route
+// This ensures Express matches specific routes first
 app.use("/api/livestock/feeding", feedingRouter);
 app.use("/api/livestock/vaccination", vaccinationRouter);
 app.use("/api/livestock/reproduction", reproductionRouter);
 app.use("/api/livestock/supplies", veterinarySupplyRouter);
 app.use("/api/livestock/supply-usage", livestockSupplyUsageRouter);
+app.use("/api/livestock", livestockRouter);
 
 // Database synchronization
 const initializeDatabase = async () => {

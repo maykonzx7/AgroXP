@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
@@ -74,16 +74,33 @@ import { Link } from 'react-router-dom';
 import PreviewPrintButton from '@/components/common/PreviewPrintButton';
 
 const Dashboard = () => {
-  const { getModuleData, syncDataAcrossCRM, exportModuleData, importModuleData, addData, updateModuleData, isRefreshing } = useCRM();
+  const { getModuleData, syncDataAcrossCRM, exportModuleData, importModuleData, addData, updateData, deleteData, updateModuleData, isRefreshing } = useCRM();
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
 
-  // Get data from CRM modules
-  const financeData = getModuleData('finances')?.items || [];
-  const parcelData = getModuleData('parcelles')?.items || [];
-  const cropData = getModuleData('cultures')?.items || [];
-  const livestockData = getModuleData('livestock')?.items || [];
-  const inventoryData = getModuleData('inventaire')?.items || [];
+  // Get data from CRM modules - memoized to prevent infinite loops
+  // Create stable comparison keys based on content (IDs and length)
+  const financeDataRaw = getModuleData('finances')?.items || [];
+  const parcelDataRaw = getModuleData('parcelles')?.items || [];
+  const cropDataRaw = getModuleData('cultures')?.items || [];
+  const livestockDataRaw = getModuleData('livestock')?.items || [];
+  const inventoryDataRaw = getModuleData('inventaire')?.items || [];
+  const harvestDataRaw = getModuleData('harvest')?.items || [];
+
+  // Create stable keys for comparison
+  const financeKey = financeDataRaw.length === 0 ? 'empty' : `${financeDataRaw.length}-${financeDataRaw.map(item => item.id || item._id || '').filter(Boolean).sort().join(',')}`;
+  const parcelKey = parcelDataRaw.length === 0 ? 'empty' : `${parcelDataRaw.length}-${parcelDataRaw.map(item => item.id || item._id || '').filter(Boolean).sort().join(',')}`;
+  const cropKey = cropDataRaw.length === 0 ? 'empty' : `${cropDataRaw.length}-${cropDataRaw.map(item => item.id || item._id || '').filter(Boolean).sort().join(',')}`;
+  const livestockKey = livestockDataRaw.length === 0 ? 'empty' : `${livestockDataRaw.length}-${livestockDataRaw.map(item => item.id || item._id || '').filter(Boolean).sort().join(',')}`;
+  const inventoryKey = inventoryDataRaw.length === 0 ? 'empty' : `${inventoryDataRaw.length}-${inventoryDataRaw.map(item => item.id || item._id || '').filter(Boolean).sort().join(',')}`;
+  const harvestKey = harvestDataRaw.length === 0 ? 'empty' : `${harvestDataRaw.length}-${harvestDataRaw.map(item => item.id || item._id || '').filter(Boolean).sort().join(',')}`;
+
+  const financeData = useMemo(() => financeDataRaw, [financeKey]);
+  const parcelData = useMemo(() => parcelDataRaw, [parcelKey]);
+  const cropData = useMemo(() => cropDataRaw, [cropKey]);
+  const livestockData = useMemo(() => livestockDataRaw, [livestockKey]);
+  const inventoryData = useMemo(() => inventoryDataRaw, [inventoryKey]);
+  const harvestDataFromCRM = useMemo(() => harvestDataRaw, [harvestKey]);
 
   // Generate revenue data based on actual financial data
   const generateRevenueData = (finances) => {
@@ -162,47 +179,11 @@ const Dashboard = () => {
   const [revenueData, setRevenueData] = useState([]);
   const [productionData, setProductionData] = useState([]);
 
-  // Tasks and alerts (these can remain as initial data since they're not from CRM)
-  const [upcomingTasks, setUpcomingTasks] = useState([
-    { id: 1, title: 'Colheita da soja', due: 'Hoje', priority: 'high', status: 'pending' },
-    { id: 2, title: 'Comprar sementes de milho', due: 'Amanhã', priority: 'medium', status: 'pending' },
-    { id: 3, title: 'Manutenção do trator', due: '28/08', priority: 'low', status: 'pending' },
-    { id: 4, title: 'Irrigação da lavoura de café', due: '30/08', priority: 'medium', status: 'pending' },
-  ]);
-
-  const [alerts, setAlerts] = useState([
-    { id: 1, message: 'Nível baixo de sementes de milho', type: 'warning' },
-    { id: 2, message: 'Risco de geada para a próxima semana', type: 'danger' },
-    { id: 3, message: 'Prazo de financiamento agrícola se aproximando', type: 'info' },
-  ]);
-
-  const [weatherAlerts, setWeatherAlerts] = useState([
-    {
-      id: 1,
-      type: 'Geada',
-      region: 'Sul e Sudeste',
-      startDate: '2024-07-10',
-      endDate: '2024-07-12',
-      severity: 'crítica',
-      description: 'Risco de geada forte em áreas de baixada'
-    },
-    {
-      id: 2,
-      type: 'Chuva Forte',
-      region: 'Centro-Oeste',
-      startDate: '2024-09-20',
-      endDate: '2024-09-23',
-      severity: 'moderada',
-      description: 'Precipitação intensa esperada, com risco de alagamentos'
-    }
-  ]);
-
-  // Harvest tracking
-  const [harvestData, setHarvestData] = useState([
-    { id: 1, crop: 'Soja', quantity: 1200, unit: 'toneladas', date: '2024-08-15', status: 'completed' },
-    { id: 2, crop: 'Milho', quantity: 850, unit: 'toneladas', date: '2024-08-20', status: 'in_progress' },
-    { id: 3, crop: 'Café', quantity: 420, unit: 'sacas', date: '2024-09-05', status: 'pending' },
-  ]);
+  // Tasks and alerts - loaded from API
+  const [upcomingTasks, setUpcomingTasks] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [weatherAlerts, setWeatherAlerts] = useState([]);
+  const [harvestData, setHarvestData] = useState([]);
 
   // New alert dialog
   const [showAddAlertDialog, setShowAddAlertDialog] = useState(false);
@@ -256,49 +237,94 @@ const Dashboard = () => {
     setAverageYield(parseFloat(average.toFixed(1)));
 
     // Update harvest data with actual harvest records from crop data
-    // Include both crops with harvest date and explicit harvest records
-    const harvestRecords = cropData
-      .filter(crop => crop.type === 'harvest' || crop.harvestDate) // Harvest records
-      .map((crop, index) => ({
-        id: crop.id || `harvest-${index}`,
-        crop: crop.name || crop.crop || crop.nom || 'Cultura Desconhecida',
-        quantity: crop.quantity || crop.quantite || crop.yield || 0,
-        unit: crop.unit || 'toneladas',
-        date: crop.harvestDate || crop.date || crop.dateRecolte || new Date().toISOString().split('T')[0],
-        status: crop.harvestStatus || crop.status || crop.statutRecolte || 'completed'
-      }));
-
-    setHarvestData(harvestRecords);
-
-    // Update alerts count
-    setAlertsCount(alerts.length + weatherAlerts.length);
-  }, [financeData, parcelData, cropData, livestockData, alerts, weatherAlerts]);
-
-  // Initialize harvest data from CRM when component mounts
-  useEffect(() => {
-    const initializeHarvestData = async () => {
-      try {
-        const moduleData = getModuleData('harvest');
-        if (moduleData && moduleData.items) {
-          const harvestRecords = moduleData.items
-            .map((harvest, index) => ({
-              id: harvest.id || `harvest-${index}`,
-              crop: harvest.crop || harvest.name || 'Cultura Desconhecida',
-              quantity: harvest.yield || harvest.quantity || harvest.quantite || 0,
-              unit: harvest.unit || 'toneladas',
-              date: harvest.date || harvest.harvestDate || new Date().toISOString().split('T')[0],
-              status: harvest.status || 'completed'
-            }));
-          
-          setHarvestData(harvestRecords);
-        }
-      } catch (error) {
-        console.error('Error initializing harvest data:', error);
+    // Only if we don't have dedicated harvest module data
+    // This prevents overwriting harvest data loaded from the harvest module
+    setHarvestData(prev => {
+      // Check if we have harvest data from the harvest module (has real IDs, not generated)
+      const hasHarvestModuleData = prev.length > 0 && prev.some(h => {
+        const id = h.id?.toString() || '';
+        // Real IDs from backend are usually UUIDs or cuid, not 'harvest-{number}'
+        return id && !id.startsWith('harvest-') && id.length > 10;
+      });
+      
+      // If we have harvest module data, don't overwrite with crop data
+      if (hasHarvestModuleData) {
+        return prev;
       }
-    };
+      
+      // Otherwise, use crop data as fallback
+      const harvestFromCrops = cropData
+        .filter(crop => crop.type === 'harvest' || crop.harvestDate)
+        .map((crop, index) => ({
+          id: crop.id || `harvest-${index}`,
+          crop: crop.name || crop.crop || crop.nom || 'Cultura Desconhecida',
+          quantity: crop.quantity || crop.quantite || crop.yield || 0,
+          unit: crop.unit || 'toneladas',
+          date: crop.harvestDate || crop.date || crop.dateRecolte || new Date().toISOString().split('T')[0],
+          status: crop.harvestStatus || crop.status || crop.statutRecolte || 'completed'
+        }));
+      
+      // Only update if data actually changed
+      const prevIds = prev.map(h => h.id).sort().join(',');
+      const newIds = harvestFromCrops.map(h => h.id).sort().join(',');
+      if (prevIds !== newIds || prev.length !== harvestFromCrops.length) {
+        return harvestFromCrops;
+      }
+      return prev;
+    });
+  }, [financeData, parcelData, cropData, livestockData]);
 
-    initializeHarvestData();
-  }, [getModuleData]);
+  // Update alerts count separately to avoid dependency issues
+  useEffect(() => {
+    setAlertsCount(alerts.length + weatherAlerts.length);
+  }, [alerts.length, weatherAlerts.length]);
+
+  // Initialize and update harvest data from CRM when data changes
+  useEffect(() => {
+    if (harvestDataFromCRM && harvestDataFromCRM.length > 0) {
+      const harvestRecords = harvestDataFromCRM
+        .map((harvest, index) => {
+          // Format date properly - handle both Date objects and strings
+          let formattedDate = new Date().toISOString().split('T')[0];
+          if (harvest.date) {
+            if (harvest.date instanceof Date) {
+              formattedDate = harvest.date.toISOString().split('T')[0];
+            } else if (typeof harvest.date === 'string') {
+              // If it's already a string, use it directly (assuming YYYY-MM-DD format)
+              formattedDate = harvest.date.split('T')[0]; // Remove time if present
+            }
+          } else if (harvest.harvestDate) {
+            if (harvest.harvestDate instanceof Date) {
+              formattedDate = harvest.harvestDate.toISOString().split('T')[0];
+            } else if (typeof harvest.harvestDate === 'string') {
+              formattedDate = harvest.harvestDate.split('T')[0];
+            }
+          }
+
+          return {
+            id: harvest.id || `harvest-${index}`,
+            crop: harvest.crop || harvest.name || 'Cultura Desconhecida',
+            quantity: harvest.yield || harvest.quantity || harvest.quantite || 0,
+            unit: harvest.unit || 'toneladas',
+            date: formattedDate,
+            status: harvest.status || 'completed'
+          };
+        });
+      
+      // Only update if data actually changed to avoid infinite loops
+      setHarvestData(prev => {
+        const prevIds = prev.map(h => h.id).sort().join(',');
+        const newIds = harvestRecords.map(h => h.id).sort().join(',');
+        if (prevIds !== newIds || prev.length !== harvestRecords.length) {
+          return harvestRecords;
+        }
+        return prev;
+      });
+    } else if (harvestDataFromCRM && harvestDataFromCRM.length === 0) {
+      // Clear harvest data if CRM data is empty
+      setHarvestData([]);
+    }
+  }, [harvestKey, harvestDataFromCRM]);
 
   // Handle changes
   const handleTitleChange = (value) => {
@@ -415,44 +441,43 @@ const Dashboard = () => {
     quantity: 0,
     unit: 'toneladas',
     date: new Date().toISOString().split('T')[0],
-    status: 'completed'
+    quality: 'Média', // Qualidade em português para exibição
+    harvestArea: 1 // Área de colheita em hectares (obrigatório pelo backend)
   });
 
   // Harvest tracking
   const handleAddHarvest = async () => {
     // Validation
-    if (!newHarvest.crop || newHarvest.quantity <= 0) {
-      toast.error('Por favor, preencha todos os campos obrigatórios');
+    if (!newHarvest.crop || newHarvest.quantity <= 0 || !newHarvest.harvestArea || newHarvest.harvestArea <= 0) {
+      toast.error('Por favor, preencha todos os campos obrigatórios (cultura, quantidade e área)');
       return;
     }
 
     try {
+      // Mapear qualidade de português para inglês (formato esperado pelo backend)
+      const qualityMap: Record<string, string> = {
+        'Excelente': 'EXCELLENT',
+        'Boa': 'GOOD',
+        'Média': 'AVERAGE',
+        'Baixa': 'LOW'
+      };
+      
       // Criar um objeto de colheita com os campos apropriados para o modelo Harvest
+      // O backend espera: crop, date, yield, expectedYield, harvestArea, quality (em inglês)
       const harvestRecord = {
         crop: newHarvest.crop,
         date: newHarvest.date,
         yield: newHarvest.quantity,
         expectedYield: newHarvest.quantity, // Assuming same as actual yield for now
-        harvestArea: 0, // Default to 0 if not specified
-        quality: 'Média', // Default quality
-        unit: newHarvest.unit,
-        status: newHarvest.status
+        harvestArea: newHarvest.harvestArea || 1, // Área em hectares (obrigatório, mínimo 0.01)
+        quality: qualityMap[newHarvest.quality || 'Média'] || 'AVERAGE' // Convert to English enum
       };
 
       // Adicionar ao módulo de colheita
-      await addData('harvest', harvestRecord);
+      const savedHarvest = await addData('harvest', harvestRecord);
 
-      // Atualizar diretamente o estado local para refletir imediatamente
-      setHarvestData(prev => {
-        const newId = prev.length > 0 ? Math.max(...prev.map(h => parseInt(h.id.toString().replace('harvest-', '')) || 0)) + 1 : 1;
-        return [
-          ...prev,
-          {
-            ...harvestRecord,
-            id: `harvest-${newId}` // The backend will provide the actual ID, but we need a temporary one for immediate UI update
-          }
-        ];
-      });
+      // Sincronizar dados do CRM para garantir que os dados atualizados sejam carregados
+      syncDataAcrossCRM();
       
       setShowAddHarvestDialog(false);
       setNewHarvest({
@@ -460,7 +485,8 @@ const Dashboard = () => {
         quantity: 0,
         unit: 'toneladas',
         date: new Date().toISOString().split('T')[0],
-        status: 'completed'
+        quality: 'Média',
+        harvestArea: 1
       });
       toast.success('Registro de colheita adicionado e salvo no banco de dados');
     } catch (error) {
@@ -481,10 +507,8 @@ const Dashboard = () => {
       // Update the item in the CRM context
       await updateData('harvest', id, { [field]: value });
       
-      // Update the local state
-      setHarvestData(harvestData.map(harvest =>
-        harvest.id === id ? { ...harvest, [field]: value } : harvest
-      ));
+      // Sincronizar dados do CRM para garantir que os dados atualizados sejam carregados
+      syncDataAcrossCRM();
     } catch (error) {
       console.error('Erro ao atualizar colheita:', error);
       toast.error('Erro ao atualizar o registro de colheita no banco de dados');
@@ -496,8 +520,8 @@ const Dashboard = () => {
       // Delete the item from the CRM context
       await deleteData('harvest', id);
       
-      // Update the local state
-      setHarvestData(harvestData.filter(harvest => harvest.id !== id));
+      // Sincronizar dados do CRM para garantir que os dados atualizados sejam carregados
+      syncDataAcrossCRM();
       toast.success('Registro de colheita removido do banco de dados');
     } catch (error) {
       console.error('Erro ao deletar colheita:', error);
@@ -640,6 +664,7 @@ const Dashboard = () => {
               onSave={handleTitleChange}
               className="inline-block"
               showEditIcon={true}
+              asSpan={true}
             />
           </h1>
           <p className="text-muted-foreground">
@@ -648,6 +673,7 @@ const Dashboard = () => {
               onSave={handleDescriptionChange}
               className="inline-block"
               showEditIcon={true}
+              asSpan={true}
             />
           </p>
         </div>
@@ -1004,8 +1030,8 @@ const Dashboard = () => {
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Receita Mensal</h3>
             <div className="flex space-x-2">
-              <button className="text-xs px-3 py-1.5 bg-muted rounded-md text-foreground">2024</button>
-              <button className="text-xs px-3 py-1.5 text-muted-foreground hover:bg-muted rounded-md">2023</button>
+              <button className="text-xs px-3 py-1.5 bg-muted rounded-md text-foreground">2025</button>
+              <button className="text-xs px-3 py-1.5 text-muted-foreground hover:bg-muted rounded-md">2024</button>
             </div>
           </div>
           <div className="h-80">
@@ -1286,18 +1312,34 @@ const Dashboard = () => {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
-                Status
+              <Label htmlFor="harvestArea" className="text-right">
+                Área (ha)
+              </Label>
+              <Input
+                id="harvestArea"
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={newHarvest.harvestArea}
+                onChange={(e) => handleHarvestInputChange('harvestArea', parseFloat(e.target.value) || 1)}
+                className="col-span-3"
+                placeholder="Área colhida em hectares"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="quality" className="text-right">
+                Qualidade
               </Label>
               <select
-                id="status"
-                value={newHarvest.status}
-                onChange={(e) => handleHarvestInputChange('status', e.target.value)}
+                id="quality"
+                value={newHarvest.quality}
+                onChange={(e) => handleHarvestInputChange('quality', e.target.value)}
                 className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
-                <option value="completed">Concluído</option>
-                <option value="in_progress">Em andamento</option>
-                <option value="pending">Pendente</option>
+                <option value="Excelente">Excelente</option>
+                <option value="Boa">Boa</option>
+                <option value="Média">Média</option>
+                <option value="Baixa">Baixa</option>
               </select>
             </div>
           </div>

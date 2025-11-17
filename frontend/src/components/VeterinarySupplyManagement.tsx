@@ -23,7 +23,7 @@ const VeterinarySupplyManagement = () => {
       quantity: 50,
       unit: "doses",
       supplier: "Lab Veterinário",
-      expirationDate: "2024-12-31",
+      expirationDate: "2025-12-31",
       batchNumber: "VA2023001",
       category: "vacina"
     },
@@ -34,7 +34,7 @@ const VeterinarySupplyManagement = () => {
       quantity: 1000,
       unit: "kg",
       supplier: "Agro Nutrição",
-      expirationDate: "2024-06-30",
+      expirationDate: "2025-06-30",
       batchNumber: "RP2023001",
       category: "ração"
     }

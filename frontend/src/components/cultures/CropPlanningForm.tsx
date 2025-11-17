@@ -84,7 +84,7 @@ const initialCrops: Crop[] = [
     name: 'Cana-de-açúcar',
     variety: 'R579',
     plantingDate: '2023-02-10',
-    harvestDate: '2024-02-15',
+    harvestDate: '2025-02-15',
     status: 'Em crescimento',
     surface: 12.5,
     expectedYield: 85,

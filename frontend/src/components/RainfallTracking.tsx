@@ -96,12 +96,12 @@ const RainfallTracking = () => {
     { id: 22, month: 'Outubro', year: 2023, amount: 80, location: 'Região Norte', impact: 'Neutro' },
     { id: 23, month: 'Novembro', year: 2023, amount: 95, location: 'Região Norte', impact: 'Positivo' },
     { id: 24, month: 'Dezembro', year: 2023, amount: 110, location: 'Região Norte', impact: 'Positivo' },
-    { id: 25, month: 'Janeiro', year: 2024, amount: 215, location: 'Região Sul', impact: 'Positivo' },
-    { id: 26, month: 'Fevereiro', year: 2024, amount: 185, location: 'Região Sul', impact: 'Positivo' },
-    { id: 27, month: 'Março', year: 2024, amount: 160, location: 'Região Sul', impact: 'Positivo' },
-    { id: 28, month: 'Janeiro', year: 2024, amount: 95, location: 'Região Norte', impact: 'Neutro' },
-    { id: 29, month: 'Fevereiro', year: 2024, amount: 90, location: 'Região Norte', impact: 'Neutro' },
-    { id: 30, month: 'Março', year: 2024, amount: 80, location: 'Região Norte', impact: 'Neutro' },
+    { id: 25, month: 'Janeiro', year: 2025, amount: 215, location: 'Região Sul', impact: 'Positivo' },
+    { id: 26, month: 'Fevereiro', year: 2025, amount: 185, location: 'Região Sul', impact: 'Positivo' },
+    { id: 27, month: 'Março', year: 2025, amount: 160, location: 'Região Sul', impact: 'Positivo' },
+    { id: 28, month: 'Janeiro', year: 2025, amount: 95, location: 'Região Norte', impact: 'Neutro' },
+    { id: 29, month: 'Fevereiro', year: 2025, amount: 90, location: 'Região Norte', impact: 'Neutro' },
+    { id: 30, month: 'Março', year: 2025, amount: 80, location: 'Região Norte', impact: 'Neutro' },
   ]);
   
   // Colunas para a tabela editável

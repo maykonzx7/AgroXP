@@ -7,7 +7,7 @@ const router = Router();
 // All farm routes are protected
 router.use(authenticate);
 
-// Routes
+// Routes - All routes respect multi-tenant (only user's farms)
 router.post('/', farmController.createFarm);
 router.get('/', farmController.getFarms);
 router.get('/:id', farmController.getFarmById);

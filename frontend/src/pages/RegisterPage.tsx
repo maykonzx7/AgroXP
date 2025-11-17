@@ -14,6 +14,9 @@ const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [farmName, setFarmName] = useState('');
+  const [farmLocation, setFarmLocation] = useState('');
+  const [farmDescription, setFarmDescription] = useState('');
+  const [farmSize, setFarmSize] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -36,7 +39,16 @@ const RegisterPage = () => {
     setError(null);
     
     try {
-      const success = await register(name, email, phone, farmName, password);
+      const success = await register(
+        name, 
+        email, 
+        phone, 
+        farmName, 
+        password,
+        farmLocation,
+        farmDescription,
+        farmSize ? parseFloat(farmSize) : undefined
+      );
       
       if (success) {
         // Redirect to login after successful registration
@@ -149,7 +161,7 @@ const RegisterPage = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="farmName">Nome da propriedade</Label>
+                <Label htmlFor="farmName">Nome da propriedade *</Label>
                 <div className="relative">
                   <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
@@ -162,6 +174,42 @@ const RegisterPage = () => {
                     required
                   />
                 </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="farmLocation">Localização da propriedade</Label>
+                <Input
+                  id="farmLocation"
+                  type="text"
+                  placeholder="Cidade, Estado"
+                  value={farmLocation}
+                  onChange={(e) => setFarmLocation(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="farmDescription">Descrição da propriedade</Label>
+                <textarea
+                  id="farmDescription"
+                  placeholder="Breve descrição sobre sua propriedade (opcional)"
+                  value={farmDescription}
+                  onChange={(e) => setFarmDescription(e.target.value)}
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  rows={3}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="farmSize">Tamanho da propriedade (hectares)</Label>
+                <Input
+                  id="farmSize"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="Ex: 10.5"
+                  value={farmSize}
+                  onChange={(e) => setFarmSize(e.target.value)}
+                />
               </div>
               
               <div className="space-y-2">

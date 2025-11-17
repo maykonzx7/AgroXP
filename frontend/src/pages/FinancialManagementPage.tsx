@@ -4,6 +4,9 @@ import PageHeader from "../components/layout/PageHeader";
 import usePageMetadata from "../hooks/use-page-metadata";
 import { Button } from "@/components/ui/button";
 import { useCRM } from "../contexts/CRMContext";
+import { financeApi } from "../services/api";
+import AddTransactionDialog from "../components/finance/AddTransactionDialog";
+import ImportDialog from "../components/common/ImportDialog";
 import {
   Download,
   Upload,
@@ -61,164 +64,53 @@ import {
   Area,
 } from "recharts";
 
-// Financial data types
+// Financial data types - matching Prisma schema
 interface FinancialData {
-  id: number;
+  id: string;
   date: string;
   description: string;
   category: string;
   amount: number;
-  type: "income" | "expense";
-  status: "pending" | "completed" | "cancelled";
+  type: "INCOME" | "EXPENSE";
+  fieldId?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Mock financial data
-const mockFinancialData: FinancialData[] = [
-  {
-    id: 1,
-    date: "2023-06-15",
-    description: "Venda de colheita de cana-de-açúcar",
-    category: "Receita agrícola",
-    amount: 12500.0,
-    type: "income",
-    status: "completed",
-  },
-  {
-    id: 2,
-    date: "2023-06-12",
-    description: "Compra de fertilizantes",
-    category: "Insumos",
-    amount: 3200.0,
-    type: "expense",
-    status: "completed",
-  },
-  {
-    id: 3,
-    date: "2023-06-10",
-    description: "Pagamento de funcionários",
-    category: "Mão de obra",
-    amount: 4500.0,
-    type: "expense",
-    status: "completed",
-  },
-  {
-    id: 4,
-    date: "2023-06-05",
-    description: "Manutenção de equipamentos",
-    category: "Manutenção",
-    amount: 1800.0,
-    type: "expense",
-    status: "completed",
-  },
-  {
-    id: 5,
-    date: "2023-06-01",
-    description: "Venda de banana orgânica",
-    category: "Receita agrícola",
-    amount: 8700.0,
-    type: "income",
-    status: "completed",
-  },
-];
-
-// Mock data for charts
-const revenueExpenseData = [
-  { month: "Jan", revenue: 28500, expenses: 20100 },
-  { month: "Fev", revenue: 30200, expenses: 21800 },
-  { month: "Mar", revenue: 32800, expenses: 22400 },
-  { month: "Abr", revenue: 35500, expenses: 23100 },
-  { month: "Mai", revenue: 38200, expenses: 23500 },
-  { month: "Jun", revenue: 37800, expenses: 22900 },
-];
-
-const profitabilityByParcelData = [
-  { name: "Parcela Norte", profitability: 1250, size: 12.5, crop: "Cana-de-açúcar" },
-  { name: "Parcela Leste", profitability: 980, size: 8.3, crop: "Banana" },
-  { name: "Parcela Sul", profitability: 1580, size: 15.7, crop: "Abacaxi" },
-  { name: "Parcela Oeste", profitability: 850, size: 10.2, crop: "Inhame" },
-  { name: "Parcela Central", profitability: 920, size: 6.8, crop: "Taioba" },
-];
-
-// Forecast data
-const forecastData = [
-  {
-    month: "Jul",
-    revenue: 42500,
-    expenses: 24200,
-    forecast: 18300,
-    previous: 12400,
-  },
-  {
-    month: "Ago",
-    revenue: 44800,
-    expenses: 25300,
-    forecast: 19500,
-    previous: 13100,
-  },
-  {
-    month: "Set",
-    revenue: 40200,
-    expenses: 24800,
-    forecast: 15400,
-    previous: 12400,
-  },
-  {
-    month: "Out",
-    revenue: 38200,
-    expenses: 23100,
-    forecast: 15100,
-    previous: 11800,
-  },
-  {
-    month: "Nov",
-    revenue: 36500,
-    expenses: 22500,
-    forecast: 14000,
-    previous: 10900,
-  },
-  {
-    month: "Dez",
-    revenue: 41200,
-    expenses: 25800,
-    forecast: 15400,
-    previous: 12200,
-  },
-];
-
-const cashFlowProjection = [
-  { month: "Jul", inflow: 42500, outflow: 24200, balance: 18300 },
-  { month: "Ago", inflow: 44800, outflow: 25300, balance: 19500 },
-  { month: "Set", inflow: 40200, outflow: 24800, balance: 15400 },
-  { month: "Out", inflow: 38200, outflow: 23100, balance: 15100 },
-  { month: "Nov", inflow: 36500, outflow: 22500, balance: 14000 },
-  { month: "Dez", inflow: 41200, outflow: 25800, balance: 15400 },
-];
-
-const monthlyRevenueExpenseData = [
-  { month: "Jan", revenue: 28500, expenses: 20100 },
-  { month: "Fev", revenue: 30200, expenses: 21800 },
-  { month: "Mar", revenue: 32800, expenses: 22400 },
-  { month: "Abr", revenue: 35500, expenses: 23100 },
-  { month: "Mai", revenue: 38200, expenses: 23500 },
-  { month: "Jun", revenue: 37800, expenses: 22900 },
-];
-
 const FinancialManagementPage = () => {
-  const { getModuleData, exportModuleData } = useCRM();
+  const { getModuleData, exportModuleData, syncDataAcrossCRM } = useCRM();
   const spacing = useSpacing();
   const [financialData, setFinancialData] = useState<FinancialData[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<string>("this-month");
   const [forecastDuration, setForecastDuration] = useState<string>("12");
   const [forecastModel, setForecastModel] = useState<string>("basic");
   const [revenueFactor, setRevenueFactor] = useState<number[]>([100]);
   const [expenseFactor, setExpenseFactor] = useState<number[]>([100]);
   const [revenueScenario, setRevenueScenario] = useState<string>("stable");
+  const [addTransactionOpen, setAddTransactionOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
-  // Load financial data from CRM context
+  // Load financial data from API
   useEffect(() => {
-    const data = getModuleData('finance')?.items || [];
-    setFinancialData(data);
-  }, [getModuleData]);
+    const loadFinancialData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await financeApi.getAll();
+        setFinancialData(data || []);
+      } catch (err: any) {
+        console.error('Error loading financial data:', err);
+        setError(err.message || 'Erro ao carregar dados financeiros');
+        toast.error('Erro ao carregar dados financeiros');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadFinancialData();
+  }, []);
 
   const {
     title,
@@ -244,12 +136,79 @@ const FinancialManagementPage = () => {
     }
   };
 
-  const handleImportData = () => {
-    toast.info("Funcionalidade de importação em desenvolvimento");
+  const handleImportData = async (file: File) => {
+    // Implementar lógica de importação CSV/Excel
+    try {
+      const text = await file.text();
+      const lines = text.split('\n');
+      const headers = lines[0].split(',');
+      
+      // Validar cabeçalhos esperados
+      const expectedHeaders = ['type', 'category', 'amount', 'description', 'date'];
+      const hasValidHeaders = expectedHeaders.every(h => 
+        headers.some(header => header.toLowerCase().includes(h.toLowerCase()))
+      );
+      
+      if (!hasValidHeaders) {
+        throw new Error('Formato de arquivo inválido. Verifique o template.');
+      }
+      
+      // Processar linhas (pular cabeçalho)
+      const transactions = [];
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const values = line.split(',');
+        if (values.length >= 5) {
+          transactions.push({
+            type: values[0].toUpperCase() === 'RECEITA' || values[0].toUpperCase() === 'INCOME' ? 'INCOME' : 'EXPENSE',
+            category: values[1],
+            amount: parseFloat(values[2]),
+            description: values[3],
+            date: values[4] || new Date().toISOString().split('T')[0],
+          });
+        }
+      }
+      
+      // Criar transações em lote
+      for (const transaction of transactions) {
+        await financeApi.create(transaction);
+      }
+      
+      // Recarregar dados
+      await handleTransactionAdded();
+      
+      toast.success(`${transactions.length} transações importadas com sucesso!`);
+    } catch (error: any) {
+      console.error('Import error:', error);
+      throw error;
+    }
   };
 
   const handleAddTransaction = () => {
-    toast.success("Funcionalidade de adicionar transação em desenvolvimento");
+    setAddTransactionOpen(true);
+  };
+
+  const handleTransactionAdded = async () => {
+    // Reload financial data
+    try {
+      setLoading(true);
+      // Sync CRM data first to ensure consistency
+      if (syncDataAcrossCRM) {
+        await syncDataAcrossCRM();
+      }
+      // Then reload from API
+      const data = await financeApi.getAll();
+      console.log('Reloaded financial data:', data);
+      setFinancialData(data || []);
+      toast.success('Dados atualizados com sucesso!');
+    } catch (err: any) {
+      console.error('Error reloading financial data:', err);
+      toast.error('Erro ao recarregar dados');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -265,20 +224,235 @@ const FinancialManagementPage = () => {
     }
   };
 
+  // Filter data by selected period
+  const getFilteredData = () => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    return financialData.filter((item) => {
+      const itemDate = new Date(item.date);
+      const itemMonth = itemDate.getMonth();
+      const itemYear = itemDate.getFullYear();
+
+      switch (selectedPeriod) {
+        case "this-month":
+          return itemMonth === currentMonth && itemYear === currentYear;
+        case "last-month":
+          const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+          const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+          return itemMonth === lastMonth && itemYear === lastMonthYear;
+        case "last-quarter":
+          // Last 3 months
+          const threeMonthsAgo = new Date(now);
+          threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+          return itemDate >= threeMonthsAgo;
+        case "this-year":
+          return itemYear === currentYear;
+        default:
+          return true;
+      }
+    });
+  };
+
   const calculateTotalIncome = () => {
-    return financialData
-      .filter((item) => item.type === "income")
-      .reduce((sum, item) => sum + item.amount, 0);
+    return getFilteredData()
+      .filter((item) => item.type === "INCOME")
+      .reduce((sum, item) => sum + Number(item.amount), 0);
   };
 
   const calculateTotalExpenses = () => {
-    return financialData
-      .filter((item) => item.type === "expense")
-      .reduce((sum, item) => sum + item.amount, 0);
+    return getFilteredData()
+      .filter((item) => item.type === "EXPENSE")
+      .reduce((sum, item) => sum + Number(item.amount), 0);
   };
 
   const calculateNetProfit = () => {
     return calculateTotalIncome() - calculateTotalExpenses();
+  };
+
+  // Calculate revenue and expense data by month from real data
+  const getRevenueExpenseData = () => {
+    const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const dataByMonth: { [key: string]: { revenue: number; expenses: number } } = {};
+    const filteredData = getFilteredData();
+
+    filteredData.forEach((item) => {
+      const date = new Date(item.date);
+      const monthKey = `${monthNames[date.getMonth()]}`;
+      
+      if (!dataByMonth[monthKey]) {
+        dataByMonth[monthKey] = { revenue: 0, expenses: 0 };
+      }
+
+      if (item.type === "INCOME") {
+        dataByMonth[monthKey].revenue += Number(item.amount);
+      } else {
+        dataByMonth[monthKey].expenses += Number(item.amount);
+      }
+    });
+
+    return Object.entries(dataByMonth)
+      .map(([month, values]) => ({ month, ...values }))
+      .slice(-6); // Last 6 months
+  };
+
+  // Get recent transactions for table
+  const getRecentTransactions = () => {
+    return getFilteredData()
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 10); // Show last 10 transactions
+  };
+
+  // Generate monthly revenue and expense data for bar chart
+  const getMonthlyRevenueExpenseData = () => {
+    const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const dataByMonth: { [key: string]: { revenue: number; expenses: number } } = {};
+    const filteredData = getFilteredData();
+
+    filteredData.forEach((item) => {
+      const date = new Date(item.date);
+      const monthKey = `${monthNames[date.getMonth()]}`;
+      
+      if (!dataByMonth[monthKey]) {
+        dataByMonth[monthKey] = { revenue: 0, expenses: 0 };
+      }
+
+      if (item.type === "INCOME") {
+        dataByMonth[monthKey].revenue += Number(item.amount);
+      } else {
+        dataByMonth[monthKey].expenses += Number(item.amount);
+      }
+    });
+
+    return Object.entries(dataByMonth)
+      .map(([month, values]) => ({ month, ...values }))
+      .slice(-12); // Last 12 months
+  };
+
+  // Generate cash flow projection data
+  const getCashFlowProjection = () => {
+    const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    const dataByMonth: { [key: string]: { balance: number } } = {};
+    let runningBalance = 0;
+
+    // Sort by date to calculate running balance
+    const filteredData = getFilteredData();
+    const sortedData = [...filteredData].sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    sortedData.forEach((item) => {
+      const date = new Date(item.date);
+      const monthKey = `${monthNames[date.getMonth()]}`;
+      
+      if (!dataByMonth[monthKey]) {
+        dataByMonth[monthKey] = { balance: runningBalance };
+      }
+
+      if (item.type === "INCOME") {
+        runningBalance += Number(item.amount);
+      } else {
+        runningBalance -= Number(item.amount);
+      }
+
+      dataByMonth[monthKey].balance = runningBalance;
+    });
+
+    return Object.entries(dataByMonth)
+      .map(([month, values]) => ({ month, ...values }))
+      .slice(-12); // Last 12 months
+  };
+
+  // Calculate real financial metrics
+  const calculateEBITDA = () => {
+    // EBITDA = Receitas - Despesas Operacionais (sem juros, impostos, depreciação)
+    // Para simplificar, vamos usar: Receitas - Despesas (exceto juros e impostos)
+    const totalIncome = calculateTotalIncome();
+    const filteredData = getFilteredData();
+    const operationalExpenses = filteredData
+      .filter((item) => item.type === "EXPENSE" && 
+        !item.category.toLowerCase().includes('juros') &&
+        !item.category.toLowerCase().includes('imposto') &&
+        !item.category.toLowerCase().includes('depreciação'))
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+    
+    return totalIncome - operationalExpenses;
+  };
+
+  const calculateROI = () => {
+    // ROI = (Lucro Líquido / Investimento Total) * 100
+    // Para simplificar: (Lucro Líquido / Despesas Totais) * 100
+    const netProfit = calculateNetProfit();
+    const totalExpenses = calculateTotalExpenses();
+    
+    if (totalExpenses === 0) return 0;
+    
+    // ROI baseado no retorno sobre despesas
+    return (netProfit / totalExpenses) * 100;
+  };
+
+  const calculateCashBalance = () => {
+    // Saldo de caixa atual = soma de todas as receitas - soma de todas as despesas
+    return calculateNetProfit();
+  };
+
+  const getPreviousPeriodMetrics = () => {
+    // Calcular métricas do período anterior para comparação
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    
+    // Período anterior (mês passado)
+    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    
+    const previousPeriodData = financialData.filter((item) => {
+      const itemDate = new Date(item.date);
+      return itemDate.getMonth() === previousMonth && itemDate.getFullYear() === previousYear;
+    });
+    
+    const previousIncome = previousPeriodData
+      .filter((item) => item.type === "INCOME")
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+    
+    const previousExpenses = previousPeriodData
+      .filter((item) => item.type === "EXPENSE")
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+    
+    const previousEBITDA = previousIncome - previousExpenses;
+    const previousROI = previousExpenses > 0 ? ((previousIncome - previousExpenses) / previousExpenses) * 100 : 0;
+    const previousCash = previousIncome - previousExpenses;
+    
+    return {
+      ebitda: previousEBITDA,
+      roi: previousROI,
+      cash: previousCash
+    };
+  };
+
+  const getMetricsGrowth = () => {
+    const currentEBITDA = calculateEBITDA();
+    const currentROI = calculateROI();
+    const currentCash = calculateCashBalance();
+    
+    const previous = getPreviousPeriodMetrics();
+    
+    const ebitdaGrowth = previous.ebitda !== 0 
+      ? ((currentEBITDA - previous.ebitda) / Math.abs(previous.ebitda)) * 100 
+      : 0;
+    
+    const roiGrowth = currentROI - previous.roi;
+    
+    const cashGrowth = previous.cash !== 0 
+      ? ((currentCash - previous.cash) / Math.abs(previous.cash)) * 100 
+      : 0;
+    
+    return {
+      ebitda: ebitdaGrowth,
+      roi: roiGrowth,
+      cash: cashGrowth
+    };
   };
 
   const handleRunSimulation = () => {
@@ -290,7 +464,7 @@ const FinancialManagementPage = () => {
     <Card className="h-auto">
       <CardHeader className="pb-3 pt-4">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-base">Receita e Despesa</CardTitle>
+          <CardTitle className="text-lg font-semibold">Receita e Despesa</CardTitle>
           <UITooltip>
             <TooltipTrigger asChild>
               <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
@@ -301,10 +475,10 @@ const FinancialManagementPage = () => {
           </UITooltip>
         </div>
       </CardHeader>
-      <CardContent className="h-64">
+      <CardContent className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={revenueExpenseData}
+            data={getRevenueExpenseData()}
             margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
@@ -370,7 +544,7 @@ const FinancialManagementPage = () => {
     <Card className="h-auto">
       <CardHeader className="pb-3 pt-4">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-base">Rentabilidade por parcela</CardTitle>
+          <CardTitle className="text-lg font-semibold">Rentabilidade por parcela</CardTitle>
           <UITooltip>
             <TooltipTrigger asChild>
               <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
@@ -381,7 +555,7 @@ const FinancialManagementPage = () => {
           </UITooltip>
         </div>
       </CardHeader>
-      <CardContent className="h-64">
+      <CardContent className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart
             margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
@@ -448,7 +622,7 @@ const FinancialManagementPage = () => {
             />
             <Scatter
               name="Parcelas"
-              data={profitabilityByParcelData}
+              data={[]}
               fill="#4CAF50"
             />
           </ScatterChart>
@@ -462,7 +636,7 @@ const FinancialManagementPage = () => {
     <Card className="h-auto">
       <CardHeader className="pb-3 pt-4">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-base">Receitas e Despesas mensais</CardTitle>
+          <CardTitle className="text-lg font-semibold">Receitas e Despesas mensais</CardTitle>
           <UITooltip>
             <TooltipTrigger asChild>
               <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
@@ -473,10 +647,10 @@ const FinancialManagementPage = () => {
           </UITooltip>
         </div>
       </CardHeader>
-      <CardContent className="h-48">
+      <CardContent className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <RechartsBarChart
-            data={monthlyRevenueExpenseData}
+            data={getMonthlyRevenueExpenseData()}
             margin={{ top: 10, right: 20, left: 10, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
@@ -538,37 +712,37 @@ const FinancialManagementPage = () => {
     <Card className="h-auto">
       <CardHeader className="pb-3 pt-4">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-base">Previsão Financeira</CardTitle>
+          <CardTitle className="text-lg font-semibold">Previsão Financeira</CardTitle>
           <div className="flex gap-1.5">
             <Select value={forecastDuration} onValueChange={setForecastDuration}>
-              <SelectTrigger className="w-[70px] h-7 text-xs">
-                <SelectValue placeholder="Per." />
+              <SelectTrigger className="w-[90px]">
+                <SelectValue placeholder="Período" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="3">3m</SelectItem>
-                <SelectItem value="6">6m</SelectItem>
-                <SelectItem value="12">12m</SelectItem>
-                <SelectItem value="24">24m</SelectItem>
+                <SelectItem value="3">3 meses</SelectItem>
+                <SelectItem value="6">6 meses</SelectItem>
+                <SelectItem value="12">12 meses</SelectItem>
+                <SelectItem value="24">24 meses</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={forecastModel} onValueChange={setForecastModel}>
-              <SelectTrigger className="w-[80px] h-7 text-xs">
-                <SelectValue placeholder="Mod." />
+              <SelectTrigger className="w-[110px]">
+                <SelectValue placeholder="Modelo" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="basic">Básico</SelectItem>
-                <SelectItem value="seasonal">Saz.</SelectItem>
-                <SelectItem value="advanced">Avan.</SelectItem>
+                <SelectItem value="seasonal">Sazonal</SelectItem>
+                <SelectItem value="advanced">Avançado</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="h-64">
+      <CardContent className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={forecastData}
+            data={[]}
             margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
@@ -644,7 +818,7 @@ const FinancialManagementPage = () => {
     <Card className="h-auto">
       <CardHeader className="pb-3 pt-4">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-base">Margem Líquida</CardTitle>
+          <CardTitle className="text-lg font-semibold">Margem Líquida</CardTitle>
           <UITooltip>
             <TooltipTrigger asChild>
               <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
@@ -655,10 +829,10 @@ const FinancialManagementPage = () => {
           </UITooltip>
         </div>
       </CardHeader>
-      <CardContent className="h-48">
+      <CardContent className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={forecastData}
+            data={[]}
             margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
@@ -734,7 +908,7 @@ const FinancialManagementPage = () => {
     <Card className="h-auto">
       <CardHeader className="pb-3 pt-4">
         <div className="flex justify-between items-center">
-          <CardTitle className="text-base">Fluxo de Caixa</CardTitle>
+          <CardTitle className="text-lg font-semibold">Fluxo de Caixa</CardTitle>
           <UITooltip>
             <TooltipTrigger asChild>
               <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
@@ -745,10 +919,10 @@ const FinancialManagementPage = () => {
           </UITooltip>
         </div>
       </CardHeader>
-      <CardContent className="h-48">
+      <CardContent className="h-80">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={cashFlowProjection}
+            data={getCashFlowProjection()}
             margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
@@ -804,15 +978,15 @@ const FinancialManagementPage = () => {
   const SimulationParameters = () => (
     <Card className="h-auto">
       <CardHeader className="pb-3 pt-4">
-        <CardTitle className="text-base">Parâmetros de Simulação</CardTitle>
+        <CardTitle className="text-lg font-semibold">Parâmetros de Simulação</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label className="text-xs font-medium">Receitas</Label>
-                <span className="text-xs font-medium">
+                <Label className="text-sm font-medium">Receitas</Label>
+                <span className="text-sm font-medium">
                   {revenueFactor[0]}%
                 </span>
               </div>
@@ -822,14 +996,13 @@ const FinancialManagementPage = () => {
                 min={70}
                 max={130}
                 step={1}
-                className="py-1"
               />
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label className="text-xs font-medium">Despesas</Label>
-                <span className="text-xs font-medium">
+                <Label className="text-sm font-medium">Despesas</Label>
+                <span className="text-sm font-medium">
                   {expenseFactor[0]}%
                 </span>
               </div>
@@ -839,21 +1012,20 @@ const FinancialManagementPage = () => {
                 min={70}
                 max={130}
                 step={1}
-                className="py-1"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium">Cenário</Label>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Cenário</Label>
               <Select
                 value={revenueScenario}
                 onValueChange={setRevenueScenario}
               >
-                <SelectTrigger className="h-7 text-xs">
-                  <SelectValue placeholder="Cenário" />
-                </SelectTrigger>
+              <SelectTrigger>
+                <SelectValue placeholder="Cenário" />
+              </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="optimistic">Otimista</SelectItem>
                   <SelectItem value="stable">Estável</SelectItem>
@@ -863,8 +1035,8 @@ const FinancialManagementPage = () => {
             </div>
 
             <div className="flex items-end">
-              <Button className="w-full bg-green-600 hover:bg-green-700 h-7 text-xs" onClick={handleRunSimulation}>
-                <Calculator className="h-3 w-3 mr-1" />
+              <Button className="w-full bg-agri-primary hover:bg-agri-primary-dark" size="sm" onClick={handleRunSimulation}>
+                <Calculator className="h-4 w-4 mr-2" />
                 Simular
               </Button>
             </div>
@@ -874,81 +1046,147 @@ const FinancialManagementPage = () => {
     </Card>
   );
 
-  // Projected Results Component - Compact version
-  const ProjectedResults = () => (
-    <div className="grid grid-cols-3 gap-2">
-      <Card className="h-auto">
-        <CardContent className="p-2.5">
-          <p className="text-muted-foreground text-[10px] font-medium mb-0.5">
-            EBITDA
-          </p>
-          <p className="text-sm font-bold">R$ 98.6k</p>
-          <div className="flex items-center space-x-0.5 text-green-600 text-[9px] mt-0.5">
-            <TrendingUp className="h-2.5 w-2.5" />
-            <span>+12%</span>
-          </div>
-        </CardContent>
-      </Card>
+  // Projected Results Component - Compact version with real data
+  const ProjectedResults = () => {
+    const ebitda = calculateEBITDA();
+    const roi = calculateROI();
+    const cash = calculateCashBalance();
+    const growth = getMetricsGrowth();
+    
+    const formatCurrency = (value: number) => {
+      if (Math.abs(value) >= 1000000) {
+        return `R$ ${(value / 1000000).toFixed(1)}M`;
+      } else if (Math.abs(value) >= 1000) {
+        return `R$ ${(value / 1000).toFixed(1)}k`;
+      }
+      return `R$ ${value.toFixed(2)}`;
+    };
+    
+    const formatPercentage = (value: number) => {
+      return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+    };
+    
+    const formatROI = (value: number) => {
+      return `${value.toFixed(1)}%`;
+    };
+    
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        <Card className="h-auto">
+          <CardContent className="p-3">
+            <p className="text-muted-foreground text-xs font-medium mb-1">
+              EBITDA
+            </p>
+            <p className="text-base font-bold">{formatCurrency(ebitda)}</p>
+            <div className={`flex items-center space-x-1 text-xs mt-1 ${growth.ebitda >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {growth.ebitda >= 0 ? (
+                <TrendingUp className="h-3 w-3" />
+              ) : (
+                <TrendingDown className="h-3 w-3" />
+              )}
+              <span>{formatPercentage(growth.ebitda)}</span>
+            </div>
+          </CardContent>
+        </Card>
 
-      <Card className="h-auto">
-        <CardContent className="p-2.5">
-          <p className="text-muted-foreground text-[10px] font-medium mb-0.5">
-            ROI
-          </p>
-          <p className="text-sm font-bold">21,3%</p>
-          <div className="flex items-center space-x-0.5 text-green-600 text-[9px] mt-0.5">
-            <TrendingUp className="h-2.5 w-2.5" />
-            <span>+3,2pts</span>
-          </div>
-        </CardContent>
-      </Card>
+        <Card className="h-auto">
+          <CardContent className="p-3">
+            <p className="text-muted-foreground text-xs font-medium mb-1">
+              ROI
+            </p>
+            <p className="text-base font-bold">{formatROI(roi)}</p>
+            <div className={`flex items-center space-x-1 text-xs mt-1 ${growth.roi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {growth.roi >= 0 ? (
+                <TrendingUp className="h-3 w-3" />
+              ) : (
+                <TrendingDown className="h-3 w-3" />
+              )}
+              <span>{growth.roi >= 0 ? '+' : ''}{growth.roi.toFixed(1)}pts</span>
+            </div>
+          </CardContent>
+        </Card>
 
-      <Card className="h-auto">
-        <CardContent className="p-2.5">
-          <p className="text-muted-foreground text-[10px] font-medium mb-0.5">
-            Caixa
-          </p>
-          <p className="text-sm font-bold">R$ 166.9k</p>
-          <div className="flex items-center space-x-0.5 text-green-600 text-[9px] mt-0.5">
-            <TrendingUp className="h-2.5 w-2.5" />
-            <span>+32%</span>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+        <Card className="h-auto">
+          <CardContent className="p-3">
+            <p className="text-muted-foreground text-xs font-medium mb-1">
+              Caixa
+            </p>
+            <p className="text-base font-bold">{formatCurrency(cash)}</p>
+            <div className={`flex items-center space-x-1 text-xs mt-1 ${growth.cash >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {growth.cash >= 0 ? (
+                <TrendingUp className="h-3 w-3" />
+              ) : (
+                <TrendingDown className="h-3 w-3" />
+              )}
+              <span>{formatPercentage(growth.cash)}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
 
   // Recent Transactions Table Component - Compact version
   const RecentTransactionsTable = () => (
     <Card className="h-auto">
       <CardHeader className="pb-3 pt-4">
-        <CardTitle className="text-base">Transações Recentes</CardTitle>
+        <CardTitle className="text-lg font-semibold">Transações Recentes</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full text-sm">
             <thead>
               <tr className="border-b">
-                <th className="text-left py-1.5 px-1 text-[10px] font-medium text-muted-foreground">Descrição</th>
-                <th className="text-right py-1.5 px-1 text-[10px] font-medium text-muted-foreground">Valor</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Descrição</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Categoria</th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Data</th>
+                <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">Valor</th>
               </tr>
             </thead>
             <tbody>
-              {mockFinancialData.slice(0, 4).map((transaction) => (
-                <tr key={transaction.id} className="border-b hover:bg-muted/50">
-                  <td className="py-1.5 px-1">
-                    <div className="flex items-center">
-                      <div className={`p-1 rounded-full mr-2 ${transaction.type === 'income' ? 'bg-green-100' : 'bg-red-100'}`}>
-                        <DollarSign className={`h-2.5 w-2.5 ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`} />
-                      </div>
-                      <span className="font-medium truncate max-w-[100px]">{transaction.description}</span>
-                    </div>
-                  </td>
-                  <td className={`py-1.5 px-1 text-right font-semibold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                    {transaction.type === 'income' ? '+' : '-'} R$ {(transaction.amount/1000).toFixed(1)}k
+              {loading ? (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-muted-foreground text-sm">
+                    Carregando...
                   </td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-red-600 text-sm">
+                    {error}
+                  </td>
+                </tr>
+              ) : getRecentTransactions().length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-muted-foreground text-sm">
+                    Nenhuma transação encontrada
+                  </td>
+                </tr>
+              ) : (
+                getRecentTransactions().map((transaction) => (
+                  <tr key={transaction.id} className="border-b hover:bg-muted/50">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center">
+                        <div className={`p-1.5 rounded-full mr-3 ${transaction.type === 'INCOME' ? 'bg-green-100' : 'bg-red-100'}`}>
+                          <DollarSign className={`h-4 w-4 ${transaction.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`} />
+                        </div>
+                        <span className="font-medium">{transaction.description}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Badge variant="outline" className="text-xs">
+                        {transaction.category}
+                      </Badge>
+                    </td>
+                    <td className="py-3 px-4 text-muted-foreground">
+                      {new Date(transaction.date).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className={`py-3 px-4 text-right font-semibold ${transaction.type === 'INCOME' ? 'text-green-600' : 'text-red-600'}`}>
+                      {transaction.type === 'INCOME' ? '+' : '-'} R$ {Number(transaction.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -965,36 +1203,39 @@ const FinancialManagementPage = () => {
           onTitleChange={handleTitleChange}
           onDescriptionChange={handleDescriptionChange}
           actions={
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={handleExportData}
-                className="flex items-center gap-1.5 h-7 text-xs px-2"
+                className="flex items-center gap-2"
               >
-                <Download className="h-3 w-3" />
+                <Download className="h-4 w-4" />
                 Exportar
               </Button>
               <Button
                 variant="outline"
-                onClick={handleImportData}
-                className="flex items-center gap-1.5 h-7 text-xs px-2"
+                size="sm"
+                onClick={() => setImportDialogOpen(true)}
+                className="flex items-center gap-2"
               >
-                <Upload className="h-3 w-3" />
+                <Upload className="h-4 w-4" />
                 Importar
               </Button>
               <Button
-                className="bg-green-600 hover:bg-green-700 flex items-center gap-1.5 h-7 text-xs px-2"
+                className="bg-agri-primary hover:bg-agri-primary-dark text-white"
+                size="sm"
                 onClick={handleAddTransaction}
               >
-                <Plus className="h-3 w-3" />
-                Nova
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Transação
               </Button>
             </div>
           }
           filterArea={
-            <div className="flex items-center gap-1.5 w-full md:w-auto">
+            <div className="flex items-center gap-2 w-full md:w-auto">
               <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-                <SelectTrigger className="w-full md:w-[120px] h-7 text-xs">
+                <SelectTrigger className="w-full md:w-[140px]">
                   <SelectValue placeholder="Período" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1004,12 +1245,61 @@ const FinancialManagementPage = () => {
                   <SelectItem value="this-year">Este ano</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="icon" className="h-7 w-7">
-                <Filter className="h-3 w-3" />
+              <Button variant="outline" size="icon">
+                <Filter className="h-4 w-4" />
               </Button>
             </div>
           }
         />
+
+        {/* Financial Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total de Receitas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-baseline justify-between">
+                <p className="text-2xl font-bold text-green-600">
+                  R$ {calculateTotalIncome().toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <TrendingUp className="h-5 w-5 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total de Despesas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-baseline justify-between">
+                <p className="text-2xl font-bold text-red-600">
+                  R$ {calculateTotalExpenses().toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                <TrendingDown className="h-5 w-5 text-red-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Lucro Líquido</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-baseline justify-between">
+                <p className={`text-2xl font-bold ${calculateNetProfit() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  R$ {calculateNetProfit().toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+                {calculateNetProfit() >= 0 ? (
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                ) : (
+                  <TrendingDown className="h-5 w-5 text-red-600" />
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Main two-column grid layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -1047,6 +1337,21 @@ const FinancialManagementPage = () => {
           </div>
         </div>
       </div>
+      
+      <AddTransactionDialog
+        open={addTransactionOpen}
+        onOpenChange={setAddTransactionOpen}
+        onSuccess={handleTransactionAdded}
+      />
+      
+      <ImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        onImport={handleImportData}
+        acceptedFileTypes=".csv,.xlsx,.xls"
+        title="Importar Transações Financeiras"
+        description="Selecione um arquivo CSV ou Excel com as transações"
+      />
     </PageLayout>
   );
 };

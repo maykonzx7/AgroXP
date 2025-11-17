@@ -24,7 +24,7 @@ const initialTasks: Task[] = [
   { id: 2, task: 'Tratamento contra a cercosporiose', culture: 'Banana', date: '2023-09-28', priority: 'Média' },
   { id: 3, task: 'Inspeção do crescimento do abacaxi', culture: 'Abacaxi', date: '2023-09-30', priority: 'Baixa' },
   { id: 4, task: 'Capina da área de taro', culture: 'Taro', date: '2023-10-05', priority: 'Média' },
-  { id: 5, task: 'Preparação para corte da cana', culture: 'Cana-de-açúcar', date: '2024-01-10', priority: 'Alta' },
+  { id: 5, task: 'Preparação para corte da cana', culture: 'Cana-de-açúcar', date: '2025-01-10', priority: 'Alta' },
 ];
 
 const TaskList = () => {

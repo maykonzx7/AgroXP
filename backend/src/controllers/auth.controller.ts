@@ -1,11 +1,30 @@
 import { Request, Response } from "express";
 import userService from "../services/user.service.js";
 import authService from "../services/auth.service.js";
+import prisma from "../services/database.service.js";
 
 // Register a new user
 export const register = async (req: Request, res: Response) => {
   try {
-    const { email, password, name, farmName, phone } = req.body;
+    const { 
+      email, 
+      password, 
+      name, 
+      farmName, 
+      phone,
+      farmLocation,
+      farmDescription,
+      farmSize
+    } = req.body;
+
+    // Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    if (!farmName || farmName.trim() === '') {
+      return res.status(400).json({ error: "Farm name is required" });
+    }
 
     // Check if user already exists by email
     const existingUser = await userService.getUserByEmail(email);
@@ -16,23 +35,47 @@ export const register = async (req: Request, res: Response) => {
         .json({ error: "User with this email already exists" });
     }
 
-    // Create the user
+    // Create the user and farm
     const user = await userService.createUser(
       email,
       password,
       name,
       farmName,
-      phone
+      phone,
+      farmLocation,
+      farmDescription,
+      farmSize
     );
 
     // Create a session for the user (Prisma ids are strings)
     const session = await authService.createSession(String(user.id));
 
-    // Return the user and session token
-    res.status(201).json({ user, token: session.token });
-  } catch (error) {
+    // Get user's farms to include in response
+    const farms = await prisma.farm.findMany({
+      where: { ownerId: user.id },
+      select: {
+        id: true,
+        name: true,
+        location: true,
+      },
+    });
+
+    // Return the user, farms, and session token
+    const { password: _, ...userData } = user as any;
+    res.status(201).json({ 
+      user: {
+        ...userData,
+        name: `${userData.firstName || ""} ${userData.lastName || ""}`.trim(),
+      },
+      farms,
+      token: session.token 
+    });
+  } catch (error: any) {
     console.error("Registration error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ 
+      error: "Internal server error",
+      ...(process.env.NODE_ENV === 'development' && { details: error.message })
+    });
   }
 };
 

@@ -1,16 +1,7 @@
 import * as bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import prisma from "../services/database.service.js";
-import {
-  sequelize,
-  Parcel,
-  Livestock,
-  Feeding,
-  Vaccination,
-  Reproduction,
-  VeterinarySupply,
-  LivestockSupplyUsage,
-} from "../associations.js";
+// Removed Sequelize imports - using Prisma only
 
 async function wipePrisma() {
   console.log("Wiping Prisma tables (User, RefreshToken)...");
@@ -24,56 +15,53 @@ async function wipePrisma() {
   }
 }
 
+// Removed Sequelize wipe - we're using Prisma only now
 async function wipeSequelizeAndRecreate() {
-  console.log("Dropping and recreating Sequelize tables...");
-  try {
-    // Calling `sequelize.drop()` can trigger dialect-specific code paths that
-    // fail in some environments. Use force sync to recreate tables instead.
-    await sequelize.sync({ force: true });
-  } catch (e) {
-    console.warn("Sequelize recreate warning:", String(e));
-    // Try a fallback sync without force so we don't block seeding completely
-    await sequelize.sync();
-  }
+  console.log("Skipping Sequelize operations (using Prisma only)...");
+  // No longer needed - we're using Prisma exclusively
 }
 
 async function createSeeds() {
-  console.log("Creating Sequelize seeds...");
-  const parcel = await Parcel.create({
-    name: "Seed Parcel",
-    size: 10.5,
-    location: "Seed Farm",
-  });
-  const livestock = await Livestock.create({
-    name: "Bella",
-    breed: "Angus",
-    quantity: 1,
-    age: 4,
-    weight: 420,
-    category: "bovino",
-    status: "ativo",
-    parcelId: parcel.id,
-  });
-  await Feeding.create({
-    livestockId: livestock.id,
-    feedType: "Hay",
-    quantity: 5.5,
-    unit: "kg",
-    feedingDate: new Date(),
+  console.log("Creating Prisma user with farm (for development only)...");
+  
+  // Check if user already exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: "dev@local" },
   });
 
-  console.log("Creating Prisma user...");
+  if (existingUser) {
+    console.log("User dev@local already exists. Skipping seed creation.");
+    return;
+  }
+
   const hashed = await bcrypt.hash("password", 10);
-  const user = await prisma.user.create({
-    data: {
-      email: "dev@local",
-      password: hashed,
-      firstName: "Dev",
-      lastName: "User",
-      phone: "0000-0000",
-      role: "FARMER",
-      isActive: true,
-    },
+  
+  // Create user with farm in a transaction
+  const result = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        email: "dev@local",
+        password: hashed,
+        firstName: "Dev",
+        lastName: "User",
+        phone: "0000-0000",
+        role: "FARMER",
+        isActive: true,
+      },
+    });
+
+    // Create a farm for the user
+    const farm = await tx.farm.create({
+      data: {
+        name: "Fazenda de Desenvolvimento",
+        description: "Fazenda criada para testes de desenvolvimento",
+        location: "Localização não informada",
+        size: null,
+        ownerId: user.id,
+      },
+    });
+
+    return { user, farm };
   });
 
   // Create a refresh token for convenience
@@ -81,17 +69,19 @@ async function createSeeds() {
   await prisma.refreshToken.create({
     data: {
       token,
-      userId: user.id,
+      userId: result.user.id,
       expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
     },
   });
 
-  console.log("Seed created:", {
-    parcelId: parcel.id,
-    livestockId: livestock.id,
-    userId: user.id,
+  console.log("Seed created (user with farm, no fake data):", {
+    userId: result.user.id,
+    farmId: result.farm.id,
+    email: result.user.email,
+    password: "password",
     token,
   });
+  console.log("\n⚠️  Note: No fake data created. Users should create their own data through registration.");
 }
 
 async function main() {

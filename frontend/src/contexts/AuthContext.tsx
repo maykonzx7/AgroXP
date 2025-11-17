@@ -120,7 +120,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     email: string,
     phone: string,
     farmName: string,
-    password: string
+    password: string,
+    farmLocation?: string,
+    farmDescription?: string,
+    farmSize?: number
   ): Promise<boolean> => {
     try {
       setLoading(true);
@@ -131,7 +134,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name, email, phone, farmName, password }),
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          phone, 
+          farmName, 
+          password,
+          farmLocation,
+          farmDescription,
+          farmSize
+        }),
       });
 
       if (response.ok) {

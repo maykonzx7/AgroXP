@@ -22,7 +22,7 @@ const ReproductionManagement = () => {
       livestockId: 1,
       animalName: "Vaca 1",
       matingDate: "2023-05-15",
-      expectedDeliveryDate: "2024-02-15",
+      expectedDeliveryDate: "2025-02-15",
       actualDeliveryDate: null,
       offspringCount: null,
       notes: "Inseminação artificial",

@@ -183,6 +183,7 @@ const HarvestTracking = () => {
                 value={title}
                 onSave={handleTitleChange}
                 className="inline-block"
+                asSpan={true}
               />
             </h2>
             <p className="text-muted-foreground">
@@ -190,6 +191,7 @@ const HarvestTracking = () => {
                 value={description}
                 onSave={handleDescriptionChange}
                 className="inline-block"
+                asSpan={true}
               />
             </p>
           </div>

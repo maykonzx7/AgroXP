@@ -17,25 +17,48 @@ export const createUser = async (
   password: string,
   name?: string,
   farmName?: string,
-  phone?: string
+  phone?: string,
+  farmLocation?: string,
+  farmDescription?: string,
+  farmSize?: number
 ) => {
   // Hash the password
   const hashedPassword = await bcrypt.hash(password, 7); // Reduced cost for better performance
 
   const { firstName, lastName } = splitName(name);
 
-  // Create the user in the database
-  const user = await prisma.user.create({
-    data: {
-      email,
-      password: hashedPassword,
-      firstName,
-      lastName,
-      phone,
-    },
+  // Create the user and farm in a transaction
+  const result = await prisma.$transaction(async (tx) => {
+    // Create the user in the database
+    const user = await tx.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        phone,
+      },
+    });
+
+    // Create the farm for the user if farmName is provided
+    if (farmName && farmName.trim() !== '') {
+      const farm = await tx.farm.create({
+        data: {
+          name: farmName.trim(),
+          description: farmDescription || null,
+          location: farmLocation || 'Localização não informada',
+          size: farmSize || null,
+          ownerId: user.id,
+        },
+      });
+
+      return { user, farm };
+    }
+
+    return { user, farm: null };
   });
 
-  return user;
+  return result.user;
 };
 
 // User authentication

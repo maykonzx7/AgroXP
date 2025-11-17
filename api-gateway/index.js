@@ -7,8 +7,31 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-// Temporarily allow all origins for debugging CORS issues — DO NOT use in production
-app.use(cors());
+// CORS configuration - allow specific origins
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : ["http://localhost:5173", "http://localhost:3000", "http://localhost:3001"];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (
+        allowedOrigins.indexOf(origin) !== -1 ||
+        origin.includes("localhost")
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+  })
+);
 app.use(express.json({ limit: "10mb" })); // Increase body size limit
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 

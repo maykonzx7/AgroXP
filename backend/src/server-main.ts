@@ -1,20 +1,32 @@
 import express from "express";
 import cors from "cors";
-import sequelize from "./config/database.config.js";
-import { Parcel, Crop, Livestock } from "./associations.js";
-import Inventory from "./modules/inventory/models/Inventory.model.js";
-import Finance from "./modules/finance/models/Finance.model.js";
-import parcelsRouter from "./routes/parcels.js";
-import cropsRouter from "./routes/crops.js";
+import prisma from "./services/database.service.js";
+// @ts-ignore - TypeScript route file
+import parcelsRouter from "./modules/parcels/routes/parcel.routes.js";
+// @ts-ignore - TypeScript route file
+import cropsRouter from "./modules/crops/routes/crops.routes.js";
+// @ts-ignore - TypeScript route file
 import inventoryRouter from "./modules/inventory/routes/inventory.routes.js";
+// @ts-ignore - TypeScript route file
 import financeRouter from "./modules/finance/routes/finance.routes.js";
-import livestockRouter from "./routes/livestock.js";
+// @ts-ignore - TypeScript route file
+import livestockRouter from "./modules/livestock/routes/livestock.routes.js";
+// @ts-ignore - TypeScript route file
 import feedingRouter from "./modules/livestock/routes/feeding.routes.js";
+// @ts-ignore - TypeScript route file
 import vaccinationRouter from "./modules/livestock/routes/vaccination.routes.js";
+// @ts-ignore - TypeScript route file
 import reproductionRouter from "./modules/livestock/routes/reproduction.routes.js";
+// @ts-ignore - TypeScript route file
 import veterinarySupplyRouter from "./modules/livestock/routes/veterinarySupply.routes.js";
+// @ts-ignore - TypeScript route file
 import livestockSupplyUsageRouter from "./modules/livestock/routes/livestockSupplyUsage.routes.js";
 import authRouter from "./routes/auth.routes.js";
+import farmRouter from "./modules/farms/routes/farm.routes.js";
+import tasksRouter from "./modules/tasks/routes/tasks.routes.js";
+import weatherRouter from "./modules/weather/routes/weather.routes.js";
+import alertsRouter from "./modules/alerts/routes/alerts.routes.js";
+import harvestRouter from "./modules/harvest/routes/harvest.routes.js";
 import devRouter from "./routes/dev.routes.js";
 import dotenv from "dotenv";
 
@@ -31,22 +43,45 @@ app.use((req, res, next) => {
 });
 
 // Middleware
-// Accept localhost origins on ports 3000, 3001 and Vite default 5173 (including 127.0.0.1 and ::1)
-const originRegex = new RegExp('^https?:\\/\\/(localhost|127\\.0\\.0\\.1|\[::1\])(?::(3000|3001|5173))?$');
-
+// CORS configuration - allow localhost origins in development
 app.use(
   cors({
     origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      try {
-        if (originRegex.test(origin)) return callback(null, true);
-      } catch (err) {}
-      return callback(new Error("Not allowed by CORS"));
+      
+      // In development, allow all localhost variations
+      if (process.env.NODE_ENV !== "production") {
+        // Match localhost, 127.0.0.1, [::1], or any IPv6 localhost with any port
+        const localhostPatterns = [
+          /^https?:\/\/localhost(:\d+)?$/,
+          /^https?:\/\/127\.0\.0\.1(:\d+)?$/,
+          /^https?:\/\/\[::1\](:\d+)?$/,
+          /^https?:\/\/::1(:\d+)?$/,
+        ];
+        
+        if (localhostPatterns.some(pattern => pattern.test(origin))) {
+          return callback(null, true);
+        }
+      }
+      
+      // In production, use specific allowed origins
+      const allowedOrigins = process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
+        : [];
+      
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      console.warn(`[CORS] Origin not allowed: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     optionsSuccessStatus: 200,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+    exposedHeaders: ["Content-Type", "Authorization"],
   })
 );
 // Increase body size limit
@@ -64,6 +99,7 @@ app.get("/health", (req, res) => {
 
 // Routes
 app.use("/api/auth", authRouter);
+app.use("/api/farms", farmRouter);
 // Dev-only routes
 if (process.env.NODE_ENV !== "production") {
   app.use("/api/dev", devRouter);
@@ -72,36 +108,46 @@ app.use("/api/parcels", parcelsRouter);
 app.use("/api/crops", cropsRouter);
 app.use("/api/inventory", inventoryRouter);
 app.use("/api/finance", financeRouter);
-app.use("/api/livestock", livestockRouter);
+// Register specific livestock routes BEFORE the generic /api/livestock route
+// This ensures Express matches specific routes first
 app.use("/api/livestock/feeding", feedingRouter);
 app.use("/api/livestock/vaccination", vaccinationRouter);
 app.use("/api/livestock/reproduction", reproductionRouter);
 app.use("/api/livestock/supplies", veterinarySupplyRouter);
 app.use("/api/livestock/supply-usage", livestockSupplyUsageRouter);
+app.use("/api/livestock", livestockRouter);
+app.use("/api/tasks", tasksRouter);
+app.use("/api/weather", weatherRouter);
+app.use("/api/alerts", alertsRouter);
+app.use("/api/harvest", harvestRouter);
 
-// Database synchronization
+// Error handling middleware (must be after routes)
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("Error:", err);
+  res.status(500).json({ 
+    error: err.message || "Internal server error",
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack })
+  });
+});
+
+// Database connection with Prisma
 const initializeDatabase = async () => {
   try {
-    await sequelize.authenticate();
-    console.log("Database connection has been established successfully.");
-
-    // Sync models with force: false to avoid dropping data, but handle enums properly
-    try {
-      // Allow skipping DB sync in development to avoid blocking startup when schemas mismatch
-      if (process.env.SKIP_DB_SYNC === "true") {
-        console.log("SKIP_DB_SYNC=true -> skipping sequelize.sync()");
-      } else {
-        await sequelize.sync({ alter: true }); // This will handle alter operations carefully
-        console.log("Database synchronized successfully.");
-      }
-    } catch (syncErr) {
-      console.error("Database sync failed (continuing in dev):", syncErr);
-      // continue without throwing to keep the server running in development
-    }
+    await prisma.$connect();
+    console.log("Database connection has been established successfully with Prisma.");
   } catch (error) {
     console.error("Unable to connect to the database:", error);
+    // Don't exit in development to allow for easier debugging
+    if (process.env.NODE_ENV === "production") {
+      process.exit(1);
+    }
   }
 };
+
+// Graceful shutdown
+process.on("beforeExit", async () => {
+  await prisma.$disconnect();
+});
 
 initializeDatabase();
 

@@ -1,13 +1,3 @@
-import express from "express";
-import parcelController from "../controllers/parcel.controller.js";
-import { authenticate } from "../../middleware/auth.middleware.js";
-const router = express.Router();
-// All parcel routes are protected
-router.use(authenticate);
-// Routes
-router.get("/", parcelController.getParcels);
-router.get("/:id", parcelController.getParcelById);
-router.post("/", parcelController.createParcel);
-router.put("/:id", parcelController.updateParcel);
-router.delete("/:id", parcelController.deleteParcel);
-export default router;
+// Re-export from TypeScript file
+// ts-node/esm will resolve .ts files when importing .js
+export { default } from './parcel.routes.ts';

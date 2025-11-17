@@ -23,7 +23,7 @@ const VaccinationManagement = () => {
       animalName: "Vaca 1",
       vaccineName: "Aftosa",
       vaccinationDate: "2023-06-15",
-      nextVaccinationDate: "2024-06-15",
+      nextVaccinationDate: "2025-06-15",
       veterinarian: "Dr. Silva",
       notes: "Vacinação em dia"
     },
@@ -33,7 +33,7 @@ const VaccinationManagement = () => {
       animalName: "Porco 1",
       vaccineName: "Aftosa",
       vaccinationDate: "2023-06-10",
-      nextVaccinationDate: "2024-06-10",
+      nextVaccinationDate: "2025-06-10",
       veterinarian: "Dr. Santos",
       notes: "Primeira dose"
     }

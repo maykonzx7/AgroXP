@@ -50,7 +50,7 @@ const parcelData: ParcelDetail = {
       crop: 'Cana-de-açúcar', 
       variety: 'R579', 
       plantingDate: '2023-02-10', 
-      harvestDate: '2024-02-15',
+      harvestDate: '2025-02-15',
       status: 'Em crescimento'
     },
     {
@@ -111,7 +111,7 @@ const initialTasks: TaskData[] = [
   {
     id: 5,
     task: 'Preparação para o corte da cana',
-    dueDate: '2024-01-10',
+    dueDate: '2025-01-10',
     assignedTo: 'João da Silva',
     priority: 'Alta',
     status: 'A fazer'

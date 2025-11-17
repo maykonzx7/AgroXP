@@ -82,7 +82,7 @@ const WeatherAlerts = () => {
   const [weatherAlerts, setWeatherAlerts] = useState<WeatherAlert[]>([
     {
       id: 1,
-      date: '2024-06-15',
+      date: '2025-06-15',
       type: 'Chuva forte',
       region: 'Região Sul',
       severity: 'Alta',
@@ -93,7 +93,7 @@ const WeatherAlerts = () => {
     },
     {
       id: 2,
-      date: '2024-06-20',
+      date: '2025-06-20',
       type: 'Tempestade tropical',
       region: 'Região Norte',
       severity: 'Extrema',
@@ -104,7 +104,7 @@ const WeatherAlerts = () => {
     },
     {
       id: 3,
-      date: '2024-05-25',
+      date: '2025-05-25',
       type: 'Seca',
       region: 'Região Norte',
       severity: 'Média',
@@ -115,7 +115,7 @@ const WeatherAlerts = () => {
     },
     {
       id: 4,
-      date: '2024-07-05',
+      date: '2025-07-05',
       type: 'Calor excessivo',
       region: 'Arquipélago',
       severity: 'Média',
@@ -126,7 +126,7 @@ const WeatherAlerts = () => {
     },
     {
       id: 5,
-      date: '2024-06-10',
+      date: '2025-06-10',
       type: 'Inundação',
       region: 'Região Sul',
       severity: 'Alta',
@@ -286,6 +286,7 @@ const WeatherAlerts = () => {
               value={title}
               onSave={handleTitleChange}
               className="inline-block"
+              asSpan={true}
             />
           </h2>
           <p className="text-muted-foreground">
@@ -293,6 +294,7 @@ const WeatherAlerts = () => {
               value={description}
               onSave={handleDescriptionChange}
               className="inline-block"
+              asSpan={true}
             />
           </p>
         </div>
