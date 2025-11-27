@@ -135,7 +135,7 @@ const ForgotPasswordPage = () => {
         </Card>
         
         <div className="mt-8 text-center text-sm text-muted-foreground">
-          <p>© 2024 AgroXP. Todos os direitos reservados.</p>
+          <p>© 2025 AgroXP. Todos os direitos reservados.</p>
         </div>
       </div>
     </div>

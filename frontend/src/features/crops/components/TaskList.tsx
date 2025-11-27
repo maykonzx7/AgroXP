@@ -4,6 +4,15 @@ import { Check, Trash2, ChevronDown, Plus, Calendar, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,7 +101,7 @@ const TaskList = () => {
       <div className="p-4 flex items-center justify-between border-b">
         <div className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-agri-primary" />
-          <h2 className="text-xl font-semibold">Tarefas futuras</h2>
+          <h2 className="text-xl font-semibold text-foreground">Tarefas futuras</h2>
         </div>
         <Button 
           onClick={() => setShowAddTask(!showAddTask)}
@@ -106,51 +115,60 @@ const TaskList = () => {
       {showAddTask && (
         <div className="p-4 bg-muted/20 border-b">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Tarefa</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="task-input" className="text-sm font-medium text-foreground">Tarefa</Label>
+              <Input
+                id="task-input"
                 type="text"
                 value={newTask.task}
                 onChange={(e) => setNewTask({...newTask, task: e.target.value})}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-agri-primary focus:border-agri-primary"
                 placeholder="Descrição da tarefa"
+                className="bg-background"
               />
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Cultura</label>
-              <select
+            <div className="space-y-2">
+              <Label htmlFor="culture-select" className="text-sm font-medium text-foreground">Cultura</Label>
+              <Select
                 value={newTask.culture}
-                onChange={(e) => setNewTask({...newTask, culture: e.target.value})}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-agri-primary focus:border-agri-primary"
+                onValueChange={(value) => setNewTask({...newTask, culture: value})}
               >
-                <option value="">Selecionar uma cultura</option>
-                <option value="Cana-de-açúcar">Cana-de-açúcar</option>
-                <option value="Banana">Banana</option>
-                <option value="Abacaxi">Abacaxi</option>
-                <option value="Taro">Taro</option>
-                <option value="Inhame">Inhame</option>
-              </select>
+                <SelectTrigger id="culture-select" className="bg-background">
+                  <SelectValue placeholder="Selecionar uma cultura" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Cana-de-açúcar">Cana-de-açúcar</SelectItem>
+                  <SelectItem value="Banana">Banana</SelectItem>
+                  <SelectItem value="Abacaxi">Abacaxi</SelectItem>
+                  <SelectItem value="Taro">Taro</SelectItem>
+                  <SelectItem value="Inhame">Inhame</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Data</label>
-              <input
+            <div className="space-y-2">
+              <Label htmlFor="date-input" className="text-sm font-medium text-foreground">Data</Label>
+              <Input
+                id="date-input"
                 type="date"
                 value={newTask.date}
                 onChange={(e) => setNewTask({...newTask, date: e.target.value})}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-agri-primary focus:border-agri-primary"
+                className="bg-background"
               />
             </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Prioridade</label>
-              <select
+            <div className="space-y-2">
+              <Label htmlFor="priority-select" className="text-sm font-medium text-foreground">Prioridade</Label>
+              <Select
                 value={newTask.priority}
-                onChange={(e) => setNewTask({...newTask, priority: e.target.value as Task['priority']})}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-agri-primary focus:border-agri-primary"
+                onValueChange={(value) => setNewTask({...newTask, priority: value as Task['priority']})}
               >
-                <option value="Alta">Alta</option>
-                <option value="Média">Média</option>
-                <option value="Baixa">Baixa</option>
-              </select>
+                <SelectTrigger id="priority-select" className="bg-background">
+                  <SelectValue placeholder="Selecionar prioridade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Alta">Alta</SelectItem>
+                  <SelectItem value="Média">Média</SelectItem>
+                  <SelectItem value="Baixa">Baixa</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="flex justify-end mt-4 space-x-2">
@@ -168,24 +186,24 @@ const TaskList = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[40%]">TAREFA</TableHead>
-              <TableHead className="w-[20%]">CULTURA</TableHead>
-              <TableHead className="w-[15%]">DATA</TableHead>
-              <TableHead className="w-[15%]">PRIORIDADE</TableHead>
-              <TableHead className="w-[10%]">AÇÕES</TableHead>
+              <TableHead className="w-[40%] text-foreground font-semibold">TAREFA</TableHead>
+              <TableHead className="w-[20%] text-foreground font-semibold">CULTURA</TableHead>
+              <TableHead className="w-[15%] text-foreground font-semibold">DATA</TableHead>
+              <TableHead className="w-[15%] text-foreground font-semibold">PRIORIDADE</TableHead>
+              <TableHead className="w-[10%] text-foreground font-semibold">AÇÕES</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {tasks.map((task) => (
               <TableRow key={task.id} className="hover:bg-muted/20 transition-colors">
-                <TableCell className="font-medium">{task.task}</TableCell>
-                <TableCell>
+                <TableCell className="font-medium text-foreground">{task.task}</TableCell>
+                <TableCell className="text-foreground">
                   <div className="flex items-center">
                     <Tag className="h-3 w-3 mr-1.5 text-agri-primary" />
                     {task.culture}
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="text-foreground">
                   {new Date(task.date).toLocaleDateString('pt-BR')}
                 </TableCell>
                 <TableCell>

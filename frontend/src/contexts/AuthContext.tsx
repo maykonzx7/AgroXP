@@ -58,6 +58,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(false);
   }, []);
 
+  // Listen for logout events (e.g., from 401 errors in API calls)
+  useEffect(() => {
+    const handleUserLoggedOut = () => {
+      // Clear state when logout event is dispatched (e.g., from 401 errors)
+      setUser(null);
+      setToken(null);
+    };
+
+    window.addEventListener('userLoggedOut', handleUserLoggedOut);
+
+    return () => {
+      window.removeEventListener('userLoggedOut', handleUserLoggedOut);
+    };
+  }, []);
+
   // Login function
   const login = async (email: string, password: string): Promise<boolean> => {
     try {

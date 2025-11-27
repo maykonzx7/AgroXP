@@ -98,8 +98,17 @@ export const EditableField = ({
           <select
             ref={inputRef as React.RefObject<HTMLSelectElement>}
             value={inputValue as string}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              // Salvar automaticamente quando selecionar uma opção
+              const processedValue = type === 'number' ? 
+                (e.target.value === '' ? 0 : Number(e.target.value)) : 
+                e.target.value;
+              onSave(processedValue);
+              setIsEditing(false);
+            }}
             onKeyDown={handleKeyDown}
+            onBlur={handleSave}
             className={`px-2 py-1 border border-input rounded-md focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground ${inputClassName}`}
           >
             {options.map((option) => (
@@ -115,6 +124,7 @@ export const EditableField = ({
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
+            onBlur={handleSave}
             className={`px-2 py-1 border border-input rounded-md focus:ring-1 focus:ring-primary focus:outline-none bg-background text-foreground ${inputClassName}`}
             placeholder={placeholder}
           />

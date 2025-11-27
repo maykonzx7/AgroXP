@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../../../services/database.service.js';
+import prisma, { verifyPersistence } from '../../../services/database.service.js';
 
 // Create a new farm - Multi-tenant: always uses authenticated user
 export const createFarm = async (req: Request, res: Response) => {
@@ -15,30 +15,44 @@ export const createFarm = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Farm name is required' });
     }
     
-    const farm = await prisma.farm.create({
-      data: {
-        name: name.trim(),
-        description: description || null,
-        location: location || 'Localização não informada',
-        size: size ? parseFloat(size) : null,
-        ownerId: userId, // Always use authenticated user
-      },
-      include: {
-        owner: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
+    // Criar fazenda em uma transação para garantir persistência
+    const farm = await prisma.$transaction(async (tx) => {
+      const newFarm = await tx.farm.create({
+        data: {
+          name: name.trim(),
+          description: description || null,
+          location: location || 'Localização não informada',
+          size: size ? parseFloat(size) : null,
+          ownerId: userId, // Always use authenticated user
+        },
+        include: {
+          owner: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
         },
-      },
+      });
+
+      // Verificar persistência após criar
+      const persisted = await verifyPersistence(prisma.farm, newFarm.id);
+      if (!persisted) {
+        throw new Error('Fazenda criada mas não persistida no banco de dados');
+      }
+
+      return newFarm;
     });
     
     res.status(201).json(farm);
   } catch (error: any) {
     console.error('Create farm error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      error: error.message || 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
@@ -169,18 +183,29 @@ export const updateFarm = async (req: Request, res: Response) => {
     if (location !== undefined) updateData.location = location || null;
     if (size !== undefined) updateData.size = size ? parseFloat(size) : null;
     
-    const farm = await prisma.farm.update({
-      where: { id },
-      data: updateData,
-      include: {
-        owner: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
+    // Atualizar em transação para garantir persistência
+    const farm = await prisma.$transaction(async (tx) => {
+      const updatedFarm = await tx.farm.update({
+        where: { id },
+        data: updateData,
+        include: {
+          owner: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
           },
         },
-      },
+      });
+
+      // Verificar persistência após atualizar
+      const persisted = await verifyPersistence(prisma.farm, updatedFarm.id);
+      if (!persisted) {
+        throw new Error('Fazenda atualizada mas não persistida no banco de dados');
+      }
+
+      return updatedFarm;
     });
     
     res.json(farm);

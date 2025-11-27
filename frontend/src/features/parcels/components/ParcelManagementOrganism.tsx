@@ -184,18 +184,19 @@ const ParcelManagementOrganism = ({ searchTerm = '', filterStatus = 'all' }: Par
   const isError = false;
   
   // Converter dados do backend para o formato esperado
+  // Os dados já vêm mapeados do use-crm-context, mas precisamos garantir compatibilidade
   const parcels = parcelsData.map((parcel: any) => ({
     id: parcel.id,
     name: parcel.name,
     area: parcel.size || parcel.area,
     crop: parcel.crop || parcel.crops?.[0]?.name || 'Não especificado',
-    status: parcel.status || 'planned',
-    lastActivity: parcel.updatedAt ? new Date(parcel.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    status: parcel.status || 'active', // Usar 'active' como padrão se não houver status
+    lastActivity: parcel.lastActivity || (parcel.updatedAt ? new Date(parcel.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]),
     soilType: parcel.soilType || 'Não especificado',
     coordinates: parcel.coordinates || { lat: 16.265, lng: -61.551 },
     irrigation: parcel.irrigation || 'Não especificado',
-    plantingDate: parcel.plantingDate || parcel.crops?.[0]?.plantingDate ? new Date(parcel.crops[0].plantingDate).toISOString().split('T')[0] : undefined,
-    harvestDate: parcel.harvestDate || parcel.crops?.[0]?.harvestDate ? new Date(parcel.crops[0].harvestDate).toISOString().split('T')[0] : undefined,
+    plantingDate: parcel.plantingDate || (parcel.crops?.[0]?.plantingDate ? new Date(parcel.crops[0].plantingDate).toISOString().split('T')[0] : undefined),
+    harvestDate: parcel.harvestDate || (parcel.crops?.[0]?.harvestDate ? new Date(parcel.crops[0].harvestDate).toISOString().split('T')[0] : undefined),
     rainfall: parcel.rainfall,
     notes: parcel.notes || parcel.description || '',
     photos: parcel.photos || []

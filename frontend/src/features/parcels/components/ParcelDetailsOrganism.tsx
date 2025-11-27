@@ -60,12 +60,6 @@ const ParcelDetailsOrganism: React.FC<ParcelDetailsOrganismProps> = ({
   const { getModuleData } = useCRM();
   const cropsData = getModuleData('cultures')?.items || [];
   
-  // Preparar opções de culturas para o select
-  const cropOptions = cropsData.map((crop: any) => ({
-    value: crop.name || crop.id,
-    label: `${crop.name || 'Cultura sem nome'}${crop.variety ? ` - ${crop.variety}` : ''}`
-  }));
-  
   if (!parcel) {
     return (
       <div className="border rounded-xl bg-muted h-full flex flex-col items-center justify-center p-6">
@@ -80,6 +74,27 @@ const ParcelDetailsOrganism: React.FC<ParcelDetailsOrganismProps> = ({
 
   const currentParcel = isEditing && editedParcel ? editedParcel : parcel;
   
+  // Preparar opções de culturas para o select
+  // Usar ID como valor para garantir unicidade, mesmo se houver culturas com o mesmo nome
+  const cropOptions = cropsData.map((crop: any) => ({
+    value: crop.id || `crop-${Math.random()}`, // Sempre usar ID único
+    label: `${crop.name || 'Cultura sem nome'}${crop.variety ? ` - ${crop.variety}` : ''}`
+  }));
+  
+  // Encontrar o ID da cultura atual baseado no nome (para compatibilidade com dados existentes)
+  const getCurrentCropId = (): string | undefined => {
+    if (!currentParcel?.crop) return undefined;
+    // Primeiro, tenta encontrar por ID (caso já esteja usando ID)
+    const cropById = cropsData.find((c: any) => c.id === currentParcel.crop);
+    if (cropById) return cropById.id;
+    // Se não encontrar, tenta encontrar por nome
+    const cropByName = cropsData.find((c: any) => c.name === currentParcel.crop);
+    return cropByName?.id || undefined;
+  };
+  
+  // Garantir que o valor do Select seja sempre uma string ou undefined (nunca null ou string vazia)
+  const currentCropId = getCurrentCropId() || undefined;
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-agri-success';
@@ -90,11 +105,16 @@ const ParcelDetailsOrganism: React.FC<ParcelDetailsOrganismProps> = ({
   };
 
   const getStatusLabel = (status: string) => {
-    switch (status) {
+    // Normalizar status para lowercase para garantir compatibilidade
+    const normalizedStatus = status?.toLowerCase() || 'active';
+    switch (normalizedStatus) {
       case 'active': return 'Ativa';
       case 'inactive': return 'Inativa';
       case 'planned': return 'Planejada';
-      default: return 'Desconhecido';
+      default: {
+        console.warn('Status desconhecido:', status, 'normalizado para:', normalizedStatus);
+        return 'Desconhecido';
+      }
     }
   };
 
@@ -148,12 +168,14 @@ const ParcelDetailsOrganism: React.FC<ParcelDetailsOrganismProps> = ({
                     <SelectWithLabelMolecule
                       id="crop-name"
                       label="Cultura"
-                      value={currentParcel.crop || ''}
-                      onChange={(value) => onFieldChange('crop', value)}
-                      options={[
-                        { value: '', label: 'Selecione uma cultura' },
-                        ...cropOptions
-                      ]}
+                      value={currentCropId}
+                      onChange={(value) => {
+                        // Encontrar a cultura pelo ID e salvar o nome para compatibilidade
+                        const selectedCrop = cropsData.find((c: any) => c.id === value);
+                        onFieldChange('crop', selectedCrop?.name || value);
+                      }}
+                      options={cropOptions}
+                      placeholder="Selecione uma cultura"
                     />
                   ) : (
                     <div className="space-y-2">
@@ -274,8 +296,8 @@ const ParcelDetailsOrganism: React.FC<ParcelDetailsOrganismProps> = ({
                 />
               ) : (
                 <div className="flex items-center">
-                  <Badge className={`${getStatusColor(currentParcel.status)} text-foreground`}>
-                    {getStatusLabel(currentParcel.status)}
+                  <Badge className={`${getStatusColor(currentParcel.status || 'active')} text-foreground`}>
+                    {getStatusLabel(currentParcel.status || 'active')}
                   </Badge>
                 </div>
               )}

@@ -51,17 +51,17 @@ const DashboardLayoutTemplate: React.FC<DashboardLayoutTemplateProps> = ({
   const breadcrumbs = generateBreadcrumbs();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background">
       <Navbar />
 
-      <div className="flex-1 overflow-auto">
-        <div className="border-b border-border bg-card/50 backdrop-blur-sm">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div className="flex-1 overflow-auto flex flex-col min-h-0">
+        <div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2 md:py-3">
             <BreadcrumbAtom items={breadcrumbs as any} />
           </div>
         </div>
 
-        <main className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <main className="flex-1 container mx-auto py-4 md:py-6 px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden">
           {children}
         </main>
       </div>

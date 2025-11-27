@@ -8,13 +8,14 @@
     "start": "tsx ./src/server-main.ts",
     "dev": "nodemon --watch src --exec \"tsx ./src/server-main.ts\"",
     "prisma:dev": "nodemon src/server-prisma.ts",
-    "prisma:seed": "npx ts-node prisma/seed.ts",
+    "prisma:seed": "node prisma/seed.cjs",
     "prisma:test-connection": "npx ts-node test-db-connection.ts",
     "prisma:create-db": "npx ts-node create-database.ts",
     "seed:dev": "node ./src/scripts/seed-dev.js",
     "clean:fake-data": "tsx src/scripts/clean-fake-data.ts",
     "test": "jest",
     "test:system": "tsx src/scripts/test-system.ts",
+    "test:security": "tsx src/scripts/test-security.ts",
     "test-db": "tsx src/test-db.ts"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "node-fetch": "^2.7.0",
     "pg": "^8.11.0",
     "prisma": "^6.16.2",
     "uuid": "^13.0.0"

@@ -230,7 +230,7 @@ router.put('/:id', async (req, res) => {
     }
 
     const { id } = req.params;
-    const { name, category, breed, quantity, age, weight, status, fieldId } = req.body;
+    const { name, category, breed, quantity, age, weight, status, fieldId, description, deathHistory } = req.body;
     
     const existingLivestock = await prisma.livestock.findUnique({
       where: { id },
@@ -285,6 +285,12 @@ router.put('/:id', async (req, res) => {
     if (weight !== undefined) updateData.weight = weight ? parseFloat(weight) : null;
     if (status !== undefined) updateData.status = status as any;
     if (fieldId !== undefined) updateData.fieldId = fieldId || null;
+    if (description !== undefined) updateData.description = description || null;
+    if (deathHistory !== undefined) {
+      // Ensure deathHistory is properly formatted as JSON
+      // Prisma JSON fields accept objects directly, no need to stringify
+      updateData.deathHistory = deathHistory ? (typeof deathHistory === 'string' ? JSON.parse(deathHistory) : deathHistory) : null;
+    }
     
     const livestock = await prisma.livestock.update({
       where: { id },
@@ -305,9 +311,16 @@ router.put('/:id', async (req, res) => {
       },
     });
     
+    // Log removido para segurança
+    
     res.json(livestock);
   } catch (error: any) {
     console.error('Update livestock error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      meta: error.meta
+    });
     res.status(400).json({ message: error.message || 'Bad request' });
   }
 });

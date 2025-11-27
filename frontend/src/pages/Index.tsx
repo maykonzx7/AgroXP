@@ -138,16 +138,18 @@ const Index = () => {
     return () => clearTimeout(initialSync);
   }, []);
 
-  const syncData = () => {
+  const syncData = async () => {
     setIsSyncing(true);
-
-    
-    setTimeout(() => {
-      setIsSyncing(false);
+    try {
+      await syncDataAcrossCRM();
       setLastSyncDate(new Date());
-      syncDataAcrossCRM();
-
-    }, 2000);
+      toast.success('Dados sincronizados com sucesso');
+    } catch (error) {
+      console.error('Erro ao sincronizar dados:', error);
+      toast.error('Erro ao sincronizar dados');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleExportData = () => {

@@ -27,6 +27,7 @@ export const useCRMContext = (): CRMContextType => {
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [moduleData, setModuleData] = useState<Record<string, any>>({});
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [activeModules] = useState<string[]>([
     "parcelles",
     "cultures",
@@ -43,6 +44,7 @@ export const useCRMContext = (): CRMContextType => {
   // Fetch data from backend
   const fetchData = useCallback(async () => {
     setIsRefreshing(true);
+    console.log('[CRM] Iniciando sincronização de dados...');
 
     try {
       // Fetch all module data with Promise.allSettled to handle potential errors
@@ -59,6 +61,14 @@ export const useCRMContext = (): CRMContextType => {
         financeApi.getAll(),
         harvestApi.getAll(),
       ]);
+      
+      console.log('[CRM] Dados recebidos do backend:', {
+        parcels: results[0].status,
+        crops: results[1].status,
+        livestock: results[2].status,
+        inventory: results[8].status,
+        finances: results[9].status,
+      });
 
       // Process results individually to handle possible errors
       const [
@@ -67,7 +77,7 @@ export const useCRMContext = (): CRMContextType => {
       ] = results;
 
       // Extract values or defaults if promises were rejected
-      const parcels = parcelsResult.status === 'fulfilled' ? parcelsResult.value : [];
+      const parcelsRaw = parcelsResult.status === 'fulfilled' ? parcelsResult.value : [];
       const crops = cropsResult.status === 'fulfilled' ? cropsResult.value : [];
       const livestock = livestockResult.status === 'fulfilled' ? livestockResult.value : [];
       const feeding = feedingResult.status === 'fulfilled' ? feedingResult.value : [];
@@ -77,9 +87,28 @@ export const useCRMContext = (): CRMContextType => {
       const supplyUsage = supplyUsageResult.status === 'fulfilled' ? supplyUsageResult.value : [];
       const inventory = inventoryResult.status === 'fulfilled' ? inventoryResult.value : [];
       const finances = financesResult.status === 'fulfilled' ? financesResult.value : [];
-      const harvest = harvestResult.status === 'fulfilled' ? harvestResult.value : [];
+      const harvestRaw = harvestResult.status === 'fulfilled' ? harvestResult.value : [];
+      
+      // Mapear dados de parcelas do backend para o formato do frontend
+      const { mapParcelFromBackend, mapHarvestFromBackend } = await import('../shared/utils/data-mappers');
+      const parcels = Array.isArray(parcelsRaw) 
+        ? parcelsRaw.map((item: any) => mapParcelFromBackend(item))
+        : [];
+      
+      // Mapear dados de harvest do backend para o formato do frontend
+      const harvest = Array.isArray(harvestRaw) 
+        ? harvestRaw.map((item: any) => mapHarvestFromBackend(item))
+        : [];
 
       // Update state with real data
+      console.log('[CRM] Atualizando estado com dados:', {
+        parcels: parcels.length,
+        crops: crops.length,
+        livestock: livestock.length,
+        inventory: inventory.length,
+        finances: finances.length,
+      });
+      
       setModuleData({
         parcelles: {
           items: parcels,
@@ -146,7 +175,7 @@ export const useCRMContext = (): CRMContextType => {
         },
       });
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("[CRM] Erro ao buscar dados:", error);
       // Fallback to empty data if API fails
       setModuleData({
         parcelles: {
@@ -216,12 +245,13 @@ export const useCRMContext = (): CRMContextType => {
     } finally {
       setIsRefreshing(false);
       setLastSync(new Date());
+      console.log('[CRM] Sincronização concluída');
     }
   }, []);
 
   // Synchronisation des données à travers tous les modules du CRM
-  const syncDataAcrossCRM = useCallback(() => {
-    fetchData();
+  const syncDataAcrossCRM = useCallback(async () => {
+    await fetchData();
   }, [fetchData]);
 
   // Mettre à jour les données d'un module spécifique
@@ -365,15 +395,18 @@ export const useCRMContext = (): CRMContextType => {
 
   // Métodos genéricos para operações CRUD
   const addData = useCallback(async <T,>(moduleName: string, item: T) => {
-    let newItem: T & { id: string };
+    let newItem: T & { id: string } | null = null;
     let apiCallSuccess = false;
 
     // Try to save to backend first
     try {
       switch(moduleName) {
         case 'harvest':
-          const harvestResponse = await harvestApi.create(item);
-          newItem = harvestResponse;
+          const { mapHarvestToBackend } = await import('../shared/utils/data-mappers');
+          const mappedHarvest = mapHarvestToBackend(item as any);
+          const harvestResponse = await harvestApi.create(mappedHarvest);
+          const { mapHarvestFromBackend } = await import('../shared/utils/data-mappers');
+          newItem = mapHarvestFromBackend(harvestResponse) as any;
           apiCallSuccess = true;
           break;
         case 'parcelles':
@@ -410,40 +443,51 @@ export const useCRMContext = (): CRMContextType => {
             id: Date.now().toString(),
           } as T & { id: string };
       }
-    } catch (error) {
-      console.error(`Error creating ${moduleName} item:`, error);
-      // Fallback: add to local state with generated ID
-      newItem = {
-        ...item,
-        id: Date.now().toString(),
-      } as T & { id: string };
+    } catch (error: any) {
+      console.error(`❌ Error creating ${moduleName} item:`, error);
+      console.error('Error details:', {
+        message: error?.message,
+        status: error?.status,
+        response: error?.response,
+        stack: error?.stack,
+      });
+      
+      // Re-throw the error so the caller can handle it
+      // Don't silently fallback to local state - the user needs to know it failed
+      throw new Error(
+        error?.message || 
+        `Erro ao criar ${moduleName}. Verifique o console para mais detalhes.`
+      );
     }
 
-    // Update local state
-    setModuleData(prev => {
-      const module = prev[moduleName];
-      if (!module || !module.items) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        [moduleName]: {
-          ...module,
-          items: [...module.items, newItem]
+    // Only update local state if API call was successful and we have a new item
+    if (apiCallSuccess && newItem) {
+      // Update local state
+      setModuleData(prev => {
+        const module = prev[moduleName];
+        if (!module || !module.items) {
+          return prev;
         }
-      };
-    });
 
-    // Atualizar a data de última sincronização
-    setLastSync(new Date());
+        return {
+          ...prev,
+          [moduleName]: {
+            ...module,
+            items: [...module.items, newItem]
+          }
+        };
+      });
 
-    // Sincronizar automaticamente com o banco de dados após adicionar
-    if (apiCallSuccess) {
+      // Atualizar a data de última sincronização
+      setLastSync(new Date());
+
+      // Sincronizar automaticamente com o banco de dados após adicionar
       // Sincronizar de forma assíncrona sem bloquear a UI
       setTimeout(() => {
         syncDataAcrossCRM();
       }, 100);
+    } else {
+      console.warn(`⚠️ API call failed for ${moduleName}, not updating local state`);
     }
   }, [syncDataAcrossCRM]);
 
@@ -455,13 +499,23 @@ export const useCRMContext = (): CRMContextType => {
     try {
       switch(moduleName) {
         case 'harvest':
-          const harvestResponse = await harvestApi.update(id.toString(), updates);
-          updatedItem = harvestResponse;
+          const { mapHarvestToBackend, mapHarvestFromBackend } = await import('../shared/utils/data-mappers');
+          // Combinar dados existentes com updates e mapear
+          const existingHarvest = moduleData.harvest?.items?.find((item: any) => item.id === id);
+          const updatedHarvestData = { ...existingHarvest, ...updates };
+          const mappedHarvestUpdate = mapHarvestToBackend(updatedHarvestData as any);
+          const harvestResponse = await harvestApi.update(id.toString(), mappedHarvestUpdate);
+          updatedItem = mapHarvestFromBackend(harvestResponse) as any;
           apiCallSuccess = true;
           break;
         case 'parcelles':
-          const parcelResponse = await parcelsApi.update(id.toString(), updates);
-          updatedItem = parcelResponse;
+          const { mapParcelToBackend, mapParcelFromBackend } = await import('../shared/utils/data-mappers');
+          // Combinar dados existentes com updates e mapear para o backend
+          const existingParcel = moduleData.parcelles?.items?.find((item: any) => item.id === id);
+          const updatedParcelData = { ...existingParcel, ...updates };
+          const mappedParcelUpdate = mapParcelToBackend(updatedParcelData as any);
+          const parcelResponse = await parcelsApi.update(id.toString(), mappedParcelUpdate);
+          updatedItem = mapParcelFromBackend(parcelResponse) as any;
           apiCallSuccess = true;
           break;
         case 'cultures':
@@ -635,10 +689,13 @@ export const useCRMContext = (): CRMContextType => {
     };
   }, []);
 
-  // Synchronisation initiale au chargement
+  // Synchronisation initiale au chargement (apenas uma vez)
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (!isInitialized) {
+      setIsInitialized(true);
+      fetchData();
+    }
+  }, [fetchData, isInitialized]);
 
   return {
     lastSync,

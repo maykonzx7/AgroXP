@@ -1,12 +1,34 @@
-FROM node:18
+# Stage 1: Build da aplicação
+FROM node:18 AS builder
 
 WORKDIR /app
 
+# Copiar arquivos de dependências
 COPY package*.json ./
-RUN rm -rf node_modules package-lock.json && npm install
 
+# Instalar dependências
+RUN npm ci --legacy-peer-deps
+
+# Copiar código fonte
 COPY . .
 
-EXPOSE 5173
+# Build da aplicação (rollup funciona aqui durante o build)
+RUN npm run build
 
-CMD ["npm", "run", "dev"]
+# Stage 2: Servir com nginx
+FROM nginx:alpine
+
+# Instalar wget para healthcheck
+RUN apk add --no-cache wget
+
+# Copiar arquivos buildados
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copiar configuração do nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expor porta
+EXPOSE 80
+
+# Nginx já inicia automaticamente
+CMD ["nginx", "-g", "daemon off;"]

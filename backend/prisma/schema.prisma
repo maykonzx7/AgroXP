@@ -81,6 +81,7 @@ model Field {
   farmId        String
   soilType      String?
   phLevel       Float?
+  status        FieldStatus    @default(ACTIVE)
   crops         Crop[]
   livestock     Livestock[]
   finances      Finance[]
@@ -107,6 +108,7 @@ model Crop {
   harvests      Harvest[]
   tasks         Task[]
   alerts        Alert[]
+  finances      Finance[]
 }
 
 model Treatment {
@@ -192,7 +194,9 @@ model Finance {
   description String
   date        DateTime    @default(now())
   fieldId     String?
+  cropId      String?
   field       Field?      @relation(fields: [fieldId], references: [id], onDelete: SetNull)
+  crop        Crop?       @relation(fields: [cropId], references: [id], onDelete: SetNull)
 }
 
 model Livestock {
@@ -206,6 +210,8 @@ model Livestock {
   weight        Float?
   category      LivestockCategory
   status        LivestockStatus        @default(ACTIVE)
+  description   String?
+  deathHistory  Json?                  // Store death records as JSON
   fieldId       String
   field         Field                  @relation(fields: [fieldId], references: [id], onDelete: Cascade)
   feedings      Feeding[]
@@ -305,6 +311,12 @@ enum UserRole {
   FARMER
   WORKER
   MANAGER
+}
+
+enum FieldStatus {
+  ACTIVE
+  INACTIVE
+  PLANNED
 }
 
 enum CropStatus {

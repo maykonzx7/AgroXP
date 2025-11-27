@@ -892,8 +892,11 @@ const CropPlanningForm = () => {
                   <Input
                     id="crop-surface"
                     type="number"
-                    value={newCrop.surface || ''}
-                    onChange={(e) => setNewCrop({...newCrop, surface: Number(e.target.value)})}
+                    value={newCrop.surface === null || newCrop.surface === undefined ? '' : newCrop.surface}
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? '' : (isNaN(Number(e.target.value)) ? newCrop.surface : Number(e.target.value));
+                      setNewCrop({...newCrop, surface: val});
+                    }}
                     placeholder="0.0"
                     className="mt-1"
                     min="0"
@@ -906,8 +909,11 @@ const CropPlanningForm = () => {
                   <Input
                     id="expected-yield"
                     type="number"
-                    value={newCrop.expectedYield || ''}
-                    onChange={(e) => setNewCrop({...newCrop, expectedYield: Number(e.target.value)})}
+                    value={newCrop.expectedYield === null || newCrop.expectedYield === undefined ? '' : newCrop.expectedYield}
+                    onChange={(e) => {
+                      const val = e.target.value === '' ? '' : (isNaN(Number(e.target.value)) ? newCrop.expectedYield : Number(e.target.value));
+                      setNewCrop({...newCrop, expectedYield: val});
+                    }}
                     placeholder="0.0"
                     className="mt-1"
                     min="0"

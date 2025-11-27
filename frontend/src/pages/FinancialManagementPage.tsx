@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useCRM } from "../contexts/CRMContext";
 import { AddTransactionDialog } from "@/features/finance";
 import ImportDialog from "../components/common/ImportDialog";
+import { financeApi } from "../services/apiService";
 import {
   Download,
   Upload,
@@ -100,6 +101,11 @@ const FinancialManagementPage = () => {
         setFinancialData(data || []);
       } catch (err: any) {
         console.error('Error loading financial data:', err);
+        // Não mostrar erro se for 401 - o usuário será redirecionado automaticamente
+        if (err.message && (err.message.includes('401') || err.message.includes('Invalid or expired session'))) {
+          // O AuthContext já vai redirecionar, não precisa mostrar erro
+          return;
+        }
         setError(err.message || 'Erro ao carregar dados financeiros');
         toast.error('Erro ao carregar dados financeiros');
       } finally {

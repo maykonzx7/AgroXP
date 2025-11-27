@@ -37,19 +37,7 @@ router.get('/', async (req, res) => {
       userFieldIds = userFields.map(f => f.id);
     }
     
-    console.log('Querying financial records for user:', userId);
-    console.log('User has farms:', userFarmIds.length > 0);
-    console.log('User has fields:', userFieldIds.length > 0);
-    
-    // First, let's check all records with null fieldId to debug
-    const allNullFieldRecords = await prisma.finance.findMany({
-      where: { fieldId: null },
-      select: { id: true, createdAt: true, type: true, amount: true, fieldId: true },
-    });
-    console.log(`Total records with fieldId=null in database: ${allNullFieldRecords.length}`);
-    if (allNullFieldRecords.length > 0) {
-      console.log('Sample null fieldId records:', allNullFieldRecords.slice(0, 3));
-    }
+    // Logs removidos para segurança - não expor informações de usuário e estrutura do banco
     
     // Try different query approaches
     let records: any[] = [];
@@ -114,30 +102,35 @@ router.get('/', async (req, res) => {
       }
     }
     
-    // Then populate the field and farm relations for records that have fieldId
+    // Then populate the field, farm, and crop relations for records that have them
     const recordsWithRelations = await Promise.all(
       records.map(async (record) => {
-        if (record.fieldId) {
-          const field = await prisma.field.findUnique({
-            where: { id: record.fieldId },
-            include: {
-              farm: {
-                select: {
-                  id: true,
-                  name: true,
-                  ownerId: true,
-                },
+        const field = record.fieldId ? await prisma.field.findUnique({
+          where: { id: record.fieldId },
+          include: {
+            farm: {
+              select: {
+                id: true,
+                name: true,
+                ownerId: true,
               },
             },
-          });
-          return {
-            ...record,
-            field: field || null,
-          };
-        }
+          },
+        }) : null;
+        
+        const crop = record.cropId ? await prisma.crop.findUnique({
+          where: { id: record.cropId },
+          select: {
+            id: true,
+            name: true,
+            variety: true,
+          },
+        }) : null;
+        
         return {
           ...record,
-          field: null,
+          field: field || null,
+          crop: crop || null,
         };
       })
     );
@@ -203,9 +196,9 @@ router.post('/', async (req, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const { type, category, amount, description, date, fieldId } = req.body;
+    const { type, category, amount, description, date, fieldId, cropId } = req.body;
     
-    console.log('Creating financial record:', { userId, type, category, amount, description, date, fieldId });
+    console.log('Creating financial record:', { userId, type, category, amount, description, date, fieldId, cropId });
     
     // Validate required fields
     if (!type || !category || amount === undefined || amount === null || !description) {
@@ -249,29 +242,50 @@ router.post('/', async (req, res) => {
       description,
       date: date ? new Date(date) : new Date(),
       fieldId: finalFieldId,
+      cropId: finalCropId,
     };
     
-    console.log('Creating record with data:', recordData);
+    console.log('Creating record with data:', JSON.stringify(recordData, null, 2));
     
-    const record = await prisma.finance.create({
-      data: recordData,
-      include: {
-        field: {
-          include: {
-            farm: {
-              select: {
-                id: true,
-                name: true,
-                ownerId: true,
+    try {
+      const record = await prisma.finance.create({
+        data: recordData,
+        include: {
+          field: {
+            include: {
+              farm: {
+                select: {
+                  id: true,
+                  name: true,
+                  ownerId: true,
+                },
               },
             },
           },
         },
-      },
-    });
-    
-    console.log('Record created successfully:', record.id);
-    res.status(201).json(record);
+      });
+      
+      console.log('✅ Record created successfully:', record.id);
+      console.log('✅ Record data:', JSON.stringify(record, null, 2));
+      
+      // Verify the record was actually saved
+      const verifyRecord = await prisma.finance.findUnique({
+        where: { id: record.id },
+      });
+      
+      if (!verifyRecord) {
+        console.error('❌ CRITICAL: Record was created but not found in database!');
+        return res.status(500).json({ message: 'Record created but not persisted' });
+      }
+      
+      console.log('✅ Record verified in database');
+      res.status(201).json(record);
+    } catch (dbError: any) {
+      console.error('❌ Database error during create:', dbError);
+      console.error('Error code:', dbError.code);
+      console.error('Error meta:', dbError.meta);
+      throw dbError;
+    }
   } catch (error: any) {
     console.error('Create financial record error:', error);
     res.status(400).json({ message: error.message || 'Bad request' });
@@ -287,7 +301,7 @@ router.put('/:id', async (req, res) => {
     }
 
     const { id } = req.params;
-    const { type, category, amount, description, date, fieldId } = req.body;
+    const { type, category, amount, description, date, fieldId, cropId } = req.body;
     
     // Check if record exists
     const existingRecord = await prisma.finance.findUnique({
@@ -348,6 +362,7 @@ router.put('/:id', async (req, res) => {
         ...(description && { description }),
         ...(date && { date: new Date(date) }),
         ...(fieldId !== undefined && { fieldId: fieldId || null }),
+        ...(cropId !== undefined && { cropId: finalCropId }),
       },
       include: {
         field: {

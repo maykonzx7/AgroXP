@@ -29,7 +29,7 @@ import useSpacing from '@/hooks/use-spacing';
 
 const LivestockPage = () => {
   const [activeTab, setActiveTab] = useState<string>('tracking');
-  const { getModuleData } = useCRM();
+  const { getModuleData, syncDataAcrossCRM } = useCRM();
   const spacing = useSpacing();
   
   const { 
@@ -114,8 +114,13 @@ const LivestockPage = () => {
             <Button 
               variant="outline" 
               className="flex items-center gap-2 transition-colors"
-              onClick={() => {
-
+              onClick={async () => {
+                try {
+                  await syncDataAcrossCRM();
+                  // toast será adicionado se necessário
+                } catch (error) {
+                  console.error('Erro ao sincronizar dados:', error);
+                }
               }}
             >
               <RefreshCw className="h-4 w-4" />

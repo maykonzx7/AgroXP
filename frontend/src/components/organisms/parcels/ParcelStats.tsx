@@ -11,6 +11,7 @@ const ParcelStats: React.FC<ParcelStatsProps> = ({ searchTerm = '' }) => {
   const { getModuleData } = useCRM();
   const parcelData = getModuleData('parcelles')?.items || [];
   const cropData = getModuleData('cultures')?.items || [];
+  const harvestData = getModuleData('harvest')?.items || [];
 
   // Filtrar parcelas com base no termo de pesquisa
   const filteredParcels = parcelData.filter(parcel => 
@@ -43,14 +44,25 @@ const ParcelStats: React.FC<ParcelStatsProps> = ({ searchTerm = '' }) => {
     .slice(0, 5)
     .map(([crop, count]) => ({ name: crop, count }));
 
-  // Calcular rendimento médio (usando dados de culturas se disponível)
-  const totalYield = cropData.reduce((total, crop) => {
+  // Calcular rendimento médio (usando dados de culturas e colheitas)
+  // Primeiro, somar rendimentos do módulo de culturas
+  const cropYieldTotal = cropData.reduce((total, crop) => {
     const yieldVal = crop.yield || crop.quantity || 0;
-    // Ensure yield is a number
     const numYield = typeof yieldVal === 'number' ? yieldVal : parseFloat(yieldVal) || 0;
     return total + numYield;
   }, 0);
-  const avgYield = cropData.length > 0 ? totalYield / cropData.length : 0;
+  
+  // Depois, somar rendimentos do módulo de colheitas (harvest)
+  const harvestYieldTotal = harvestData.reduce((total, harvest) => {
+    const yieldVal = harvest.yield || harvest.quantity || 0;
+    const numYield = typeof yieldVal === 'number' ? yieldVal : parseFloat(yieldVal) || 0;
+    return total + numYield;
+  }, 0);
+  
+  // Calcular média considerando ambos os módulos
+  const totalYield = cropYieldTotal + harvestYieldTotal;
+  const totalRecords = cropData.length + harvestData.length;
+  const avgYield = totalRecords > 0 ? totalYield / totalRecords : 0;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

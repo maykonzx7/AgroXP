@@ -134,12 +134,28 @@ const HarvestTracking = () => {
 
   const handleAdd = async (newRow: Record<string, any>) => {
     try {
+      // Validar campos obrigatórios antes de adicionar
+      const crop = String(newRow.crop || '').trim();
+      if (!crop) {
+        alert('Por favor, preencha o campo "Cultura" antes de adicionar.');
+        return;
+      }
+
+      const yieldValue = Number(newRow.yield || 0);
+      const expectedYieldValue = Number(newRow.expectedYield || 0);
+      const harvestAreaValue = Number(newRow.harvestArea || 0);
+
+      if (harvestAreaValue <= 0) {
+        alert('Por favor, preencha a área colhida (deve ser maior que zero).');
+        return;
+      }
+
       const newHarvestData = {
-        crop: String(newRow.crop || ''),
+        crop: crop,
         date: String(newRow.date || new Date().toISOString().split('T')[0]),
-        yield: Number(newRow.yield || 0),
-        expectedYield: Number(newRow.expectedYield || 0),
-        harvestArea: Number(newRow.harvestArea || 0),
+        yield: yieldValue > 0 ? yieldValue : expectedYieldValue, // Usar expectedYield como fallback
+        expectedYield: expectedYieldValue > 0 ? expectedYieldValue : yieldValue, // Usar yield como fallback
+        harvestArea: harvestAreaValue,
         quality: newRow.quality || 'Média'
       };
       
@@ -149,6 +165,7 @@ const HarvestTracking = () => {
       setHarvestData(updatedData);
     } catch (error) {
       console.error("Error adding harvest data:", error);
+      alert(`Erro ao adicionar colheita: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     }
   };
 
@@ -302,6 +319,7 @@ const HarvestTracking = () => {
             onUpdate={handleUpdate}
             onDelete={handleDelete}
             onAdd={handleAdd}
+            requiredFields={['crop']}
           />
         </div>
       </div>

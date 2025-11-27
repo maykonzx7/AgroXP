@@ -65,7 +65,7 @@ const Inventory: React.FC<InventoryProps> = ({
   showAddForm: externalShowAddForm,
   setShowAddForm: externalSetShowAddForm
 }) => {
-  const { getModuleData, syncDataAcrossCRM, isRefreshing } = useCRM();
+  const { getModuleData, syncDataAcrossCRM, isRefreshing, addData } = useCRM();
   const [inventoryData, setInventoryData] = useState<InventoryItem[]>([]);
   const [transactionHistory, setTransactionHistory] = useState<Transaction[]>([]);
   const [categoryStats, setCategoryStats] = useState<CategoryStat[]>([]);
@@ -283,52 +283,65 @@ const Inventory: React.FC<InventoryProps> = ({
     setTransactionDeleteConfirmOpen(false);
   };
   
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (!newItem.name || !newItem.category || !newItem.unit) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
     
-    const newId = Math.max(...inventoryData.map(item => item.id), 0) + 1;
-    const itemToAdd = {
-      ...newItem,
-      id: newId,
-      lastUpdated: new Date().toISOString().split('T')[0],
-      quantity: Number(newItem.quantity),
-      minQuantity: Number(newItem.minQuantity),
-      price: Number(newItem.price)
-    };
-    
-    setInventoryData([...inventoryData, itemToAdd]);
-    
-    const existingCategoryStat = categoryStats.find(stat => stat.name === newItem.category);
-    if (existingCategoryStat) {
-      setCategoryStats(categoryStats.map(stat => 
-        stat.name === newItem.category 
-          ? { ...stat, value: stat.value + Number(newItem.quantity) }
-          : stat
-      ));
-    } else {
-      setCategoryStats([...categoryStats, { 
-        name: newItem.category, 
-        value: Number(newItem.quantity),
-        fill: getRandomColor()
-      }]);
+    try {
+      // Preparar item para o backend
+      const itemToAdd = {
+        itemName: newItem.name,
+        category: newItem.category,
+        quantity: Number(newItem.quantity),
+        unit: newItem.unit,
+        cost: Number(newItem.price),
+        minQuantity: Number(newItem.minQuantity),
+        location: newItem.location || undefined,
+        notes: newItem.notes || undefined,
+      };
+      
+      // Adicionar via contexto CRM (que chama a API do backend)
+      await addData('inventaire', itemToAdd);
+      
+      // Atualizar estatísticas localmente
+      const existingCategoryStat = categoryStats.find(stat => stat.name === newItem.category);
+      if (existingCategoryStat) {
+        setCategoryStats(categoryStats.map(stat => 
+          stat.name === newItem.category 
+            ? { ...stat, value: stat.value + Number(newItem.quantity) }
+            : stat
+        ));
+      } else {
+        setCategoryStats([...categoryStats, { 
+          name: newItem.category, 
+          value: Number(newItem.quantity),
+          fill: getRandomColor()
+        }]);
+      }
+      
+      // Resetar formulário e fechar
+      setShowAddForm(false);
+      setNewItem({
+        name: '',
+        category: '',
+        quantity: 0,
+        unit: '',
+        minQuantity: 0,
+        price: 0,
+        location: '',
+        notes: ''
+      });
+      
+      // Sincronizar dados após adicionar
+      syncDataAcrossCRM();
+      
+      toast.success(`${newItem.name} foi adicionado ao inventário`);
+    } catch (error) {
+      console.error('Erro ao adicionar item ao inventário:', error);
+      toast.error('Erro ao adicionar item ao inventário');
     }
-    
-    setShowAddForm(false);
-    setNewItem({
-      name: '',
-      category: '',
-      quantity: 0,
-      unit: '',
-      minQuantity: 0,
-      price: 0,
-      location: '',
-      notes: ''
-    });
-    
-    toast.success(`${newItem.name} foi adicionado ao inventário`);
   };
   
   const getRandomColor = () => {
@@ -831,8 +844,11 @@ const Inventory: React.FC<InventoryProps> = ({
                       <Input
                         id="quantity"
                         type="number"
-                        value={newItem.quantity}
-                        onChange={(e) => setNewItem({ ...newItem, quantity: Number(e.target.value) })}
+                        value={newItem.quantity === '' || newItem.quantity === null || newItem.quantity === undefined ? '' : newItem.quantity}
+                        onChange={(e) => {
+                          const val = e.target.value === '' ? '' : (isNaN(Number(e.target.value)) ? newItem.quantity : Number(e.target.value));
+                          setNewItem({ ...newItem, quantity: val });
+                        }}
                         min={0}
                       />
                       <Input
@@ -848,8 +864,11 @@ const Inventory: React.FC<InventoryProps> = ({
                     <Input
                       id="minQuantity"
                       type="number"
-                      value={newItem.minQuantity}
-                      onChange={(e) => setNewItem({ ...newItem, minQuantity: Number(e.target.value) })}
+                      value={newItem.minQuantity === '' || newItem.minQuantity === null || newItem.minQuantity === undefined ? '' : newItem.minQuantity}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? '' : (isNaN(Number(e.target.value)) ? newItem.minQuantity : Number(e.target.value));
+                        setNewItem({ ...newItem, minQuantity: val });
+                      }}
                       className="mt-1"
                       min={0}
                     />
@@ -859,8 +878,11 @@ const Inventory: React.FC<InventoryProps> = ({
                     <Input
                       id="price"
                       type="number"
-                      value={newItem.price}
-                      onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
+                      value={newItem.price === '' || newItem.price === null || newItem.price === undefined ? '' : newItem.price}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? '' : (isNaN(Number(e.target.value)) ? newItem.price : Number(e.target.value));
+                        setNewItem({ ...newItem, price: val });
+                      }}
                       className="mt-1"
                       min={0}
                       step="0.01"

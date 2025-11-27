@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import {
@@ -60,6 +62,12 @@ const transactionSchema = z.object({
   }),
   category: z.string().min(1, "A categoria é obrigatória"),
   type: z.enum(["income", "expense"]),
+  cropId: z.string().optional(),
+  quantity: z.string().optional(),
+  unit: z.string().optional(),
+  unitPrice: z.string().optional(),
+  paymentMethod: z.string().optional(),
+  notes: z.string().optional(),
 });
 
 // Generate monthly data based on actual transactions
@@ -95,7 +103,7 @@ const generateMonthlyData = (transactions: any[]) => {
 };
 
 const FinancialTracking = () => {
-  const { getModuleData, syncDataAcrossCRM, isRefreshing } = useCRM();
+  const { getModuleData, syncDataAcrossCRM, isRefreshing, addData } = useCRM();
   // State for editable content
   const [title, setTitle] = useState("Controle Financeiro");
   const [description, setDescription] = useState(
@@ -143,6 +151,9 @@ const FinancialTracking = () => {
   // Dialog state
   const [showAddDialog, setShowAddDialog] = useState(false);
 
+  // Get crops data for selection
+  const cropsData = getModuleData('cultures')?.items || [];
+  
   // Form handling with react-hook-form
   const form = useForm({
     resolver: zodResolver(transactionSchema),
@@ -152,6 +163,12 @@ const FinancialTracking = () => {
       amount: "",
       category: "",
       type: "income" as "income" | "expense",
+      cropId: "",
+      quantity: "",
+      unit: "",
+      unitPrice: "",
+      paymentMethod: "",
+      notes: "",
     },
   });
 
@@ -189,21 +206,32 @@ const FinancialTracking = () => {
     });
 
   // Handle form submission
-  const onSubmit = (data: z.infer<typeof transactionSchema>) => {
-    const newTransaction = {
-      id: Math.max(...transactions.map((t) => t.id), 0) + 1,
-      date: data.date,
-      description: data.description,
-      amount: parseFloat(data.amount),
-      category: data.category,
-      type: data.type,
-    };
+  const onSubmit = async (data: z.infer<typeof transactionSchema>) => {
+    try {
+      const transactionData = {
+        type: data.type === 'income' ? 'INCOME' : 'EXPENSE',
+        category: data.category,
+        amount: parseFloat(data.amount),
+        description: data.description,
+        date: data.date,
+        cropId: data.cropId || undefined,
+        // Additional fields for detailed tracking (stored in description or notes if needed)
+        ...(data.quantity && { quantity: parseFloat(data.quantity) }),
+        ...(data.unit && { unit: data.unit }),
+        ...(data.unitPrice && { unitPrice: parseFloat(data.unitPrice) }),
+        ...(data.paymentMethod && { paymentMethod: data.paymentMethod }),
+        ...(data.notes && { notes: data.notes }),
+      };
 
-    setTransactions([newTransaction, ...transactions]);
-    setShowAddDialog(false);
-    form.reset();
-
-    toast.success("Transação adicionada com sucesso");
+      await addData('finances', transactionData);
+      setShowAddDialog(false);
+      form.reset();
+      toast.success("Transação financeira registrada com sucesso!");
+      syncDataAcrossCRM();
+    } catch (error: any) {
+      console.error('Error adding transaction:', error);
+      toast.error(error.message || "Erro ao registrar transação. Tente novamente.");
+    }
   };
 
   // Handle delete transaction
@@ -595,67 +623,68 @@ const FinancialTracking = () => {
         </Card>
       </div>
 
-      {/* Add Transaction Dialog */}
+      {/* Add Transaction Dialog - Enhanced */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Adicionar transação</DialogTitle>
+            <DialogTitle className="text-2xl">Registrar Transação Financeira</DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Preencha os dados detalhados da transação financeira
+            </p>
           </DialogHeader>
 
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel>Tipo de transação</FormLabel>
-                      <div className="flex mt-1">
-                        <Button
-                          type="button"
-                          variant={
-                            field.value === "income" ? "default" : "outline"
-                          }
-                          className={
-                            field.value === "income"
-                              ? "bg-green-600 hover:bg-green-700"
-                              : ""
-                          }
-                          onClick={() => field.onChange("income")}
-                        >
-                          Receita
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={
-                            field.value === "expense" ? "default" : "outline"
-                          }
-                          className={`ml-2 ${
-                            field.value === "expense"
-                              ? "bg-red-600 hover:bg-red-700"
-                              : ""
-                          }`}
-                          onClick={() => field.onChange("expense")}
-                        >
-                          Despesa
-                        </Button>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Tipo de Transação */}
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-semibold">Tipo de Transação *</FormLabel>
+                    <div className="flex gap-3 mt-2">
+                      <Button
+                        type="button"
+                        variant={field.value === "income" ? "default" : "outline"}
+                        className={`flex-1 h-12 text-base ${
+                          field.value === "income"
+                            ? "bg-green-600 hover:bg-green-700 text-white"
+                            : "border-2"
+                        }`}
+                        onClick={() => field.onChange("income")}
+                      >
+                        💰 Receita / Venda
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={field.value === "expense" ? "default" : "outline"}
+                        className={`flex-1 h-12 text-base ${
+                          field.value === "expense"
+                            ? "bg-red-600 hover:bg-red-700 text-white"
+                            : "border-2"
+                        }`}
+                        onClick={() => field.onChange("expense")}
+                      >
+                        💸 Despesa / Pagamento
+                      </Button>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
+              <div className="grid grid-cols-2 gap-4">
+                {/* Data */}
                 <FormField
                   control={form.control}
                   name="date"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Data</FormLabel>
+                      <FormLabel>Data da Transação *</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Input type="date" {...field} />
-                          <CalendarIcon className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <Input type="date" {...field} className="h-10" />
+                          <CalendarIcon className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground pointer-events-none" />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -663,50 +692,21 @@ const FinancialTracking = () => {
                   )}
                 />
 
+                {/* Valor Total */}
                 <FormField
                   control={form.control}
                   name="amount"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Valor (R$)</FormLabel>
+                      <FormLabel>Valor Total (R$) *</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           step="0.01"
                           placeholder="0.00"
                           {...field}
+                          className="h-10"
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel>Categoria</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Exemplo: Vendas, Suprimentos..."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem className="col-span-2">
-                      <FormLabel>Descrição</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -714,15 +714,238 @@ const FinancialTracking = () => {
                 />
               </div>
 
-              <DialogFooter>
+              {/* Categoria */}
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria *</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Selecione a categoria" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {form.watch("type") === "income" ? (
+                            <>
+                              <SelectItem value="Venda de Produtos">Venda de Produtos</SelectItem>
+                              <SelectItem value="Venda de Cultura">Venda de Cultura</SelectItem>
+                              <SelectItem value="Subsídios">Subsídios</SelectItem>
+                              <SelectItem value="Outras Receitas">Outras Receitas</SelectItem>
+                            </>
+                          ) : (
+                            <>
+                              <SelectItem value="Insumos Agrícolas">Insumos Agrícolas</SelectItem>
+                              <SelectItem value="Mão de Obra">Mão de Obra</SelectItem>
+                              <SelectItem value="Equipamentos">Equipamentos</SelectItem>
+                              <SelectItem value="Manutenção">Manutenção</SelectItem>
+                              <SelectItem value="Combustível">Combustível</SelectItem>
+                              <SelectItem value="Outras Despesas">Outras Despesas</SelectItem>
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Seleção de Cultura */}
+              {cropsData.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="cropId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Relacionado à Cultura (Opcional)</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value || ""}
+                          onValueChange={(value) => field.onChange(value || undefined)}
+                        >
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="Selecione uma cultura (opcional)" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Nenhuma cultura</SelectItem>
+                            {cropsData.map((crop: any) => (
+                              <SelectItem key={crop.id} value={crop.id}>
+                                {crop.name} {crop.variety ? `- ${crop.variety}` : ''}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">
+                        Associe esta transação a uma cultura específica
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Detalhes Adicionais para Vendas */}
+              {form.watch("type") === "income" && (
+                <div className="space-y-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h4 className="font-semibold text-green-900">Detalhes da Venda</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="quantity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Quantidade</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="Ex: 100"
+                              {...field}
+                              className="h-10"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="unit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Unidade</FormLabel>
+                          <FormControl>
+                            <Select value={field.value || ""} onValueChange={field.onChange}>
+                              <SelectTrigger className="h-10">
+                                <SelectValue placeholder="Unidade" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="kg">kg</SelectItem>
+                                <SelectItem value="ton">ton</SelectItem>
+                                <SelectItem value="saco">saco</SelectItem>
+                                <SelectItem value="un">un</SelectItem>
+                                <SelectItem value="ha">ha</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="unitPrice"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Preço Unitário (R$)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              {...field}
+                              className="h-10"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Detalhes Adicionais para Pagamentos */}
+              {form.watch("type") === "expense" && (
+                <div className="space-y-4 p-4 bg-red-50 rounded-lg border border-red-200">
+                  <h4 className="font-semibold text-red-900">Detalhes do Pagamento</h4>
+                  <FormField
+                    control={form.control}
+                    name="paymentMethod"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Forma de Pagamento</FormLabel>
+                        <FormControl>
+                          <Select value={field.value || ""} onValueChange={field.onChange}>
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Selecione a forma de pagamento" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                              <SelectItem value="PIX">PIX</SelectItem>
+                              <SelectItem value="Transferência Bancária">Transferência Bancária</SelectItem>
+                              <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                              <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
+                              <SelectItem value="Boleto">Boleto</SelectItem>
+                              <SelectItem value="Cheque">Cheque</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+
+              {/* Descrição */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Descreva a transação em detalhes"
+                        {...field}
+                        className="h-10"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Observações */}
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observações Adicionais</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Adicione informações complementares, notas ou observações relevantes..."
+                        {...field}
+                        rows={3}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter className="gap-2">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowAddDialog(false)}
+                  onClick={() => {
+                    setShowAddDialog(false);
+                    form.reset();
+                  }}
                 >
                   Cancelar
                 </Button>
-                <Button type="submit">Adicionar</Button>
+                <Button type="submit" className="min-w-[120px]">
+                  Salvar Transação
+                </Button>
               </DialogFooter>
             </form>
           </Form>

@@ -9,11 +9,14 @@ router.use(authenticate);
 
 // Get all harvests - Multi-tenant: only user's farms
 router.get('/', async (req, res) => {
+  console.log('[Harvest] GET / - Request received');
   try {
     const userId = (req as any).user?.id;
     if (!userId) {
+      console.log('[Harvest] GET / - User not authenticated');
       return res.status(401).json({ message: 'User not authenticated' });
     }
+    console.log('[Harvest] GET / - User authenticated:', userId);
 
     const { cropId } = req.query;
     
@@ -53,9 +56,14 @@ router.get('/', async (req, res) => {
     
     const userCropIds = userCrops.map(c => c.id);
     
-    const orConditions: any[] = [
-      { ownerId: userId },
-    ];
+    console.log('Querying harvests for user:', userId);
+    console.log('User farms:', userFarmIds.length);
+    console.log('User fields:', userFieldIds.length);
+    console.log('User crops:', userCropIds.length);
+    
+    // Build filter conditions - use cropId relationship instead of ownerId
+    // to avoid dependency on ownerId column that may not exist in database
+    const orConditions: any[] = [];
     
     if (userCropIds.length > 0) {
       orConditions.push({
@@ -63,6 +71,20 @@ router.get('/', async (req, res) => {
           in: userCropIds,
         },
       });
+    }
+    
+    // Always include harvests with ownerId matching user (standalone harvests)
+    // This ensures harvests created without cropId are always visible to the owner
+    orConditions.push({
+      ownerId: userId,
+    });
+    
+    console.log('Filter conditions:', JSON.stringify(orConditions, null, 2));
+    
+    // If no conditions, return empty array (shouldn't happen, but safety check)
+    if (orConditions.length === 0) {
+      console.log('No filter conditions, returning empty array');
+      return res.json([]);
     }
     
     const cropFilter =
@@ -104,6 +126,11 @@ router.get('/', async (req, res) => {
       },
     });
     
+    console.log(`Found ${harvests.length} harvests for user ${userId}`);
+    if (harvests.length > 0) {
+      console.log('Sample harvest IDs:', harvests.slice(0, 3).map(h => ({ id: h.id, cropId: h.cropId, ownerId: h.ownerId })));
+    }
+    
     res.json(harvests);
   } catch (error: any) {
     console.error('Get harvests error:', error);
@@ -141,13 +168,14 @@ router.get('/:id', async (req, res) => {
       },
     });
     
+    // Check access through crop relationship (more reliable than ownerId column)
     if (
       !harvest ||
-      (harvest.ownerId !== userId &&
-        (!harvest.cropId ||
-          !harvest.cropRecord ||
-          !harvest.cropRecord.field ||
-          harvest.cropRecord.field.farm.ownerId !== userId))
+      (!harvest.cropId ||
+        !harvest.cropRecord ||
+        !harvest.cropRecord.field ||
+        !harvest.cropRecord.field.farm ||
+        harvest.cropRecord.field.farm.ownerId !== userId)
     ) {
       return res.status(404).json({ message: 'Harvest not found' });
     }
@@ -169,8 +197,16 @@ router.post('/', async (req, res) => {
 
     const { crop, date, yield: yieldValue, expectedYield, harvestArea, quality, cropId } = req.body;
     
-    if (!crop || !date || !yieldValue || !expectedYield || !harvestArea || !quality) {
+    // Validar campos obrigatórios (permitir 0 como valor válido)
+    if (!crop || !date || yieldValue === undefined || yieldValue === null || 
+        expectedYield === undefined || expectedYield === null || 
+        harvestArea === undefined || harvestArea === null || !quality) {
       return res.status(400).json({ message: 'Missing required fields' });
+    }
+    
+    // Validar que valores numéricos são números válidos
+    if (isNaN(Number(yieldValue)) || isNaN(Number(expectedYield)) || isNaN(Number(harvestArea))) {
+      return res.status(400).json({ message: 'Invalid numeric values' });
     }
     
     // Validate quality enum
@@ -215,7 +251,7 @@ router.post('/', async (req, res) => {
         harvestArea: parseFloat(harvestArea),
         quality: quality as any,
         cropId: finalCropId,
-        ownerId: userId,
+        ownerId: userId, // Set ownerId for multi-tenancy
       },
       include: {
         cropRecord: {
@@ -268,13 +304,14 @@ router.put('/:id', async (req, res) => {
       },
     });
     
+    // Check access through crop relationship (more reliable than ownerId column)
     if (
       !existingHarvest ||
-      (existingHarvest.ownerId !== userId &&
-        (!existingHarvest.cropId ||
-          !existingHarvest.cropRecord ||
-          !existingHarvest.cropRecord.field ||
-          existingHarvest.cropRecord.field.farm.ownerId !== userId))
+      (!existingHarvest.cropId ||
+        !existingHarvest.cropRecord ||
+        !existingHarvest.cropRecord.field ||
+        !existingHarvest.cropRecord.field.farm ||
+        existingHarvest.cropRecord.field.farm.ownerId !== userId)
     ) {
       return res.status(404).json({ message: 'Harvest not found' });
     }
@@ -371,13 +408,14 @@ router.delete('/:id', async (req, res) => {
       },
     });
     
+    // Check access through crop relationship (more reliable than ownerId column)
     if (
       !harvest ||
-      (harvest.ownerId !== userId &&
-        (!harvest.cropId ||
-          !harvest.cropRecord ||
-          !harvest.cropRecord.field ||
-          harvest.cropRecord.field.farm.ownerId !== userId))
+      (!harvest.cropId ||
+        !harvest.cropRecord ||
+        !harvest.cropRecord.field ||
+        !harvest.cropRecord.field.farm ||
+        harvest.cropRecord.field.farm.ownerId !== userId)
     ) {
       return res.status(404).json({ message: 'Harvest not found' });
     }

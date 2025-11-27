@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { EditableField } from './editable-field';
-import { ChevronDown, Edit, Trash2, Plus } from 'lucide-react';
+import { ChevronDown, Edit, Trash2, Plus, Save, X } from 'lucide-react';
 
 export interface Column {
   id: string;
@@ -21,6 +21,7 @@ interface EditableTableProps {
   className?: string;
   sortable?: boolean;
   actions?: { icon: React.ReactNode, label: string, onClick: (rowIndex: number) => void }[];
+  requiredFields?: string[]; // Campos obrigatórios para validação ao adicionar
 }
 
 export const EditableTable = ({
@@ -31,10 +32,18 @@ export const EditableTable = ({
   onAdd,
   className = '',
   sortable = true,
-  actions = []
+  actions = [],
+  requiredFields
 }: EditableTableProps) => {
   const [sortBy, setSortBy] = useState('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [newRow, setNewRow] = useState<Record<string, any> | null>(null);
+  const newRowRef = useRef<Record<string, any> | null>(null);
+  
+  // Sincronizar ref com state
+  useEffect(() => {
+    newRowRef.current = newRow;
+  }, [newRow]);
 
   const handleSort = (columnId: string) => {
     if (!sortable) return;
@@ -66,12 +75,93 @@ export const EditableTable = ({
 
   const handleAddRow = () => {
     if (onAdd) {
-      const newRow = columns.reduce((acc, column) => {
-        acc[column.accessorKey] = '';
+      const initialRow = columns.reduce((acc, column) => {
+        // Definir valores padrão baseados no tipo de coluna
+        if (column.type === 'number') {
+          acc[column.accessorKey] = 0;
+        } else if (column.type === 'select' && column.options && column.options.length > 0) {
+          acc[column.accessorKey] = column.options[0];
+        } else if (column.accessorKey === 'date') {
+          acc[column.accessorKey] = new Date().toISOString().split('T')[0];
+        } else {
+          acc[column.accessorKey] = '';
+        }
         return acc;
       }, {} as Record<string, any>);
       
-      onAdd(newRow);
+      // Adicionar linha temporária para edição
+      setNewRow(initialRow);
+    }
+  };
+
+  const handleSaveNewRow = () => {
+    if (onAdd) {
+      // Usar ref para obter o valor mais atualizado
+      const currentRow = newRowRef.current || newRow;
+      if (!currentRow) return;
+      
+      // Determinar campos obrigatórios: usar prop se fornecida, senão detectar automaticamente
+      const fieldsToValidate = requiredFields || 
+        // Detectar automaticamente: primeira coluna editável ou campos comuns
+        (columns.length > 0 && columns[0].isEditable ? [columns[0].accessorKey] : []);
+      
+      // Validar campos obrigatórios antes de salvar
+      const missingFields = fieldsToValidate.filter(field => {
+        const value = currentRow[field];
+        
+        // Debug: log para entender o que está acontecendo
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Validando campo ${field}:`, { value, type: typeof value, isEmpty: !value, currentRow });
+        }
+        
+        // Verificar se o campo está vazio
+        if (value === null || value === undefined) return true;
+        
+        // Para strings, verificar se está vazia ou só tem espaços
+        if (typeof value === 'string') {
+          const trimmed = value.trim();
+          if (trimmed === '') return true;
+        }
+        
+        // Para números, permitir zero apenas para campos específicos (yield, expectedYield, etc)
+        if (typeof value === 'number') {
+          // Permitir zero para campos de rendimento
+          if (value === 0 && (field === 'yield' || field === 'expectedYield' || field === 'harvestArea')) {
+            return false; // Zero é válido para esses campos
+          }
+          // Para outros campos numéricos, zero pode ser inválido
+          if (value === 0 && !['yield', 'expectedYield', 'harvestArea', 'quantity', 'amount'].includes(field)) {
+            return true;
+          }
+        }
+        
+        return false;
+      });
+
+      if (missingFields.length > 0) {
+        const fieldNames = missingFields.map(f => {
+          const column = columns.find(c => c.accessorKey === f);
+          return column ? column.header : f;
+        }).join(', ');
+        alert(`Por favor, preencha os campos obrigatórios: ${fieldNames}`);
+        return;
+      }
+
+      onAdd(currentRow);
+      setNewRow(null);
+      newRowRef.current = null;
+    }
+  };
+
+  const handleCancelNewRow = () => {
+    setNewRow(null);
+  };
+
+  const handleUpdateNewRow = (columnId: string, value: any) => {
+    if (newRow) {
+      const updatedRow = { ...newRow, [columnId]: value };
+      setNewRow(updatedRow);
+      newRowRef.current = updatedRow; // Atualizar ref imediatamente
     }
   };
 
@@ -190,7 +280,43 @@ export const EditableTable = ({
                 )}
               </tr>
             ))}
-            {data.length === 0 && (
+            {newRow && (
+              <tr className="border-t bg-muted/20">
+                {columns.map((column) => (
+                  <td key={`new-${column.id}`} className="px-4 py-3">
+                    {column.isEditable ? (
+                      <EditableField
+                        value={newRow[column.accessorKey] || ''}
+                        type={column.type as 'text' | 'number' | 'date' | 'select'}
+                        options={column.options?.map(opt => ({ value: opt, label: opt }))}
+                        onSave={(value) => handleUpdateNewRow(column.accessorKey, value)}
+                      />
+                    ) : (
+                      newRow[column.accessorKey] || ''
+                    )}
+                  </td>
+                ))}
+                <td className="px-4 py-3">
+                  <div className="flex space-x-1">
+                    <button
+                      onClick={handleSaveNewRow}
+                      className="p-1.5 hover:bg-green-100 text-green-600 rounded"
+                      title="Salvar"
+                    >
+                      <Save className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={handleCancelNewRow}
+                      className="p-1.5 hover:bg-red-100 text-red-600 rounded"
+                      title="Cancelar"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            )}
+            {data.length === 0 && !newRow && (
               <tr>
                 <td colSpan={columns.length + ((onDelete || actions.length > 0) ? 1 : 0)} className="px-4 py-4 text-center text-muted-foreground">
                   Nenhum dado disponível
@@ -201,7 +327,7 @@ export const EditableTable = ({
         </table>
       </div>
       
-      {onAdd && (
+      {onAdd && !newRow && (
         <div className="p-4 border-t">
           <button 
             onClick={handleAddRow}

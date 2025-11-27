@@ -62,6 +62,11 @@ router.get('/', async (req, res) => {
       },
     });
     
+    // Log para debug - verificar se status está sendo retornado
+    if (fields.length > 0) {
+      console.log('[Get parcels] Sample field status:', fields[0].status);
+    }
+    
     res.json(fields);
   } catch (error: any) {
     console.error('Get parcels error:', error);
@@ -172,6 +177,17 @@ router.post('/', async (req, res) => {
       }
     }
     
+    // Mapear status do frontend para o backend se fornecido
+    let fieldStatus = 'ACTIVE'; // Default
+    if (req.body.status) {
+      const statusMap: { [key: string]: string } = {
+        'active': 'ACTIVE',
+        'inactive': 'INACTIVE',
+        'planned': 'PLANNED'
+      };
+      fieldStatus = statusMap[req.body.status.toLowerCase()] || req.body.status.toUpperCase();
+    }
+    
     const field = await prisma.field.create({
       data: {
         name: name.trim(),
@@ -181,6 +197,7 @@ router.post('/', async (req, res) => {
         soilType: soilType && soilType.trim() !== '' ? soilType.trim() : null,
         phLevel: phLevel ? parseFloat(phLevel) : null,
         farmId: finalFarmId,
+        status: fieldStatus as any,
       },
       include: {
         farm: {
@@ -217,7 +234,7 @@ router.put('/:id', async (req, res) => {
     }
 
     const { id } = req.params;
-    const { name, description, size, location, soilType, phLevel, farmId } = req.body;
+    const { name, description, size, location, soilType, phLevel, farmId, status } = req.body;
     
     const existingField = await prisma.field.findUnique({
       where: { id },
@@ -262,6 +279,15 @@ router.put('/:id', async (req, res) => {
     if (soilType !== undefined) updateData.soilType = soilType;
     if (phLevel !== undefined) updateData.phLevel = phLevel ? parseFloat(phLevel) : null;
     if (farmId !== undefined) updateData.farmId = farmId;
+    if (status !== undefined) {
+      // Mapear valores do frontend (active, inactive, planned) para o enum do backend (ACTIVE, INACTIVE, PLANNED)
+      const statusMap: { [key: string]: string } = {
+        'active': 'ACTIVE',
+        'inactive': 'INACTIVE',
+        'planned': 'PLANNED'
+      };
+      updateData.status = statusMap[status.toLowerCase()] || status.toUpperCase();
+    }
     
     const field = await prisma.field.update({
       where: { id },
@@ -273,9 +299,17 @@ router.put('/:id', async (req, res) => {
             name: true,
           },
         },
+        crops: {
+          select: {
+            id: true,
+            name: true,
+            status: true,
+          },
+        },
       },
     });
     
+    console.log('[Update parcel] Updated field status:', field.status);
     res.json(field);
   } catch (error: any) {
     console.error('Update parcel error:', error);

@@ -8,7 +8,7 @@ export interface CRMContextType {
   isRefreshing: boolean;
   companyName: string;
   activeModules: string[];
-  syncDataAcrossCRM: () => void;
+  syncDataAcrossCRM: () => Promise<void>;
   updateModuleData: (moduleName: string, data: any) => void;
   getModuleData: (moduleName: string) => any;
   exportModuleData: (moduleName: string, format: 'csv' | 'excel' | 'pdf', customData?: any[]) => Promise<boolean>;

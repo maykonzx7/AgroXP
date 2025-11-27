@@ -127,26 +127,27 @@ const Navbar = () => {
 
       {/* Sidebar Navigation with improved animation and transitions */}
       <aside 
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-sidebar-background border-r border-sidebar-border shadow-lg transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-40 w-64 md:w-64 bg-sidebar-background border-r border-sidebar-border shadow-lg md:shadow-none transform transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         } md:relative md:translate-x-0 flex flex-col h-full overflow-y-auto`}
       >
-        <div className="p-4 border-b border-border flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <Sprout className="h-6 w-6 text-agri-primary" />
-            <span className="text-lg font-bold text-foreground">AgroXP</span>
+        <div className="p-3 md:p-4 border-b border-border flex items-center justify-between">
+          <Link to="/" className="flex items-center space-x-2 min-w-0">
+            <Sprout className="h-5 w-5 md:h-6 md:w-6 text-agri-primary flex-shrink-0" />
+            <span className="text-base md:text-lg font-bold text-foreground truncate">AgroXP</span>
           </Link>
           <Button 
             variant="ghost" 
             size="icon"
             onClick={handleToggleTheme} 
             aria-label="Toggle theme"
+            className="flex-shrink-0"
           >
             {settings.darkMode ? <Sun size={18} /> : <Moon size={18} />}
           </Button>
         </div>
 
-        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 py-2 md:py-4 px-2 md:px-3 space-y-1 overflow-y-auto">
           {/* Menu agrupado por categorias */}
           {visibleCategories.map(categoryId => {
             const category = navCategories.find(cat => cat.id === categoryId);
@@ -242,24 +243,25 @@ const Navbar = () => {
         </nav>
 
         {isAuthenticated && (
-          <div className="p-4 border-t border-border">
-            <div className="flex items-center space-x-3 px-3 py-2">
-              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium">
+          <div className="p-2 md:p-4 border-t border-border">
+            <div className="flex items-center space-x-2 md:space-x-3 px-2 md:px-3 py-2">
+              <div className="w-7 h-7 md:w-8 md:h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-xs md:text-sm font-medium">
                   {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                 </span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user?.name || 'Usuário'}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email || ''}</p>
+              <div className="flex-1 min-w-0 hidden sm:block">
+                <p className="text-xs md:text-sm font-medium truncate">{user?.name || 'Usuário'}</p>
+                <p className="text-[10px] md:text-xs text-muted-foreground truncate">{user?.email || ''}</p>
               </div>
               <Button 
                 variant="ghost" 
                 size="icon"
                 onClick={handleLogout}
                 aria-label="Logout"
+                className="flex-shrink-0 h-8 w-8 md:h-10 md:w-10"
               >
-                <LogOut className="h-4 w-4 text-muted-foreground" />
+                <LogOut className="h-3.5 w-3.5 md:h-4 md:w-4 text-muted-foreground" />
               </Button>
             </div>
           </div>

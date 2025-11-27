@@ -218,28 +218,60 @@
   
   /* Container de página padronizado */
   .page-container {
-    @apply container mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6;
+    @apply container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-4 md:space-y-6;
   }
   
   /* Header de página padronizado */
   .page-header {
-    @apply flex flex-col gap-4 md:flex-row md:items-start md:justify-between;
-    @apply pb-6 border-b border-border;
+    @apply flex flex-col gap-3 md:gap-4 md:flex-row md:items-start md:justify-between;
+    @apply pb-4 md:pb-6 border-b border-border;
   }
   
   .page-title {
-    @apply text-3xl font-bold tracking-tight text-foreground break-words;
+    @apply text-2xl sm:text-3xl md:text-3xl font-bold tracking-tight text-foreground break-words;
     @apply leading-tight;
   }
   
   .page-description {
-    @apply text-muted-foreground mt-1.5 break-words;
+    @apply text-sm md:text-base text-muted-foreground mt-1.5 break-words;
     @apply leading-relaxed;
   }
   
   /* Grid responsivo padronizado */
   .grid-responsive {
-    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+    @apply grid grid-cols-1 gap-3 md:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+  
+  /* Cards responsivos */
+  .card-responsive {
+    @apply w-full p-3 md:p-4 lg:p-6;
+  }
+  
+  /* Tabelas responsivas - scroll horizontal em mobile */
+  .table-responsive {
+    @apply overflow-x-auto -mx-3 md:mx-0;
+  }
+  
+  .table-responsive table {
+    @apply min-w-full;
+  }
+  
+  /* Formulários responsivos */
+  .form-responsive {
+    @apply space-y-4 md:space-y-6;
+  }
+  
+  .form-field-responsive {
+    @apply w-full flex flex-col gap-2;
+  }
+  
+  /* Botões responsivos */
+  .btn-group-responsive {
+    @apply flex flex-col sm:flex-row gap-2 w-full sm:w-auto;
+  }
+  
+  .btn-responsive {
+    @apply w-full sm:w-auto;
   }
 }
 
@@ -296,7 +328,46 @@
 
 /* Responsive adjustments */
 .container {
-  @apply px-4 md:px-6 lg:px-8;
+  @apply px-3 sm:px-4 md:px-6 lg:px-8;
+}
+
+/* Melhorias para mobile */
+@media (max-width: 768px) {
+  /* Remover transições complexas em mobile para melhor performance */
+  * {
+    transition-duration: 0.2s !important;
+  }
+  
+  /* Garantir que modais ocupem tela inteira em mobile */
+  [role="dialog"] {
+    @apply max-w-full m-0 rounded-none;
+  }
+  
+  /* Melhorar legibilidade em telas pequenas */
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  /* Cards em mobile ocupam largura total */
+  .card-modern,
+  .dashboard-card {
+    @apply mx-0;
+  }
+}
+
+/* Prevenir zoom automático no iOS ao focar em inputs */
+@media (max-width: 640px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="date"],
+  input[type="tel"],
+  textarea,
+  select {
+    font-size: 16px !important; /* Previne zoom automático no iOS */
+  }
 }
 
 /* Animation classes */

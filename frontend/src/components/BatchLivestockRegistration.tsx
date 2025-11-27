@@ -233,14 +233,11 @@ Porco 1,Large White,20,suíno,2,120"
                           <Input
                             type="number"
                             min="1"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              updateLivestockItem(
-                                item.id,
-                                "quantity",
-                                parseInt(e.target.value) || 1
-                              )
-                            }
+                            value={item.quantity === null || item.quantity === undefined ? '' : item.quantity}
+                            onChange={(e) => {
+                              const val = e.target.value === '' ? '' : (isNaN(Number(e.target.value)) ? item.quantity : Number(e.target.value));
+                              updateLivestockItem(item.id, "quantity", val === '' ? 1 : val);
+                            }}
                           />
                         </TableCell>
                         <TableCell>

@@ -64,8 +64,15 @@ const FormField: React.FC<FormFieldProps> = ({
           <Input
             id={id}
             type={type}
-            value={value}
-            onChange={(e) => onChange?.(type === 'number' ? Number(e.target.value) : e.target.value)}
+            value={value === null || value === undefined ? '' : value}
+            onChange={(e) => {
+              if (type === 'number') {
+                const val = e.target.value === '' ? '' : (isNaN(Number(e.target.value)) ? value : Number(e.target.value));
+                onChange?.(val);
+              } else {
+                onChange?.(e.target.value);
+              }
+            }}
             placeholder={placeholder}
             required={required}
             className={error ? 'border-red-500' : ''}

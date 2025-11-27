@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import prisma from '../../../services/database.service.js';
+import prisma, { verifyPersistence } from '../../../services/database.service.js';
 import { authenticate } from '../../../middleware/auth.middleware.js';
 
 const router = Router();
@@ -140,29 +140,47 @@ router.post('/', async (req, res) => {
       }
     }
     
-    const item = await prisma.inventory.create({
-      data: {
-        itemName,
-        category,
-        quantity: parseInt(quantity),
-        unit,
-        cost: parseFloat(cost),
-        supplier,
-        purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
-        expiryDate: expiryDate ? new Date(expiryDate) : null,
-        farmId: finalFarmId,
-      },
-      include: {
-        farm: {
-          select: {
-            id: true,
-            name: true,
+    try {
+      // Criar em transação para garantir persistência
+      const item = await prisma.$transaction(async (tx) => {
+        const newItem = await tx.inventory.create({
+          data: {
+            itemName,
+            category,
+            quantity: parseInt(quantity),
+            unit,
+            cost: parseFloat(cost),
+            supplier,
+            purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
+            expiryDate: expiryDate ? new Date(expiryDate) : null,
+            farmId: finalFarmId,
           },
-        },
-      },
-    });
-    
-    res.status(201).json(item);
+          include: {
+            farm: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        });
+        
+        // Verificar persistência após criar
+        const persisted = await verifyPersistence(prisma.inventory, newItem.id);
+        if (!persisted) {
+          throw new Error('Item criado mas não persistido no banco de dados');
+        }
+        
+        return newItem;
+      });
+      
+      res.status(201).json(item);
+    } catch (dbError: any) {
+      console.error('❌ Database error during inventory create:', dbError);
+      console.error('Error code:', dbError.code);
+      console.error('Error meta:', dbError.meta);
+      throw dbError;
+    }
   } catch (error: any) {
     console.error('Create inventory item error:', error);
     res.status(400).json({ message: error.message || 'Bad request' });

@@ -10,6 +10,7 @@ import LivestockPage from "./pages/LivestockManagementPage";
 import InventoryPage from "./pages/InventoryManagementPage";
 import FinancePage from "./pages/FinancialManagementPage";
 import SettingsPage from "./pages/SettingsPage";
+import ReportsPage from "./pages/ReportsPage";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -84,7 +85,7 @@ const App = () => {
       <AppSettingsProvider>
         <AuthProvider>
           <CRMProvider>
-            <BrowserRouter>
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
               <TooltipProvider>
                 <RouterChangeHandler />
                 <Routes>
@@ -173,6 +174,14 @@ const App = () => {
                     element={
                       <ProtectedRoute>
                         <SettingsPage />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route 
+                    path="/relatorios" 
+                    element={
+                      <ProtectedRoute>
+                        <ReportsPage />
                       </ProtectedRoute>
                     } 
                   />

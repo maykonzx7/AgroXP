@@ -231,9 +231,12 @@ const Dashboard = () => {
     setCultivatedArea(parcelData.reduce((total, parcel) => total + (parcel.size || 0), 0));
     setParcelsCount(parcelData.length);
 
-    // Update yield stats (simplified)
-    const totalYield = cropData.reduce((total, crop) => total + (crop.yield || 0), 0);
-    const average = cropData.length > 0 ? totalYield / cropData.length : 0;
+    // Update yield stats (incluindo dados de colheitas)
+    const cropYieldTotal = cropData.reduce((total, crop) => total + (crop.yield || 0), 0);
+    const harvestYieldTotal = harvestDataFromCRM.reduce((total, harvest) => total + (harvest.yield || harvest.quantity || 0), 0);
+    const totalYield = cropYieldTotal + harvestYieldTotal;
+    const totalRecords = cropData.length + harvestDataFromCRM.length;
+    const average = totalRecords > 0 ? totalYield / totalRecords : 0;
     setAverageYield(parseFloat(average.toFixed(1)));
 
     // Update harvest data with actual harvest records from crop data
@@ -579,9 +582,14 @@ const Dashboard = () => {
   };
 
   // Sync data handler
-  const handleSyncData = () => {
-    syncDataAcrossCRM();
-    toast.success('Dados sincronizados com sucesso');
+  const handleSyncData = async () => {
+    try {
+      await syncDataAcrossCRM();
+      toast.success('Dados sincronizados com sucesso');
+    } catch (error) {
+      console.error('Erro ao sincronizar dados:', error);
+      toast.error('Erro ao sincronizar dados');
+    }
   };
 
   // Get priority color for tasks
@@ -628,14 +636,25 @@ const Dashboard = () => {
       .slice(0, 3)
       .map(([crop, count]) => ({ name: crop, count }));
 
-    // Calcular rendimento médio
-    const totalYield = cropData.reduce((total, crop) => {
+    // Calcular rendimento médio (usando dados de culturas e colheitas)
+    // Primeiro, somar rendimentos do módulo de culturas
+    const cropYieldTotal = cropData.reduce((total, crop) => {
       const yieldVal = crop.yield || crop.quantity || 0;
-      // Ensure yield is a number
       const numYield = typeof yieldVal === 'number' ? yieldVal : parseFloat(yieldVal) || 0;
       return total + numYield;
     }, 0);
-    const avgYield = cropData.length > 0 ? totalYield / cropData.length : 0;
+    
+    // Depois, somar rendimentos do módulo de colheitas (harvest)
+    const harvestYieldTotal = harvestDataFromCRM.reduce((total, harvest) => {
+      const yieldVal = harvest.yield || harvest.quantity || 0;
+      const numYield = typeof yieldVal === 'number' ? yieldVal : parseFloat(yieldVal) || 0;
+      return total + numYield;
+    }, 0);
+    
+    // Calcular média considerando ambos os módulos
+    const totalYield = cropYieldTotal + harvestYieldTotal;
+    const totalRecords = cropData.length + harvestDataFromCRM.length;
+    const avgYield = totalRecords > 0 ? totalYield / totalRecords : 0;
 
     return {
       totalArea: Number(totalArea).toFixed(2),
@@ -819,8 +838,11 @@ const Dashboard = () => {
                     <div className="flex items-center">
                       <input
                         type="number"
-                        value={harvest.quantity}
-                        onChange={(e) => handleUpdateHarvest(harvest.id, 'quantity', Number(e.target.value))}
+                        value={harvest.quantity === null || harvest.quantity === undefined ? '' : harvest.quantity}
+                        onChange={(e) => {
+                          const val = e.target.value === '' ? '' : (isNaN(Number(e.target.value)) ? harvest.quantity : Number(e.target.value));
+                          handleUpdateHarvest(harvest.id, 'quantity', val);
+                        }}
                         className="w-20 bg-transparent border-b border-transparent hover:border-muted-foreground focus:border-agri-primary focus:outline-none"
                       />
                       <select
@@ -1025,7 +1047,7 @@ const Dashboard = () => {
             <h3 className="font-semibold">Receita Mensal</h3>
             <div className="flex space-x-2">
               <button className="text-xs px-3 py-1.5 bg-muted rounded-md text-foreground">2025</button>
-              <button className="text-xs px-3 py-1.5 text-muted-foreground hover:bg-muted rounded-md">2024</button>
+              <button className="text-xs px-3 py-1.5 text-muted-foreground hover:bg-muted rounded-md">2025</button>
             </div>
           </div>
           <div className="h-80">

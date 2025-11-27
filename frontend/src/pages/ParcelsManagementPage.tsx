@@ -158,7 +158,7 @@ const ParcelsPage = () => {
   const [showAddParcelDialog, setShowAddParcelDialog] = useState(false);
   const [newParcelData, setNewParcelData] = useState({
     name: '',
-    size: 1,
+    size: '' as string | number, // Allow string for input, will be validated on save
     location: '',
     soilType: '',
     status: 'active'
@@ -176,15 +176,27 @@ const ParcelsPage = () => {
       return;
     }
     
+    // Validate size
+    const sizeValue = typeof newParcelData.size === 'string' 
+      ? parseFloat(newParcelData.size) 
+      : (typeof newParcelData.size === 'number' ? newParcelData.size : 0);
+    
+    if (isNaN(sizeValue) || sizeValue <= 0) {
+      toast.error('Por favor, informe um tamanho válido (maior que zero)');
+      return;
+    }
+    
     try {
       // Create a new parcel object with user-provided values
       const newParcel = {
-        name: newParcelData.name,
-        size: parseFloat(newParcelData.size) || 1,
+        name: newParcelData.name.trim(),
+        size: sizeValue,
         location: newParcelData.location || 'Localização não informada',
         soilType: newParcelData.soilType || 'Não especificado',
         status: newParcelData.status
       };
+      
+      console.log('Creating parcel with data:', newParcel);
       
       // Add the new parcel via CRM context (which will call the backend API)
       await addData('parcelles', newParcel);
@@ -192,7 +204,7 @@ const ParcelsPage = () => {
       // Reset form and close dialog
       setNewParcelData({
         name: '',
-        size: 1,
+        size: '',
         location: '',
         soilType: '',
         status: 'active'
@@ -501,35 +513,41 @@ const ParcelsPage = () => {
       <Dialog open={showAddParcelDialog} onOpenChange={setShowAddParcelDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Adicionar Nova Parcela</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Adicionar Nova Parcela</DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="name" className="text-right text-sm font-medium">
+          <div className="grid gap-4 py-2 sm:py-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
+              <label htmlFor="name" className="text-sm font-medium sm:text-right">
                 Nome
               </label>
               <Input
                 id="name"
                 value={newParcelData.name}
                 onChange={(e) => setNewParcelData({...newParcelData, name: e.target.value})}
-                className="col-span-3"
+                className="col-span-1 sm:col-span-3"
                 placeholder="Nome da parcela"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="size" className="text-right text-sm font-medium">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
+              <label htmlFor="size" className="text-sm font-medium sm:text-right">
                 Área (ha)
               </label>
               <Input
                 id="size"
                 type="number"
+                min="0.01"
+                step="0.01"
                 value={newParcelData.size}
-                onChange={(e) => setNewParcelData({...newParcelData, size: parseFloat(e.target.value) || 0})}
-                className="col-span-3"
-                placeholder="Área em hectares"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Keep as string while typing, will be validated on save
+                  setNewParcelData({...newParcelData, size: value === '' ? '' : value});
+                }}
+                className="col-span-1 sm:col-span-3"
+                placeholder="Área em hectares (ex: 10.5)"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-4 items-start sm:items-center gap-2 sm:gap-4">
               <label htmlFor="location" className="text-right text-sm font-medium">
                 Localização
               </label>

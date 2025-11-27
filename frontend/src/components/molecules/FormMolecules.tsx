@@ -69,7 +69,7 @@ export const TextareaWithLabelMolecule = ({
 interface SelectWithLabelProps {
   id: string;
   label: string;
-  value: string;
+  value: string | undefined;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
   placeholder?: string;
@@ -83,15 +83,18 @@ export const SelectWithLabelMolecule = ({
   options, 
   placeholder 
 }: SelectWithLabelProps) => {
+  // Filtrar opções com valores vazios (não permitidos pelo Radix UI Select)
+  const validOptions = options.filter(option => option.value !== '' && option.value != null);
+  
   return (
     <div className="space-y-2">
       <Label htmlFor={id}>{label}</Label>
-      <Select value={value} onValueChange={onChange}>
+      <Select value={value || undefined} onValueChange={onChange}>
         <SelectTrigger id={id}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {options.map((option) => (
+          {validOptions.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
             </SelectItem>
