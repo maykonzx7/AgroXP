@@ -1,0 +1,3 @@
+# Arquivos ignorados pelo Railway
+# O Railway deve usar Dockerfile de cada serviço, não o package.json raiz
+
