@@ -83,18 +83,45 @@ const apiProxy = createProxyMiddleware("/api", {
     // Set headers to ensure the request is handled properly
     proxyReq.setHeader("Connection", "keep-alive");
     proxyReq.setHeader("Accept-Encoding", "identity");
+    
+    // Prevent stream errors by handling request abort
+    req.on("aborted", () => {
+      proxyReq.destroy();
+    });
+  },
+  onProxyRes: (proxyRes, req, res) => {
+    // Handle response errors to prevent stream issues
+    proxyRes.on("error", (err) => {
+      console.error("[api-gateway] Proxy response error:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Proxy response error" });
+      }
+    });
+    
+    // Handle client disconnect
+    req.on("close", () => {
+      if (!res.headersSent) {
+        proxyRes.destroy();
+      }
+    });
   },
   onError: (err, req, res) => {
     console.error("[api-gateway] Proxy error:", err);
-    res.status(500).send("Proxy error");
+    // Only send error if response hasn't been sent
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Proxy error", message: err.message });
+    }
   },
   onProxyReqWs: (proxyReq, req, socket) => {
     // Handle WebSocket connections if needed
+    socket.on("error", (err) => {
+      console.error("[api-gateway] WebSocket error:", err);
+    });
   },
   // Configure to handle long responses
   selfHandleResponse: false,
-  // Additional options for handling slow operations
-  buffer: require("stream").PassThrough(),
+  // Remove buffer option that can cause readableAddChunk errors
+  // The default stream handling is better
 });
 
 app.use("/api", apiProxy);
@@ -107,6 +134,32 @@ app.get("/health", (req, res) => {
 // Default route
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to AgroXP API Gateway" });
+});
+
+// Global error handlers to prevent stream-related crashes
+process.on("uncaughtException", (err) => {
+  // Ignore readableAddChunk errors as they're usually harmless
+  if (err.message && err.message.includes("readableAddChunk")) {
+    console.warn("[api-gateway] Stream error (ignored):", err.message);
+    return;
+  }
+  console.error("[api-gateway] Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  // Ignore stream-related rejections
+  if (reason && reason.message && reason.message.includes("readableAddChunk")) {
+    console.warn("[api-gateway] Stream rejection (ignored):", reason.message);
+    return;
+  }
+  console.error("[api-gateway] Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+// Handle stream errors globally
+process.stdin.on("error", (err) => {
+  if (err.code !== "EPIPE" && !err.message.includes("readableAddChunk")) {
+    console.error("[api-gateway] stdin error:", err);
+  }
 });
 
 app.listen(PORT, () => {

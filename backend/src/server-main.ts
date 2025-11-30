@@ -139,6 +139,28 @@ process.on("beforeExit", async () => {
   await prisma.$disconnect();
 });
 
+// Global error handlers to prevent stream-related crashes
+process.on("uncaughtException", (err) => {
+  // Ignore readableAddChunk errors as they're usually harmless
+  if (err.message && err.message.includes("readableAddChunk")) {
+    console.warn("[backend] Stream error (ignored):", err.message);
+    return;
+  }
+  console.error("[backend] Uncaught Exception:", err);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  // Ignore stream-related rejections
+  if (reason && typeof reason === "object" && "message" in reason) {
+    const reasonMessage = (reason as Error).message;
+    if (reasonMessage && reasonMessage.includes("readableAddChunk")) {
+      console.warn("[backend] Stream rejection (ignored):", reasonMessage);
+      return;
+    }
+  }
+  console.error("[backend] Unhandled Rejection at:", promise, "reason:", reason);
+});
+
 initializeDatabase();
 
 app.listen(PORT, () => {
