@@ -283,3 +283,4 @@ echo "  • Gere um domínio para o frontend"
 echo "  • Atualize ALLOWED_ORIGINS no backend com a URL do frontend"
 echo ""
 
+
