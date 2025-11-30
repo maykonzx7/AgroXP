@@ -3,12 +3,12 @@ FROM node:18
 WORKDIR /app
 
 # Copiar arquivos de dependências primeiro (cache layer)
-COPY package*.json ./
+COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
 # Install build tools and dependencies
 RUN apt-get update && apt-get install -y python3 make g++ && \
-    npm ci --production=false && \
+    (npm ci --production=false || npm install --production=false) && \
     npm rebuild bcrypt --build-from-source && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 

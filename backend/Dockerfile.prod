@@ -4,11 +4,11 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Copiar arquivos de dependências
-COPY package*.json ./
+COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
 # Instalar dependências (incluindo dev para build)
-RUN npm ci && \
+RUN (npm ci || npm install) && \
     npx prisma generate
 
 # Copiar código fonte

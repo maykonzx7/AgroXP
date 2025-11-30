@@ -60,8 +60,10 @@ public/*.txt
 # Ignore local configs
 components.json
 
-# Ignore generated files
+# Ignore generated files (exceto package-lock.json que é necessário para builds)
 *.lock
+!package-lock.json
+!**/package-lock.json
 
 # Ignore backups
 *.old
@@ -72,8 +74,7 @@ components.json
 # Ignore system files
 *.orig
 
-# Ignore package manager files
-package-lock.json
+# Ignore package manager files (exceto package-lock.json)
 yarn.lock
 pnpm-lock.yaml
 
