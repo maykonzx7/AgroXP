@@ -37,7 +37,6 @@ const ReportsPage = () => {
 
   const handleExportReport = (reportType: string) => {
     // TODO: Implementar exportação de relatórios
-    console.log(`Exportando relatório: ${reportType}`);
   };
 
   const reportCards = [

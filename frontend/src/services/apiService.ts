@@ -18,24 +18,7 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const fullUrl = `${API_BASE_URL}${url}`;
   const requestBody = options.body ? JSON.parse(options.body as string) : null;
   
-  // Log request details in development (sem dados sensíveis)
-  if (process.env.NODE_ENV === 'development') {
-    // Remove dados sensíveis do log
-    const sanitizedBody = requestBody ? Object.keys(requestBody).reduce((acc: any, key) => {
-      const lowerKey = key.toLowerCase();
-      if (lowerKey.includes('password') || lowerKey.includes('token') || lowerKey.includes('secret')) {
-        acc[key] = '[REDACTED]';
-      } else {
-        acc[key] = requestBody[key];
-      }
-      return acc;
-    }, {}) : null;
-    
-    console.log(`[API Request] ${options.method || 'GET'} ${fullUrl}`, {
-      hasToken: !!token,
-      body: sanitizedBody,
-    });
-  }
+  // Logs removidos em produção para segurança
 
   const response = await fetch(fullUrl, {
     ...defaultOptions,
@@ -64,70 +47,34 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     
     if (response.status === 404 && isOptionalEndpoint) {
       // Para endpoints opcionais que retornam 404, retornar array vazio silenciosamente
-      // Isso evita logs de erro desnecessários quando não há dados
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`[API] Endpoint opcional sem dados: ${fullUrl} (404 - normal se não houver dados)`);
-      }
       return [];
     }
     
-    // Remove dados sensíveis do log de erro
-    const sanitizedDetails = json ? Object.keys(json).reduce((acc: any, key) => {
-      const lowerKey = key.toLowerCase();
-      if (lowerKey.includes('password') || lowerKey.includes('token') || lowerKey.includes('secret')) {
-        acc[key] = '[REDACTED]';
-      } else {
-        acc[key] = json[key];
-      }
-      return acc;
-    }, {}) : json;
-    
-    console.error(`❌ API Error [${response.status}]:`, {
-      url: fullUrl,
-      method: options.method || 'GET',
-      error: errorMessage,
-      details: sanitizedDetails,
-    });
+    // Log de erro sanitizado apenas em desenvolvimento
+    if (process.env.NODE_ENV === 'development') {
+      const sanitizedDetails = json ? Object.keys(json).reduce((acc: any, key) => {
+        const lowerKey = key.toLowerCase();
+        if (lowerKey.includes('password') || lowerKey.includes('token') || lowerKey.includes('secret')) {
+          acc[key] = '[REDACTED]';
+        } else {
+          acc[key] = json[key];
+        }
+        return acc;
+      }, {}) : json;
+      
+      console.error(`❌ API Error [${response.status}]:`, {
+        url: fullUrl,
+        method: options.method || 'GET',
+        error: errorMessage,
+        details: sanitizedDetails,
+      });
+    }
     throw new Error(errorMessage);
   }
 
   const responseData = await response.json();
   
-  // Log successful response in development (sem dados sensíveis)
-  if (process.env.NODE_ENV === 'development') {
-    // Remove dados sensíveis do log
-    const sanitizedData = responseData ? Object.keys(responseData).reduce((acc: any, key) => {
-      const lowerKey = key.toLowerCase();
-      if (lowerKey.includes('password') || lowerKey.includes('token') || lowerKey.includes('secret')) {
-        acc[key] = '[REDACTED]';
-      } else if (Array.isArray(responseData[key])) {
-        // Para arrays, limita tamanho e sanitiza
-        acc[key] = responseData[key].slice(0, 5).map((item: any) => {
-          if (typeof item === 'object') {
-            return Object.keys(item).reduce((itemAcc: any, itemKey) => {
-              const lowerItemKey = itemKey.toLowerCase();
-              if (lowerItemKey.includes('password') || lowerItemKey.includes('token') || lowerItemKey.includes('secret')) {
-                itemAcc[itemKey] = '[REDACTED]';
-              } else {
-                itemAcc[itemKey] = item[itemKey];
-              }
-              return itemAcc;
-            }, {});
-          }
-          return item;
-        });
-      } else {
-        acc[key] = responseData[key];
-      }
-      return acc;
-    }, {}) : null;
-    
-    console.log(`✅ API Success [${response.status}]:`, {
-      url: fullUrl,
-      method: options.method || 'GET',
-      data: sanitizedData,
-    });
-  }
+  // Logs removidos em produção para segurança
 
   return responseData;
 };

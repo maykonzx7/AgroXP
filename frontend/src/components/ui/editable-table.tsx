@@ -109,11 +109,6 @@ export const EditableTable = ({
       const missingFields = fieldsToValidate.filter(field => {
         const value = currentRow[field];
         
-        // Debug: log para entender o que está acontecendo
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`Validando campo ${field}:`, { value, type: typeof value, isEmpty: !value, currentRow });
-        }
-        
         // Verificar se o campo está vazio
         if (value === null || value === undefined) return true;
         

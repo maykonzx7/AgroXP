@@ -44,7 +44,6 @@ export const useCRMContext = (): CRMContextType => {
   // Fetch data from backend
   const fetchData = useCallback(async () => {
     setIsRefreshing(true);
-    console.log('[CRM] Iniciando sincronização de dados...');
 
     try {
       // Fetch all module data with Promise.allSettled to handle potential errors
@@ -61,14 +60,6 @@ export const useCRMContext = (): CRMContextType => {
         financeApi.getAll(),
         harvestApi.getAll(),
       ]);
-      
-      console.log('[CRM] Dados recebidos do backend:', {
-        parcels: results[0].status,
-        crops: results[1].status,
-        livestock: results[2].status,
-        inventory: results[8].status,
-        finances: results[9].status,
-      });
 
       // Process results individually to handle possible errors
       const [
@@ -101,13 +92,6 @@ export const useCRMContext = (): CRMContextType => {
         : [];
 
       // Update state with real data
-      console.log('[CRM] Atualizando estado com dados:', {
-        parcels: parcels.length,
-        crops: crops.length,
-        livestock: livestock.length,
-        inventory: inventory.length,
-        finances: finances.length,
-      });
       
       setModuleData({
         parcelles: {
@@ -245,7 +229,6 @@ export const useCRMContext = (): CRMContextType => {
     } finally {
       setIsRefreshing(false);
       setLastSync(new Date());
-      console.log('[CRM] Sincronização concluída');
     }
   }, []);
 

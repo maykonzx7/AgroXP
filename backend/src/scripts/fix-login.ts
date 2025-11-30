@@ -134,3 +134,5 @@ main()
     console.error("❌ Erro fatal:", e);
     process.exit(1);
   });
+
+

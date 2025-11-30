@@ -204,7 +204,6 @@ const FinancialManagementPage = () => {
       }
       // Then reload from API
       const data = await financeApi.getAll();
-      console.log('Reloaded financial data:', data);
       setFinancialData(data || []);
       toast.success('Dados atualizados com sucesso!');
     } catch (err: any) {

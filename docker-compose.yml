@@ -39,6 +39,8 @@ services:
     container_name: agroxp-backend
     env_file:
       - ./backend/.env
+    environment:
+      - NODE_ENV=production
     depends_on:
       postgres:
         condition: service_healthy  # Wait for PostgreSQL to be ready
@@ -59,6 +61,8 @@ services:
     container_name: agroxp-api-gateway
     env_file:
       - ./api-gateway/.env
+    environment:
+      - NODE_ENV=production
     depends_on:
       - backend
     ports:

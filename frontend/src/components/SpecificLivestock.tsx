@@ -108,27 +108,8 @@ const SpecificLivestock = () => {
       
       livestockUpdateData.description = updatedDescription;
       
-      console.log('[Register Death] Updating livestock with data:', {
-        id: deathData.animalId,
-        quantity: newQuantity,
-        status: newStatus,
-        deathHistory: updatedDeathHistory,
-        description: updatedDescription.substring(0, 100) + '...'
-      });
-      
       // Update in backend
       const updatedLivestock = await updateData('livestock', deathData.animalId.toString(), livestockUpdateData);
-      
-      console.log('[Register Death] Update completed successfully');
-      console.log('[Register Death] Updated livestock from backend:', {
-        id: updatedLivestock?.id,
-        quantity: updatedLivestock?.quantity,
-        status: updatedLivestock?.status,
-        hasDescription: !!updatedLivestock?.description,
-        hasDeathHistory: !!updatedLivestock?.deathHistory,
-        deathHistoryType: typeof updatedLivestock?.deathHistory,
-        deathHistoryPreview: updatedLivestock?.deathHistory ? JSON.stringify(updatedLivestock.deathHistory).substring(0, 200) : null
-      });
       
       // Also update local state for immediate UI feedback
       // Use the data returned from backend to ensure consistency

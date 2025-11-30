@@ -196,8 +196,6 @@ const ParcelsPage = () => {
         status: newParcelData.status
       };
       
-      console.log('Creating parcel with data:', newParcel);
-      
       // Add the new parcel via CRM context (which will call the backend API)
       await addData('parcelles', newParcel);
       

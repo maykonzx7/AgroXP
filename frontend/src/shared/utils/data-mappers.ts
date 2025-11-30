@@ -122,14 +122,7 @@ export const mapParcelFromBackend = (data: any): FrontendParcelData => {
   const backendStatus = data.status?.toUpperCase() || 'ACTIVE';
   const frontendStatus = statusMap[backendStatus] || backendStatus.toLowerCase() || 'active';
   
-  // Log para debug
-  if (process.env.NODE_ENV === 'development' && data.status) {
-    console.log('[mapParcelFromBackend] Status mapping:', {
-      original: data.status,
-      backend: backendStatus,
-      frontend: frontendStatus
-    });
-  }
+  // Log removido para segurança em produção
   
   return {
     id: data.id,

@@ -11,6 +11,7 @@ bun.lockb
 
 # Logs
 *.log
+*.log.*
 
 # OS
 .DS_Store
@@ -25,6 +26,7 @@ Thumbs.db
 # Env
 .env
 .env.*
+!.env.example
 
 # Misc
 *.tmp
@@ -44,6 +46,11 @@ coverage/
 
 # Test
 /coverage/
+**/__tests__/
+**/*.test.*
+**/*.spec.*
+**/test-*.ts
+**/TestApp.*
 
 # Public
 public/*.svg
@@ -59,6 +66,8 @@ components.json
 # Ignore backups
 *.old
 *.backup
+**/*.backup
+**/migrations.backup/
 
 # Ignore system files
 *.orig
@@ -71,4 +80,16 @@ pnpm-lock.yaml
 # Ignore output
 out/
 
+# Documentation (exceto README principal)
 *.md
+!README.md
+docs/
+
+# Debug files
+debug-*.ts
+debug-*.js
+
+# Development scripts (opcional - descomente se não quiser versionar)
+# start-dev.sh
+# stop-dev.sh
+# **/start-dev.sh
