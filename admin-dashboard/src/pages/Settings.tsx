@@ -1,8 +1,8 @@
 // src/pages/Settings.tsx
 import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
   User, 
@@ -155,7 +155,7 @@ const Settings = () => {
 
             <div className="flex justify-end pt-4">
               <Button 
-                variant="primary" 
+                variant="default" 
                 onClick={() => handleSave('profile')}
               >
                 Salvar Alterações
@@ -216,7 +216,7 @@ const Settings = () => {
 
             <div className="flex justify-end pt-4">
               <Button 
-                variant="primary" 
+                variant="default" 
                 onClick={() => handleSave('preferences')}
               >
                 Salvar Aparência
@@ -272,7 +272,7 @@ const Settings = () => {
 
             <div className="flex justify-end pt-4">
               <Button 
-                variant="primary" 
+                variant="default" 
                 onClick={() => handleSave('preferences')}
               >
                 Salvar Configurações
@@ -326,7 +326,7 @@ const Settings = () => {
 
             <div className="flex justify-end pt-4">
               <Button 
-                variant="primary" 
+                variant="default" 
                 onClick={() => handleSave('security')}
               >
                 Alterar Senha

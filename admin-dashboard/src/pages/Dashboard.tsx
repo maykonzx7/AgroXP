@@ -1,7 +1,7 @@
 // src/pages/Dashboard.tsx (corrected version)
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card';
 import useApi from '../hooks/useApi';
 import { dashboardService } from '../services/dashboardService';
 import {

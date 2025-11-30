@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/button';
 import {
   LayoutDashboard,
   Users,

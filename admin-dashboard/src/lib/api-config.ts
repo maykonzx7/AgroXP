@@ -12,16 +12,16 @@ axios.defaults.timeout = config.REQUEST_TIMEOUT;
 
 // Interceptor para adicionar o token de autenticação automaticamente
 axios.interceptors.request.use(
-  (config) => {
+  (requestConfig) => {
     const token = localStorage.getItem(config.TOKEN_KEY);
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (token && requestConfig.headers) {
+      requestConfig.headers.Authorization = `Bearer ${token}`;
     }
     // Certificar que as requisições usam caminhos relativos para o proxy
-    if (config.url && !config.url.startsWith('/')) {
-      config.url = `/${config.url}`;
+    if (requestConfig.url && !requestConfig.url.startsWith('/')) {
+      requestConfig.url = `/${requestConfig.url}`;
     }
-    return config;
+    return requestConfig;
   },
   (error) => {
     return Promise.reject(error);
