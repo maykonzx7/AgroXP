@@ -117,7 +117,7 @@ router.get('/:id', async (req, res) => {
     }
     
     // Multi-tenant check: verify crop belongs to user's farm
-    if (crop.field.farm.ownerId !== userId) {
+    if (!crop.field || crop.field.farm.ownerId !== userId) {
       return res.status(403).json({ message: 'Access denied: Crop does not belong to your farms' });
     }
     
@@ -241,7 +241,7 @@ router.put('/:id', async (req, res) => {
     }
     
     // Multi-tenant check: verify crop belongs to user's farm
-    if (existingCrop.field.farm.ownerId !== userId) {
+    if (!existingCrop.field || existingCrop.field.farm.ownerId !== userId) {
       return res.status(403).json({ message: 'Access denied: Crop does not belong to your farms' });
     }
     
@@ -323,7 +323,7 @@ router.delete('/:id', async (req, res) => {
     }
     
     // Multi-tenant check: verify crop belongs to user's farm
-    if (crop.field.farm.ownerId !== userId) {
+    if (!crop.field || crop.field.farm.ownerId !== userId) {
       return res.status(403).json({ message: 'Access denied: Crop does not belong to your farms' });
     }
     
