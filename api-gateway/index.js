@@ -9,8 +9,12 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 // CORS configuration - allow specific origins
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
-  : ["http://localhost:5173", "http://localhost:3000", "http://localhost:3001"];
+  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
+  : [];
+
+// Fallback para desenvolvimento
+const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+const isDevelopment = process.env.NODE_ENV !== "production";
 
 app.use(
   cors({
@@ -18,14 +22,25 @@ app.use(
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
 
-      if (
-        allowedOrigins.indexOf(origin) !== -1 ||
-        origin.includes("localhost")
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+      // Em desenvolvimento, permitir localhost
+      if (isDevelopment) {
+        if (origin.includes("localhost") || origin.includes("127.0.0.1")) {
+          return callback(null, true);
+        }
       }
+
+      // Em produção, verificar apenas origens permitidas
+      if (allowedOrigins.length > 0) {
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+      } else if (origin === frontendUrl) {
+        // Fallback para FRONTEND_URL se ALLOWED_ORIGINS não estiver configurado
+        return callback(null, true);
+      }
+
+      console.warn(`[CORS] Origin not allowed: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -53,7 +68,7 @@ const apiProxy = createProxyMiddleware("/api", {
   changeOrigin: true,
   timeout: 600000, // 600 seconds timeout (10 minutes)
   proxyTimeout: 600000, // 600 seconds proxy timeout
-  secure: false, // Set to true if using HTTPS
+  secure: process.env.NODE_ENV === "production", // Use HTTPS in production
   // Additional settings to prevent timeout issues
   pathRewrite: {
     "^/api": "/api",

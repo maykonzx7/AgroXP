@@ -152,6 +152,35 @@ O sistema inclui um sistema de backup local automático:
 
 Por padrão, os backups são armazenados em `/home/maycolaz/AgroXP/backups` e mantém histórico dos últimos 30 dias.
 
+## Deploy em Produção
+
+Para fazer deploy em produção, consulte os guias detalhados:
+
+- **[Guia de Deploy](docs/GUIA_DEPLOY.md)** - Instruções passo-a-passo para deploy
+- **[Checklist de Deploy](docs/CHECKLIST_DEPLOY.md)** - Checklist completo de preparação
+- **[Configuração SSL/HTTPS](docs/CONFIGURAR_SSL.md)** - Como configurar certificados SSL
+- **[Variáveis de Ambiente](docs/ENV_EXAMPLES.md)** - Templates de configuração
+
+### Deploy Rápido
+
+```bash
+# 1. Configurar variáveis de ambiente
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+cp api-gateway/.env.example api-gateway/.env
+
+# 2. Editar arquivos .env com valores de produção
+
+# 3. Executar deploy
+./scripts/deploy.sh
+```
+
+**⚠️ IMPORTANTE:** Antes do deploy em produção, configure:
+- Senhas seguras para PostgreSQL
+- Secrets únicos para JWT
+- URLs de produção no CORS
+- Certificados SSL/HTTPS
+
 ## Variáveis de Ambiente
 
 Cada módulo do projeto tem seu próprio arquivo `.env` com variáveis específicas:

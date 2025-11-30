@@ -3,15 +3,15 @@ services:
     image: postgres:15
     container_name: agroxp-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-agroxp}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-agroxp}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -19,19 +19,9 @@ services:
     networks:
       - agro-network
 
-  adminer:
-    image: adminer
-    container_name: agroxp-adminer
-    ports:
-      - 8080:8080
-    depends_on:
-      - postgres
-    environment:
-      ADMINER_DEFAULT_DB_HOST: postgres
-      ADMINER_DEFAULT_DB_NAME: agroxp
-    networks:
-      - agro-network
-    restart: unless-stopped
+  # Adminer removido de produção por segurança
+  # Use apenas em desenvolvimento (docker-compose.dev.yml)
+  # Para acessar o banco em produção, use ferramentas seguras com autenticação adequada
 
   backend:
     build:

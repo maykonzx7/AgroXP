@@ -1,0 +1,53 @@
+# Dockerfile otimizado para produção
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Copiar arquivos de dependências
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Instalar dependências (incluindo dev para build)
+RUN npm ci && \
+    npx prisma generate
+
+# Copiar código fonte
+COPY . .
+
+# Stage 2: Runtime
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Instalar apenas runtime dependencies e build tools necessários
+RUN apk add --no-cache python3 make g++ && \
+    npm install -g npm@latest
+
+# Copiar apenas arquivos necessários do builder
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/tsconfig.json ./
+
+# Gerar Prisma Client novamente (necessário para runtime)
+RUN npx prisma generate
+
+# Criar script de inicialização que executa migrations
+RUN echo '#!/bin/sh\n\
+set -e\n\
+echo "Running database migrations..."\n\
+npx prisma migrate deploy || echo "Migration failed or already applied"\n\
+echo "Starting server..."\n\
+exec npm start\n\
+' > /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
+
+# Limpar cache e build tools após instalação
+RUN apk del python3 make g++ && \
+    npm cache clean --force
+
+EXPOSE 3001
+
+# Usar script de entrada que executa migrations antes de iniciar
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
+
