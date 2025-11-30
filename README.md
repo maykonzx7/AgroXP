@@ -22,17 +22,19 @@ O projeto está dividido em três partes principais:
 ### Com Docker (Recomendado)
 
 1. **Instale Docker e Docker Compose** se ainda não tiver:
+
    - Docker: https://docs.docker.com/get-docker/
    - Docker Compose: https://docs.docker.com/compose/install/
 
 2. **Copie os arquivos de exemplo para suas configurações**:
+
    ```bash
    # Para o frontend
    cd frontend && cp .env.example .env && cd ..
-   
+
    # Para o backend
    cd backend && cp .env.example .env && cd ..
-   
+
    # Para o api-gateway
    cd api-gateway && cp .env.example .env && cd ..
    ```
@@ -40,6 +42,7 @@ O projeto está dividido em três partes principais:
 3. **Atualize as variáveis de ambiente** nos arquivos `.env` conforme necessário.
 
 4. **Execute o sistema completo**:
+
    ```bash
    docker-compose up --build
    ```
@@ -53,23 +56,26 @@ O projeto está dividido em três partes principais:
 ### Sem Docker
 
 1. **Pré-requisitos**:
+
    - Node.js (v18 ou superior)
    - PostgreSQL (v15 ou superior)
    - npm ou yarn
 
 2. **Configure o banco de dados PostgreSQL**:
+
    - Instale e inicie o PostgreSQL
    - Crie um banco de dados chamado `agroxp`
    - Configure o usuário e senha conforme as variáveis de ambiente
 
 3. **Copie os arquivos de exemplo para suas configurações**:
+
    ```bash
    # Para o frontend
    cd frontend && cp .env.example .env && cd ..
-   
+
    # Para o backend
    cd backend && cp .env.example .env && cd ..
-   
+
    # Para o api-gateway
    cd api-gateway && cp .env.example .env && cd ..
    ```
@@ -79,34 +85,41 @@ O projeto está dividido em três partes principais:
 5. **Inicie os serviços na seguinte ordem**:
 
    **Backend**:
+
    ```bash
    cd backend
    npm install
    npm run dev  # ou npm start para produção
    ```
+
    O backend estará disponível em http://localhost:3001
 
    **API Gateway**:
+
    ```bash
    cd api-gateway
    npm install
    npm run dev  # ou npm start para produção
    ```
+
    O gateway estará disponível em http://localhost:3000
 
    **Frontend**:
+
    ```bash
    cd frontend
    npm install
    npm run dev
    ```
+
    O frontend estará disponível em http://localhost:5173
 
 6. **Para executar testes** (se disponíveis):
+
    ```bash
    # No backend
    cd backend && npm test
-   
+
    # No frontend
    cd frontend && npm test
    ```
@@ -181,14 +194,16 @@ Por padrão, os backups são armazenados em `/home/maycolaz/AgroXP/backups` e ma
 
 ### 🛠️ Scripts Disponíveis
 
-| Script | Descrição |
-|--------|-----------|
-| `./scripts/prepare-deploy.sh` | Prepara ambiente (cria .env, gera secrets) |
-| `./scripts/validate-env.sh` | Valida variáveis de ambiente |
-| `./scripts/deploy.sh` | Executa deploy completo |
-| `./scripts/backup-local.sh` | Faz backup do banco |
+| Script                                 | Descrição                                     |
+| -------------------------------------- | --------------------------------------------- |
+| `./scripts/prepare-deploy.sh`          | Prepara ambiente (cria .env, gera secrets)    |
+| `./scripts/validate-env.sh`            | Valida variáveis de ambiente                  |
+| `./scripts/deploy.sh`                  | Executa deploy completo (local/Docker)        |
+| `./scripts/deploy-frontend-railway.sh` | 🤖 Deploy automatizado do frontend no Railway |
+| `./scripts/backup-local.sh`            | Faz backup do banco                           |
 
 **⚠️ IMPORTANTE:** Antes do deploy em produção, configure:
+
 - Senhas seguras para PostgreSQL
 - Secrets únicos para JWT (gerados automaticamente pelo `prepare-deploy.sh`)
 - URLs de produção no CORS
@@ -199,22 +214,29 @@ Consulte **[DEPLOY_README.md](DEPLOY_README.md)** para informações completas.
 ### 🆓 Hospedagem Gratuita
 
 Quer hospedar de graça? Consulte:
+
 - **[Hospedagem Gratuita](docs/HOSPEDAGEM_GRATIS.md)** - Melhores opções gratuitas
 - **[Deploy no Railway](docs/DEPLOY_RAILWAY.md)** - Guia passo-a-passo (recomendado)
+- **[Deploy do Frontend no Railway](docs/DEPLOY_FRONTEND_RAILWAY.md)** 🎨 - Guia completo e detalhado do frontend
+- **[Deploy Automatizado do Frontend](docs/DEPLOY_FRONTEND_AUTOMATICO.md)** 🤖 - Automação completa do deploy
 
 ## Variáveis de Ambiente
 
 Cada módulo do projeto tem seu próprio arquivo `.env` com variáveis específicas:
 
 ### Frontend
+
 Localizado em `frontend/.env`:
+
 ```
 VITE_API_BASE_URL=http://localhost:3000/api
 VITE_NODE_ENV=development
 ```
 
 ### Backend
+
 Localizado em `backend/.env`:
+
 ```
 PORT=3001
 NODE_ENV=development
@@ -231,7 +253,9 @@ REFRESH_TOKEN_EXPIRES_IN=7d
 ```
 
 ### API Gateway
+
 Localizado em `api-gateway/.env`:
+
 ```
 PORT=3000
 NODE_ENV=development
@@ -247,17 +271,17 @@ LOG_LEVEL=info
 Para facilitar o desenvolvimento, você pode adicionar um serviço Adminer ao docker-compose.yml para gerenciar o banco de dados:
 
 ```yaml
-  adminer:
-    image: adminer
-    ports:
-      - 8080:8080
-    depends_on:
-      - postgres
-    environment:
-      ADMINER_DEFAULT_DB_HOST: postgres
-      ADMINER_DEFAULT_DB_NAME: agroxp
-    networks:
-      - agro-network
+adminer:
+  image: adminer
+  ports:
+    - 8080:8080
+  depends_on:
+    - postgres
+  environment:
+    ADMINER_DEFAULT_DB_HOST: postgres
+    ADMINER_DEFAULT_DB_NAME: agroxp
+  networks:
+    - agro-network
 ```
 
 ## Troubleshooting

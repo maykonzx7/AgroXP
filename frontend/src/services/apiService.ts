@@ -1,7 +1,7 @@
 // apiService.ts
 // Avoid calling React hooks from non-component modules. Read token from localStorage.
-// Using direct backend URL to bypass gateway timeout issues
-const API_BASE_URL = "http://localhost:3001/api";
+// Usa variável de ambiente VITE_API_BASE_URL configurada no Railway
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
 
 // Generic fetch function with authentication
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {

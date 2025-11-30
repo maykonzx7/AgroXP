@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import sequelize from "./config/database.config.js";
-import parcelsRouter from "./modules/parcels/routes/parcels.routes.js";
+import sequelize from "./modules/config/database.config.js";
+// parcels.routes.js não existe, usando apenas parcel.routes.js
 import parcelRouter from "./modules/parcels/routes/parcel.routes.js";
 import cropsRouter from "./modules/crops/routes/crops.routes.js";
 import inventoryRouter from "./modules/inventory/routes/inventory.routes.js";
@@ -48,7 +48,6 @@ app.get("/api/health", (req, res) => {
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/farms", farmsRouter);
-app.use("/api/parcels", parcelsRouter);
 app.use("/api/parcels", parcelRouter);
 app.use("/api/crops", cropsRouter);
 app.use("/api/inventory", inventoryRouter);

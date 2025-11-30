@@ -6,6 +6,9 @@ import React, {
   ReactNode,
 } from "react";
 
+// URL base da API - usa variável de ambiente VITE_API_BASE_URL configurada no Railway
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
+
 // Types for authentication
 interface User {
   id: number;
@@ -78,8 +81,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
 
-      // Make API call to backend - using direct URL to bypass proxy issues
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      // Make API call to backend
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -144,8 +147,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
 
-      // Make API call to backend - using direct URL to bypass proxy issues
-      const response = await fetch('http://localhost:3001/api/auth/register', {
+      // Make API call to backend
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
