@@ -20,39 +20,44 @@ RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma gene
 COPY . .
 
 # Criar script de inicialização que executa migrations
-RUN echo '#!/bin/sh\n\
-set -e\n\
-echo "Checking DATABASE_URL..."\n\
-if [ -z "$DATABASE_URL" ]; then\n\
-  echo "================================================"\n\
-  echo "ERROR: DATABASE_URL environment variable is not set!"\n\
-  echo "================================================"\n\
-  echo ""\n\
-  echo "To fix this, configure DATABASE_URL in Railway:"\n\
-  echo "1. Go to your backend service in Railway dashboard"\n\
-  echo "2. Click on \"Variables\" tab"\n\
-  echo "3. Add new variable:"\n\
-  echo "   Name: DATABASE_URL"\n\
-  echo "   Value: ${{Postgres.DATABASE_URL}}"\n\
-  echo ""\n\
-  echo "⚠️  IMPORTANT: Replace \"Postgres\" with your actual PostgreSQL service name!"\n\
-  echo "   Common names: Postgres, PostgreSQL, postgres"\n\
-  echo "   The name is case-sensitive!"\n\
-  echo ""\n\
-  echo "To find your PostgreSQL service name:"\n\
-  echo "1. Go to Railway dashboard"\n\
-  echo "2. Look at your services list"\n\
-  echo "3. Find the PostgreSQL service and note its exact name"\n\
-  echo "4. Use that name in: ${{YourServiceName.DATABASE_URL}}"\n\
-  echo "================================================"\n\
-  exit 1\n\
-fi\n\
-echo "✅ DATABASE_URL is configured (hidden for security)"\n\
-echo "Running database migrations..."\n\
-npx prisma migrate deploy || echo "Migration failed or already applied"\n\
-echo "Starting server..."\n\
-exec npm start\n\
-' > /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
+RUN cat > /app/docker-entrypoint.sh << 'EOF'
+#!/bin/sh
+set -e
+echo "Checking DATABASE_URL..."
+if [ -z "$DATABASE_URL" ]; then
+  echo "================================================"
+  echo "ERROR: DATABASE_URL environment variable is not set!"
+  echo "================================================"
+  echo ""
+  echo "To fix this, configure DATABASE_URL in Railway:"
+  echo "1. Go to your backend service in Railway dashboard"
+  echo "2. Click on 'Variables' tab"
+  echo "3. Add new variable:"
+  echo "   Name: DATABASE_URL"
+  echo "   Value: Use Railway service reference format"
+  echo "   Examples (try these in order):"
+  echo "   1. Postgres.DATABASE_URL"
+  echo "   2. PostgreSQL.DATABASE_URL"
+  echo "   3. postgres.DATABASE_URL"
+  echo ""
+  echo "   Note: Wrap with dollar sign and double curly braces"
+  echo "   Example format: dollar-sign + double-open-brace + ServiceName + .DATABASE_URL + double-close-brace"
+  echo ""
+  echo "⚠️  IMPORTANT: The service name is case-sensitive!"
+  echo "   To find your PostgreSQL service name:"
+  echo "   1. Go to Railway dashboard"
+  echo "   2. Look at your services list"
+  echo "   3. Find the PostgreSQL service and note its exact name"
+  echo "================================================"
+  exit 1
+fi
+echo "✅ DATABASE_URL is configured (hidden for security)"
+echo "Running database migrations..."
+npx prisma migrate deploy || echo "Migration failed or already applied"
+echo "Starting server..."
+exec npm start
+EOF
+RUN chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 3001
 
