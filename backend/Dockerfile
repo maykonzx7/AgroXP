@@ -24,11 +24,30 @@ RUN echo '#!/bin/sh\n\
 set -e\n\
 echo "Checking DATABASE_URL..."\n\
 if [ -z "$DATABASE_URL" ]; then\n\
+  echo "================================================"\n\
   echo "ERROR: DATABASE_URL environment variable is not set!"\n\
-  echo "Please configure DATABASE_URL in Railway variables."\n\
+  echo "================================================"\n\
+  echo ""\n\
+  echo "To fix this, configure DATABASE_URL in Railway:"\n\
+  echo "1. Go to your backend service in Railway dashboard"\n\
+  echo "2. Click on \"Variables\" tab"\n\
+  echo "3. Add new variable:"\n\
+  echo "   Name: DATABASE_URL"\n\
+  echo "   Value: ${{Postgres.DATABASE_URL}}"\n\
+  echo ""\n\
+  echo "⚠️  IMPORTANT: Replace \"Postgres\" with your actual PostgreSQL service name!"\n\
+  echo "   Common names: Postgres, PostgreSQL, postgres"\n\
+  echo "   The name is case-sensitive!"\n\
+  echo ""\n\
+  echo "To find your PostgreSQL service name:"\n\
+  echo "1. Go to Railway dashboard"\n\
+  echo "2. Look at your services list"\n\
+  echo "3. Find the PostgreSQL service and note its exact name"\n\
+  echo "4. Use that name in: ${{YourServiceName.DATABASE_URL}}"\n\
+  echo "================================================"\n\
   exit 1\n\
 fi\n\
-echo "DATABASE_URL is configured (hidden for security)"\n\
+echo "✅ DATABASE_URL is configured (hidden for security)"\n\
 echo "Running database migrations..."\n\
 npx prisma migrate deploy || echo "Migration failed or already applied"\n\
 echo "Starting server..."\n\
