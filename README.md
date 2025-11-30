@@ -154,32 +154,53 @@ Por padrão, os backups são armazenados em `/home/maycolaz/AgroXP/backups` e ma
 
 ## Deploy em Produção
 
-Para fazer deploy em produção, consulte os guias detalhados:
+✅ **Sistema 100% pronto para deploy!**
 
-- **[Guia de Deploy](docs/GUIA_DEPLOY.md)** - Instruções passo-a-passo para deploy
-- **[Checklist de Deploy](docs/CHECKLIST_DEPLOY.md)** - Checklist completo de preparação
-- **[Configuração SSL/HTTPS](docs/CONFIGURAR_SSL.md)** - Como configurar certificados SSL
-- **[Variáveis de Ambiente](docs/ENV_EXAMPLES.md)** - Templates de configuração
-
-### Deploy Rápido
+### 🚀 Deploy Rápido (3 Passos)
 
 ```bash
-# 1. Configurar variáveis de ambiente
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-cp api-gateway/.env.example api-gateway/.env
+# 1. Preparar ambiente (cria .env e gera secrets)
+./scripts/prepare-deploy.sh
 
 # 2. Editar arquivos .env com valores de produção
+# (backend/.env, frontend/.env, api-gateway/.env)
 
-# 3. Executar deploy
+# 3. Validar e fazer deploy
+./scripts/validate-env.sh
 ./scripts/deploy.sh
 ```
 
+### 📚 Documentação Completa
+
+- **[Quick Start](docs/QUICK_START_DEPLOY.md)** ⚡ - Deploy em 3 passos
+- **[Guia Completo](docs/GUIA_DEPLOY.md)** 📖 - Instruções detalhadas
+- **[Checklist](docs/CHECKLIST_DEPLOY.md)** ✅ - Checklist de preparação
+- **[Configuração SSL](docs/CONFIGURAR_SSL.md)** 🔒 - Como configurar HTTPS
+- **[Variáveis de Ambiente](docs/ENV_EXAMPLES.md)** ⚙️ - Templates e exemplos
+- **[Resumo de Alterações](docs/RESUMO_ALTERACOES_DEPLOY.md)** 📝 - O que foi feito
+
+### 🛠️ Scripts Disponíveis
+
+| Script | Descrição |
+|--------|-----------|
+| `./scripts/prepare-deploy.sh` | Prepara ambiente (cria .env, gera secrets) |
+| `./scripts/validate-env.sh` | Valida variáveis de ambiente |
+| `./scripts/deploy.sh` | Executa deploy completo |
+| `./scripts/backup-local.sh` | Faz backup do banco |
+
 **⚠️ IMPORTANTE:** Antes do deploy em produção, configure:
 - Senhas seguras para PostgreSQL
-- Secrets únicos para JWT
+- Secrets únicos para JWT (gerados automaticamente pelo `prepare-deploy.sh`)
 - URLs de produção no CORS
-- Certificados SSL/HTTPS
+- Certificados SSL/HTTPS (recomendado)
+
+Consulte **[DEPLOY_README.md](DEPLOY_README.md)** para informações completas.
+
+### 🆓 Hospedagem Gratuita
+
+Quer hospedar de graça? Consulte:
+- **[Hospedagem Gratuita](docs/HOSPEDAGEM_GRATIS.md)** - Melhores opções gratuitas
+- **[Deploy no Railway](docs/DEPLOY_RAILWAY.md)** - Guia passo-a-passo (recomendado)
 
 ## Variáveis de Ambiente
 

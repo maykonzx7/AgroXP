@@ -1,0 +1,16 @@
+# Arquivo de marcação - Sistema pronto para deploy
+# Criado em: $(date)
+# 
+# Este arquivo indica que o sistema foi preparado para deploy em produção.
+# 
+# Para fazer deploy:
+#   1. Configure os arquivos .env com valores de produção
+#   2. Execute: ./scripts/prepare-deploy.sh (se ainda não executou)
+#   3. Execute: ./scripts/validate-env.sh (para validar)
+#   4. Execute: ./scripts/deploy.sh (para fazer deploy)
+#
+# Documentação:
+#   - docs/GUIA_DEPLOY.md - Guia completo de deploy
+#   - docs/CHECKLIST_DEPLOY.md - Checklist de preparação
+#   - docs/CONFIGURAR_SSL.md - Configuração SSL/HTTPS
+
